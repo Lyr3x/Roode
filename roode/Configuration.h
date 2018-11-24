@@ -15,7 +15,7 @@ Be carfeul with reconfiguring!
 ### Changelog v0.9.4-beta:
 * changed IR-calibration hardcoded value to THRESHOLD_X 
 * CALIBRATION_VAL to 4000
-###Changelog v.0.9.4-release
+### Changelog v.0.9.4-release
 * Added standard deviation threhsold calculation
 * Removed constant THRESHOLD_X
 */
