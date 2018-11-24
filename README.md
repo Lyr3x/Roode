@@ -5,6 +5,7 @@ Repository initialized with version 0.9.4 and MySensors 2.3.0-alpha
 * Counting people entering and leaving a room
 * Sensor threhsold calibration with standard deviation
 * OLED support
+* Domoticz Events provided (Roode is useable with every MySensors Controller)
 
 ## Hardware
 * Arduino Pro Mini 5V 
