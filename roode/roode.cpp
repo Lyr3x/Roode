@@ -154,7 +154,9 @@ void loop()
       request(CHILD_ID_THR, V_TEXT, 0);
       request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
+#ifdef USE_COUNTER_BUTTONS
       readCounterButtons(); //We need two more interrupt pins to get this working!
+#endif
     }
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
@@ -335,7 +337,7 @@ void irSensor()
     wait(11);
   }
 }
-
+#ifdef USE_COUNTER_BUTTONS
 void readCounterButtons()
 {
   if (digitalRead(INCREASE_BUTTON) == HIGH)
@@ -347,6 +349,7 @@ void readCounterButtons()
     sendCounter(0);
   }
 }
+#endif
 
 void sendCounter(int inout)
 {

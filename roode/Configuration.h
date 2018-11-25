@@ -57,7 +57,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define USE_OLED
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define CALIBRATION //enables calibration of the irsensors and motion sensor initializing
-#define USE_COUNTER_BUTTONS
+// #define USE_COUNTER_BUTTONS
 
 /* 
 ###### IR Sensor setup ######
@@ -87,7 +87,7 @@ SSD1306_text oled;
 ###### Motion Sensor setup ###### 
 */
 #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-unsigned int MOTION_INIT_TIME = 10; //initialization time in seconds
+unsigned int MOTION_INIT_TIME = 61; //initialization time in seconds
 
 /* 
 ###### Push-Button Setup ######
