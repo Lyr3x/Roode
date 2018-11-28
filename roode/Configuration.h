@@ -27,12 +27,11 @@ DESCRIPTION
 */
 
 // #define MY_DEBUG                       //Comment out in production mode
-#define MY_RADIO_NRF24                 //Define for using NRF24L01+ radio
+#define MY_RADIO_NRF24 //Define for using NRF24L01+ radio
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
 // #define MY_NODE_ID 1                   // Set a static Node ID if needed
-
 
 /* #### Security Functions ####
 If the MySensors Gateway uses the Signing feature you can enable this here too.
@@ -54,6 +53,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
   * CALIBRATION for calibrating the IR Sensors on startup
   * USE_COUNTER_BUTTONS
 */
+// #define USE_SHARP_IR
+#define USE_VL53L0X
 #define USE_OLED
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define CALIBRATION //enables calibration of the irsensors and motion sensor initializing
@@ -62,6 +63,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 /* 
 ###### IR Sensor setup ######
 */
+
+#if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
 #define ANALOG_IR_SENSORR 0  //IR Room Analog Pin
 #define ANALOG_IR_SENSORC 2  //IR Corridor Analog Pin
 #define IR_D_R 7             //IR Sensor Digital Pin for Room - EN Pin
@@ -69,9 +72,29 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define LTIME 10000          // loop time (should not be lower than 8 seconds)
 #define MTIME 800            // measuring/person
 #define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
-#define THRESHOLD_X 300  // x is the value added to the calibrated value
+#define THRESHOLD_X 300      // x is the value added to the calibrated value
 //#define IR_BOOT 30 // Not needed for the new sensors caused by the enable pin
+#endif
 
+#if defined(USE_VL53L0X) && !defined(USE_SHARP_IR)
+#include <VL53L0X.h>
+#include <Wire.h>
+#define CORRIDOR_SENSOR_newAddress 41 not required address change
+#define ROOM_SENSOR_newAddress 42
+VL53L0X CORRIDOR_SENSOR;
+VL53L0X ROOM_SENSOR;
+
+CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+delay(5);
+ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+
+CORRIDOR_SENSOR.init();
+delay(5);
+ROOM_SENSOR_newAddress.init();
+
+ROOM_SENSOR.startContinuous();
+
+#endif
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified
@@ -86,7 +109,7 @@ SSD1306_text oled;
 /* 
 ###### Motion Sensor setup ###### 
 */
-#define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#define DIGITAL_INPUT_SENSOR 2      // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
 unsigned int MOTION_INIT_TIME = 61; //initialization time in seconds
 
 /* 
@@ -103,7 +126,7 @@ Keep in Mind that you need an Voltage regulator to stable 5V!
 */
 #ifdef USE_BATTERY
 #define BATTERY_METER_PIN 3
-#define CHILD_ID_BATTERY 2                          //MySensors Battery child ID
-#define BATTERY_FULL 4.2                            // a 18650 lithium ion battery usually give 4.2V when full
-#define BATTERY_ZERO 3.5                            // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
+#define CHILD_ID_BATTERY 2 //MySensors Battery child ID
+#define BATTERY_FULL 4.2   // a 18650 lithium ion battery usually give 4.2V when full
+#define BATTERY_ZERO 3.5   // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
 #endif

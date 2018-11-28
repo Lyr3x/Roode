@@ -58,6 +58,7 @@ void setup()
 
   Serial.println("##### RooDe Presence Detection System #####");
 
+#if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
   //Corridor Sensor Enable PIN
   pinMode(IR_D_C, OUTPUT);
 
@@ -66,6 +67,19 @@ void setup()
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
+#endif
+#if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
+  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+  wait(5);
+  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+
+  CORRIDOR_SENSOR.init();
+  wait(5);
+  ROOM_SENSOR_newAddress.init();
+
+  ROOM_SENSOR.startContinuous();
+  CORRIDOR_SENSOR.startContinuous();
+#endif
 
 #ifdef CALIBRATION
 #ifdef USE_OLED
@@ -89,7 +103,7 @@ void setup()
   oled.clear();
   oled.setCursor(10, 0);
   oled.println("Setting Counter to 0");
-  wait(2000);
+  wait(1000);
 #endif
 
 #ifdef USE_COUNTER_BUTTONS
@@ -200,17 +214,21 @@ void irSensor()
   int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; THIS STATE WILL BE SENT!
   while ((endtime - starttime) <= LTIME) // do this loop for up to 5000mS
   {
+    inout = -1;
+#if defined(USE_SHARP_IR)
     // turn both sensors on
     digitalWrite(IR_D_R, HIGH);
     wait(1);
     digitalWrite(IR_D_C, HIGH);
     wait(5);
-    inout = -1;
-
     irrVal = analogRead(ANALOG_IR_SENSORR);
     wait(10);
     ircVal = analogRead(ANALOG_IR_SENSORC);
-
+#elif defined(USE_VL53L0X)
+    irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+    wait(20);
+    ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
 #ifdef MY_DEBUG
     Serial.print("IRR:");
     Serial.println(irrVal);
@@ -223,9 +241,15 @@ void irSensor()
       int endR = startR;
       while ((endR - startR) <= MTIME)
       {
+#if defined(USE_SHARP_IR)
         irrVal = analogRead(ANALOG_IR_SENSORR);
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
+#elif defined(USE_VL53L0X)
+        irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+        wait(20);
+        ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
         if (ircVal > threshold && irrVal > threshold)
         {
 #ifdef MY_DEBUG
@@ -238,9 +262,15 @@ void irSensor()
 #endif
           while (irrVal > threshold || ircVal > threshold)
           {
+#if defined(USE_SHARP_IR)
             irrVal = analogRead(ANALOG_IR_SENSORR);
             wait(10);
             ircVal = analogRead(ANALOG_IR_SENSORC);
+#elif defined(USE_VL53L0X)
+            irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+            wait(20);
+            ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
             if (ircVal > threshold && irrVal < threshold)
             {
               // turn both sensors off
@@ -282,9 +312,15 @@ void irSensor()
       int endC = startC;
       while ((endC - startC) <= MTIME)
       {
-        ircVal = analogRead(ANALOG_IR_SENSORC);
+#if defined(USE_SHARP_IR)
+        ircVal = analogRead(ANALOG_IR_SENSORR);
         wait(10);
-        irrVal = analogRead(ANALOG_IR_SENSORR);
+        irrVal = analogRead(ANALOG_IR_SENSORC);
+#elif defined(USE_VL53L0X)
+        irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+        wait(20);
+        ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
         if (irrVal > threshold && ircVal > threshold)
         {
 #ifdef MY_DEBUG
@@ -297,15 +333,23 @@ void irSensor()
 #endif
           while (irrVal > threshold || ircVal > threshold)
           {
+#if defined(USE_SHARP_IR)
             irrVal = analogRead(ANALOG_IR_SENSORR);
             wait(10);
             ircVal = analogRead(ANALOG_IR_SENSORC);
+#elif defined(USE_VL53L0X)
+            irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+            wait(20);
+            ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
             if (irrVal > threshold && ircVal < threshold)
             {
+#if defines(USE_SHARP_IR)
               // turn both sensors off
               digitalWrite(IR_D_R, LOW);
               wait(1);
               digitalWrite(IR_D_C, LOW);
+#endif
               inout = 1;
               sendCounter(inout);
               break;
@@ -420,18 +464,28 @@ int calibration()
   oled.setTextSize(1, 1);
   oled.println("### Calibrate IR ###");
 #endif
+
+#if defined(USE_SHARP_IR)
   digitalWrite(IR_D_C, HIGH);
   digitalWrite(IR_D_R, HIGH);
   delay(100);
+#endif
   // int distances[CALIBRATION_VAL];
   auto max = 0;
   auto n = 0;
   for (int m = 0; m < CALIBRATION_VAL; m = m + 2)
   {
-    delay(8);
+#if defined(USE_SHARP_IR)
+    wait(10);
     irrVal = analogRead(ANALOG_IR_SENSORR);
-    delay(8);
+    wait(10);
     ircVal = analogRead(ANALOG_IR_SENSORC);
+#elif defined(USE_VL53L0X)
+    wait(20);
+    irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+    wait(20);
+    ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+#endif
 
     //calculate the max without jumps for the room sensor
     if (((irrVal > max) && ((irrVal - max) < THRESHOLD_X)) || ((irrVal - max) == irrVal))
