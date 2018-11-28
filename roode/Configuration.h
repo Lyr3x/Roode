@@ -86,7 +86,10 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
+#define LONG_RANGE
+
 #endif
+
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified

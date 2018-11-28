@@ -69,16 +69,43 @@ void setup()
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
-  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  wait(5);
+  pinMode(ROOM_ENABLE, OUTPUT);
+  pinMode(CORRIDOR_ENABLE, OUTPUT);
+  Wire.begin();
+
+  pinMode(ROOM_ENABLE, INPUT);
+  delay(10);
   ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+  pinMode(CORRIDOR_ENABLE, INPUT);
+  delay(10);
+  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
 
-  CORRIDOR_SENSOR.init();
-  wait(5);
   ROOM_SENSOR.init();
+  CORRIDOR_SENSOR.init();
+  ROOM_SENSOR.setTimeout(500);
+  CORRIDOR_SENSOR.setTimeout(500);
 
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
+#if defined LONG_RANGE
+  // lower the return signal rate limit (default is 0.25 MCPS)
+  ROOM_SENSOR.setSignalRateLimit(0.1);
+  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+
+  // lower the return signal rate limit (default is 0.25 MCPS)
+  CORRIDOR_SENSOR.setSignalRateLimit(0.1);
+  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+#endif
+
+#if defined HIGH_SPEED
+  // reduce timing budget to 20 ms (default is about 33 ms)
+  sensor.setMeasurementTimingBudget(20000);
+#elif defined HIGH_ACCURACY
+  // increase timing budget to 200 ms
+  sensor.setMeasurementTimingBudget(200000);
+#endif
 #endif
 
 #ifdef CALIBRATION
@@ -162,9 +189,11 @@ void loop()
     if (lastState == HIGH)
     {
       readSensorData(); //One more tracking phase before do some powersaving
+#if defined USE_SHARP_IR
       digitalWrite(ROOM_ENABLE, LOW);
       wait(1);
       digitalWrite(CORRIDOR_ENABLE, LOW);
+#endif
       request(CHILD_ID_THR, V_TEXT, 0);
       request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
@@ -226,7 +255,7 @@ void readSensorData()
     ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
     irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-    wait(20);
+    wait(10);
     ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
 #ifdef MY_DEBUG
@@ -247,7 +276,7 @@ void readSensorData()
         ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
         irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-        wait(20);
+        wait(10);
         ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
         if (ircVal > threshold && irrVal > threshold)
@@ -268,7 +297,7 @@ void readSensorData()
             ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
             irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-            wait(20);
+            wait(10);
             ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
             if (ircVal > threshold && irrVal < threshold)
@@ -318,7 +347,7 @@ void readSensorData()
         irrVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
         irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-        wait(20);
+        wait(10);
         ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
         if (irrVal > threshold && ircVal > threshold)
@@ -339,7 +368,7 @@ void readSensorData()
             ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
             irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-            wait(20);
+            wait(10);
             ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
             if (irrVal > threshold && ircVal < threshold)
@@ -480,9 +509,9 @@ int calibration()
     wait(10);
     ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined(USE_VL53L0X)
-    wait(20);
+    wait(10);
     irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-    wait(20);
+    wait(10);
     ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
 #endif
 
@@ -504,9 +533,11 @@ int calibration()
     }
   }
 
+#if defined USE_SHARP_IR
   // shutdown both sensors
   digitalWrite(CORRIDOR_ENABLE, LOW);
   digitalWrite(ROOM_ENABLE, LOW);
+#endif
   threshold = max + calculateStandardDeviation(irValues);
   // Serial.print("standard deviation: " + threshold);
   // threshold = max + THRESHOLD_X;
