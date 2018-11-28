@@ -63,37 +63,29 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 /* 
 ###### IR Sensor setup ######
 */
-
-#if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
-#define ANALOG_IR_SENSORR 0  //IR Room Analog Pin
-#define ANALOG_IR_SENSORC 2  //IR Corridor Analog Pin
-#define IR_D_R 7             //IR Sensor Digital Pin for Room - EN Pin
-#define IR_D_C 8             //IR Sensor Digital Pin for Corridor - EN Pin
+#define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
 #define LTIME 10000          // loop time (should not be lower than 8 seconds)
 #define MTIME 800            // measuring/person
-#define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
-#define THRESHOLD_X 300      // x is the value added to the calibrated value
+
+#if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
+#define ANALOG_IR_SENSORR 0 //IR Room Analog Pin
+#define ANALOG_IR_SENSORC 2 //IR Corridor Analog Pin
+#define ROOM_ENABLE 7       //IR Sensor Digital Pin for Room - EN Pin
+#define CORRIDOR_ENABLE 8   //IR Sensor Digital Pin for Corridor - EN Pin
+#define THRESHOLD_X 200     // x is the value added to the calibrated value
 //#define IR_BOOT 30 // Not needed for the new sensors caused by the enable pin
 #endif
 
 #if defined(USE_VL53L0X) && !defined(USE_SHARP_IR)
 #include <VL53L0X.h>
 #include <Wire.h>
-#define CORRIDOR_SENSOR_newAddress 41 not required address change
+#define CORRIDOR_SENSOR_newAddress 41
 #define ROOM_SENSOR_newAddress 42
+#define ROOM_ENABLE 7     //XSHUT Pin
+#define CORRIDOR_ENABLE 8 //XSHUT Pin
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
-
-CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-delay(5);
-ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-
-CORRIDOR_SENSOR.init();
-delay(5);
-ROOM_SENSOR_newAddress.init();
-
-ROOM_SENSOR.startContinuous();
-
+#define THRESHOLD_X 300 // x is the value added to the calibrated value
 #endif
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification

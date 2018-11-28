@@ -60,10 +60,10 @@ void setup()
 
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
   //Corridor Sensor Enable PIN
-  pinMode(IR_D_C, OUTPUT);
+  pinMode(CORRIDOR_ENABLE, OUTPUT);
 
   //Room Sensor Voltage Enable PIN
-  pinMode(IR_D_R, OUTPUT);
+  pinMode(ROOM_ENABLE, OUTPUT);
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
@@ -75,7 +75,7 @@ void setup()
 
   CORRIDOR_SENSOR.init();
   wait(5);
-  ROOM_SENSOR_newAddress.init();
+  ROOM_SENSOR.init();
 
   ROOM_SENSOR.startContinuous();
   CORRIDOR_SENSOR.startContinuous();
@@ -162,9 +162,9 @@ void loop()
     if (lastState == HIGH)
     {
       irSensor(); //One more tracking phase before do some powersaving
-      digitalWrite(IR_D_R, LOW);
+      digitalWrite(ROOM_ENABLE, LOW);
       wait(1);
-      digitalWrite(IR_D_C, LOW);
+      digitalWrite(CORRIDOR_ENABLE, LOW);
       request(CHILD_ID_THR, V_TEXT, 0);
       request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
@@ -217,9 +217,9 @@ void irSensor()
     inout = -1;
 #if defined(USE_SHARP_IR)
     // turn both sensors on
-    digitalWrite(IR_D_R, HIGH);
+    digitalWrite(ROOM_ENABLE, HIGH);
     wait(1);
-    digitalWrite(IR_D_C, HIGH);
+    digitalWrite(CORRIDOR_ENABLE, HIGH);
     wait(5);
     irrVal = analogRead(ANALOG_IR_SENSORR);
     wait(10);
@@ -274,9 +274,9 @@ void irSensor()
             if (ircVal > threshold && irrVal < threshold)
             {
               // turn both sensors off
-              digitalWrite(IR_D_R, LOW);
+              digitalWrite(ROOM_ENABLE, LOW);
               wait(1);
-              digitalWrite(IR_D_C, LOW);
+              digitalWrite(CORRIDOR_ENABLE, LOW);
               inout = 0;
               sendCounter(inout);
               break;
@@ -344,11 +344,11 @@ void irSensor()
 #endif
             if (irrVal > threshold && ircVal < threshold)
             {
-#if defines(USE_SHARP_IR)
+#if defined(USE_SHARP_IR)
               // turn both sensors off
-              digitalWrite(IR_D_R, LOW);
+              digitalWrite(ROOM_ENABLE, LOW);
               wait(1);
-              digitalWrite(IR_D_C, LOW);
+              digitalWrite(CORRIDOR_ENABLE, LOW);
 #endif
               inout = 1;
               sendCounter(inout);
@@ -466,11 +466,10 @@ int calibration()
 #endif
 
 #if defined(USE_SHARP_IR)
-  digitalWrite(IR_D_C, HIGH);
-  digitalWrite(IR_D_R, HIGH);
+  digitalWrite(CORRIDOR_ENABLE, HIGH);
+  digitalWrite(ROOM_ENABLE, HIGH);
   delay(100);
 #endif
-  // int distances[CALIBRATION_VAL];
   auto max = 0;
   auto n = 0;
   for (int m = 0; m < CALIBRATION_VAL; m = m + 2)
@@ -506,8 +505,8 @@ int calibration()
   }
 
   // shutdown both sensors
-  digitalWrite(IR_D_C, LOW);
-  digitalWrite(IR_D_R, LOW);
+  digitalWrite(CORRIDOR_ENABLE, LOW);
+  digitalWrite(ROOM_ENABLE, LOW);
   threshold = max + calculateStandardDeviation(irValues);
   // Serial.print("standard deviation: " + threshold);
   // threshold = max + THRESHOLD_X;
