@@ -663,7 +663,8 @@ int calibration()
   // shutdown both sensors
   digitalWrite(CORRIDOR_ENABLE, LOW);
   digitalWrite(ROOM_ENABLE, LOW);
-  threshold = max + calculateStandardDeviation(irValues);
+  auto sd = calculateStandardDeviation(irValues);
+  threshold = max + sd;
 #elif defined USE_VL53L0X
   auto sd = calculateStandardDeviation(irValues);
   threshold = min - sd;
