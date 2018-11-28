@@ -84,6 +84,8 @@ void setup()
   CORRIDOR_SENSOR.init();
   ROOM_SENSOR.setTimeout(500);
   CORRIDOR_SENSOR.setTimeout(500);
+  ROOM_SENSOR.startContinuous();
+  CORRIDOR_SENSOR.startContinuous();
 
 #if defined LONG_RANGE
   // lower the return signal rate limit (default is 0.25 MCPS)
@@ -244,7 +246,7 @@ void readSensorData()
   while ((endtime - starttime) <= LTIME) // do this loop for up to 5000mS
   {
     inout = -1;
-#if defined(USE_SHARP_IR)
+#if defined USE_SHARP_IR
     // turn both sensors on
     digitalWrite(ROOM_ENABLE, HIGH);
     wait(1);
@@ -253,32 +255,30 @@ void readSensorData()
     irrVal = analogRead(ANALOG_IR_SENSORR);
     wait(10);
     ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-    irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
+#elif defined USE_VL53L0X
     wait(10);
-    ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
+    irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+    wait(10);
+    ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
 #endif
+
 #ifdef MY_DEBUG
     Serial.print("IRR:");
     Serial.println(irrVal);
     Serial.print("IRC:");
     Serial.println(ircVal);
 #endif
+
+#if defined USE_SHARP_IR
     if (irrVal > threshold && ircVal < threshold && inout != 1)
     {
       int startR = millis();
       int endR = startR;
       while ((endR - startR) <= MTIME)
       {
-#if defined(USE_SHARP_IR)
         irrVal = analogRead(ANALOG_IR_SENSORR);
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-        irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-        wait(10);
-        ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
-#endif
         if (ircVal > threshold && irrVal > threshold)
         {
 #ifdef MY_DEBUG
@@ -291,15 +291,9 @@ void readSensorData()
 #endif
           while (irrVal > threshold || ircVal > threshold)
           {
-#if defined(USE_SHARP_IR)
             irrVal = analogRead(ANALOG_IR_SENSORR);
             wait(10);
             ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-            irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-            wait(10);
-            ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
-#endif
             if (ircVal > threshold && irrVal < threshold)
             {
               // turn both sensors off
@@ -334,22 +328,15 @@ void readSensorData()
     {
       endtime = millis();
     }
-
     if (ircVal > threshold && irrVal < threshold && inout != 0)
     {
       int startC = millis();
       int endC = startC;
       while ((endC - startC) <= MTIME)
       {
-#if defined(USE_SHARP_IR)
         ircVal = analogRead(ANALOG_IR_SENSORR);
         wait(10);
         irrVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-        irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-        wait(10);
-        ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
-#endif
         if (irrVal > threshold && ircVal > threshold)
         {
 #ifdef MY_DEBUG
@@ -362,23 +349,16 @@ void readSensorData()
 #endif
           while (irrVal > threshold || ircVal > threshold)
           {
-#if defined(USE_SHARP_IR)
             irrVal = analogRead(ANALOG_IR_SENSORR);
             wait(10);
             ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-            irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-            wait(10);
-            ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
-#endif
             if (irrVal > threshold && ircVal < threshold)
             {
-#if defined(USE_SHARP_IR)
               // turn both sensors off
               digitalWrite(ROOM_ENABLE, LOW);
               wait(1);
               digitalWrite(CORRIDOR_ENABLE, LOW);
-#endif
+
               inout = 1;
               sendCounter(inout);
               break;
@@ -407,7 +387,118 @@ void readSensorData()
     {
       endtime = millis();
     }
-    wait(11);
+    wait(10);
+#elif defined USE_VL53L0X
+    if (irrVal < threshold && ircVal > threshold && inout != 1)
+    {
+      int startR = millis();
+      int endR = startR;
+      while ((endR - startR) <= MTIME)
+      {
+        irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+        wait(10);
+        ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+        if (ircVal < threshold && irrVal < threshold)
+        {
+#ifdef MY_DEBUG
+          Serial.print("In Loop IRR: ");
+          Serial.println(irrVal);
+          Serial.print("In Loop IRC: ");
+          Serial.println(ircVal);
+          Serial.print("Delay Time: ");
+          Serial.println(MTIME - (endR - startR));
+#endif
+          while (irrVal < threshold || ircVal < threshold)
+          {
+            irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+            wait(10);
+            ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+            if (ircVal < threshold && irrVal > threshold)
+            {
+              inout = 0;
+              sendCounter(inout);
+              break;
+            }
+            wait(11);
+          }
+
+          if (inout == 0)
+          {
+            wait(150);
+            ircVal = 0;
+            endR = millis();
+            starttime = millis();
+            endtime = starttime;
+            break;
+          }
+        }
+        else
+        {
+          wait(10);
+          endR = millis();
+        }
+      }
+    }
+    else
+    {
+      endtime = millis();
+    }
+    if (ircVal < threshold && irrVal > threshold && inout != 0)
+    {
+      int startC = millis();
+      int endC = startC;
+      while ((endC - startC) <= MTIME)
+      {
+        irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+        wait(10);
+        ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+        if (irrVal < threshold && ircVal < threshold)
+        {
+#ifdef MY_DEBUG
+          Serial.print("In Loop IRC: ");
+          Serial.println(ircVal);
+          Serial.print("In Loop IRR: ");
+          Serial.println(irrVal);
+          Serial.print("Delay Time: ");
+          Serial.println(MTIME - (endC - startC));
+#endif
+          while (irrVal < threshold || ircVal < threshold)
+          {
+            irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+            wait(10);
+            ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+            if (irrVal < threshold && ircVal > threshold)
+            {
+              inout = 1;
+              sendCounter(inout);
+              break;
+            }
+            wait(11);
+          }
+
+          if (inout == 1)
+          {
+            wait(150);
+            irrVal = 0;
+            endC = millis();
+            starttime = millis();
+            endtime = starttime;
+            break;
+          }
+        }
+        else
+        {
+          wait(10);
+          endC = millis();
+        }
+      }
+    }
+    else
+    {
+      endtime = millis();
+    }
+    wait(10);
+#endif
   }
 }
 #ifdef USE_COUNTER_BUTTONS
@@ -465,7 +556,7 @@ int calculateStandardDeviation(int irValues[])
 {
   auto sumOfValues = 0;
   auto arrLength = 0;
-  for (int i = 0; i < 62; i++)
+  for (int i = 0; i < 30; i++)
   {
     if (irValues[i] != 0)
     {
@@ -473,20 +564,24 @@ int calculateStandardDeviation(int irValues[])
       arrLength++;
     }
   }
+
   auto meanValue = sumOfValues / arrLength;
+
   auto standardDeviation = 0;
-  for (int i = 0; i < arrLength; i++)
+  for (int i = 0; i < arrLength; ++i)
   {
-    standardDeviation += (irValues[i] - meanValue) * (irValues[i] - meanValue);
+    standardDeviation += pow(irValues[i] - meanValue, 2);
   }
   standardDeviation /= arrLength;
+
   standardDeviation = sqrt(standardDeviation);
+
   return standardDeviation;
 }
 
 int calibration()
 {
-  int irValues[62];
+  int irValues[30] = {};
 #ifdef USE_OLED
   oled.clear();
   oled.setCursor(0, 5);
@@ -498,47 +593,82 @@ int calibration()
   digitalWrite(CORRIDOR_ENABLE, HIGH);
   digitalWrite(ROOM_ENABLE, HIGH);
   delay(100);
-#endif
   auto max = 0;
+#elif defined USE_VL53L0X
+  auto min = 0;
+#endif
   auto n = 0;
-  for (int m = 0; m < CALIBRATION_VAL; m = m + 2)
+  for (int m = 0; m < CALIBRATION_VAL; m++)
   {
 #if defined(USE_SHARP_IR)
     wait(10);
     irrVal = analogRead(ANALOG_IR_SENSORR);
     wait(10);
     ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X)
-    wait(10);
-    irrVal = ROOM_SENSOR.readRangeSingleMillimeters();
-    wait(10);
-    ircVal = CORRIDOR_SENSOR.readRangeSingleMillimeters();
-#endif
 
     //calculate the max without jumps for the room sensor
     if (((irrVal > max) && ((irrVal - max) < THRESHOLD_X)) || ((irrVal - max) == irrVal))
     {
       Serial.println(irrVal);
       max = irrVal;
-      irValues[n] = max;
-      n++;
+      if (n < 30)
+      {
+        irValues[n] = max;
+        n++;
+      }
     }
     //calculate the max without jumps for the corridor sensor
     if (((ircVal > max) && ((ircVal - max) < THRESHOLD_X)) || ((ircVal - max) == ircVal))
     {
       Serial.println(ircVal);
       max = ircVal;
-      irValues[n] = max;
-      n++;
+      if (n < 30)
+      {
+        irValues[n] = max;
+        n++;
+      }
     }
+#elif defined(USE_VL53L0X)
+    wait(10);
+    irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+    wait(10);
+    ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+
+    //calculate the max without jumps for the room sensor
+    if ((irrVal < min) || ((irrVal - min) == irrVal))
+    {
+      Serial.println(irrVal);
+      min = irrVal;
+      if (n < 30)
+      {
+        irValues[n] = min;
+        n++;
+      }
+    }
+    //calculate the max without jumps for the corridor sensor
+    if ((ircVal < min) || ((ircVal - min) == ircVal))
+    {
+      Serial.println(ircVal);
+      min = ircVal;
+      if (n < 30)
+      {
+        irValues[n] = min;
+        n++;
+      }
+    }
+#endif
   }
 
 #if defined USE_SHARP_IR
   // shutdown both sensors
   digitalWrite(CORRIDOR_ENABLE, LOW);
   digitalWrite(ROOM_ENABLE, LOW);
-#endif
   threshold = max + calculateStandardDeviation(irValues);
+#elif defined USE_VL53L0X
+  auto sd = calculateStandardDeviation(irValues);
+  threshold = min - sd;
+#endif
+
   // Serial.print("standard deviation: " + threshold);
   // threshold = max + THRESHOLD_X;
 #ifdef USE_OLED
@@ -552,6 +682,8 @@ int calibration()
   oled.println("Calibration done!");
   wait(2000);
 #endif
+  Serial.print("standard deviation: ");
+  Serial.println(sd);
   Serial.print("New threshold is: ");
   Serial.println(threshold);
   send(thrMsg.set(threshold));
