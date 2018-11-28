@@ -34,7 +34,7 @@ int threshold = 180; //if CALIBRATION is not defined, this threshold is used (ok
 int peopleCount = 0; //default state: nobody is inside the room
 
 // function prototypes
-void irSensor();
+void readSensorData();
 int calibration();
 void sendCounter(int inout);
 void readCounterButtons();
@@ -161,7 +161,7 @@ void loop()
 #endif
     if (lastState == HIGH)
     {
-      irSensor(); //One more tracking phase before do some powersaving
+      readSensorData(); //One more tracking phase before do some powersaving
       digitalWrite(ROOM_ENABLE, LOW);
       wait(1);
       digitalWrite(CORRIDOR_ENABLE, LOW);
@@ -174,7 +174,7 @@ void loop()
     }
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
-    irSensor();
+    readSensorData();
 #ifdef USE_OLED
     oled.clear();
     oled.setCursor(5, 0);
@@ -186,7 +186,7 @@ void loop()
     while (motion.checkMotion() != LOW)
     {
 
-      irSensor();
+      readSensorData();
     }
 #endif
   }
@@ -202,12 +202,12 @@ void loop()
 #endif
     while (motion.checkMotion() != LOW)
     {
-      irSensor();
+      readSensorData();
     }
   }
 }
 
-void irSensor()
+void readSensorData()
 {
   int starttime = millis();
   int endtime = starttime;
