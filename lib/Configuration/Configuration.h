@@ -1,3 +1,6 @@
+#ifndef CONFIGURATION_H
+#define CONFIGURATION_H
+
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
 Be carfeul with reconfiguring! 
@@ -8,8 +11,7 @@ Be carfeul with reconfiguring!
   Please update frequently
 ### Changelog v0.9.5-alpha:
 * added experimental VL53L0X support
-  * single Measurement
-  * LONG_RANGE (up to 2m) support
+  * single Measurement  * LONG_RANGE (up to 2m) support
   * HIGH_SPEED and HIGH ACCURACY profiles
   * Static I2C address
 */
@@ -60,7 +62,6 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
 #define LTIME 10000          // loop time (should not be lower than 8 seconds)
 #define MTIME 800            // measuring/person
-
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
 #define ANALOG_IR_SENSORR 0 //IR Room Analog Pin
 #define ANALOG_IR_SENSORC 2 //IR Corridor Analog Pin
@@ -77,8 +78,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define ROOM_SENSOR_newAddress 42
 #define ROOM_ENABLE 7     //XSHUT Pin
 #define CORRIDOR_ENABLE 8 //XSHUT Pin
-VL53L0X CORRIDOR_SENSOR;
-VL53L0X ROOM_SENSOR;
+static VL53L0X CORRIDOR_SENSOR;
+static VL53L0X ROOM_SENSOR;
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
 #define LONG_RANGE
 
@@ -92,14 +93,14 @@ VL53L0X ROOM_SENSOR;
 // includes for OLED 128x32 and 128x64 support
 /* use minimal lib */
 #include <SSD1306_text.h>
-SSD1306_text oled;
+static SSD1306_text oled;
 #endif
 
 /* 
 ###### Motion Sensor setup ###### 
 */
-#define DIGITAL_INPUT_SENSOR 2      // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-unsigned int MOTION_INIT_TIME = 61; //initialization time in seconds
+#define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#define MOTION_INIT_TIME 60    //initialization time in seconds
 
 /* 
 ###### Push-Button Setup ######
@@ -119,3 +120,5 @@ Keep in Mind that you need an Voltage regulator to stable 5V!
 #define BATTERY_FULL 4.2   // a 18650 lithium ion battery usually give 4.2V when full
 #define BATTERY_ZERO 3.5   // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
 #endif
+
+#endif //Include guard
