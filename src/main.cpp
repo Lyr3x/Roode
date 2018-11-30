@@ -1,5 +1,5 @@
 /*  RooDe - Room Presence Detection
-Author: Kai Bepperling, kai.bepperling@gmai.com
+Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 
