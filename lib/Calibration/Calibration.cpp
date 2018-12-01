@@ -114,15 +114,15 @@ CORRIDOR_SENSOR.init();
         }
 #endif
     }
-
+    auto sd = 0;
 #if defined USE_SHARP_IR
     // shutdown both sensors
     digitalWrite(CORRIDOR_ENABLE, LOW);
     digitalWrite(ROOM_ENABLE, LOW);
-    auto sd = calculateStandardDeviation(irValues);
+    sd = calculateStandardDeviation(irValues);
     threshold = max + sd;
 #elif defined USE_VL53L0X
-    auto sd = calculateStandardDeviation(irValues);
+    sd = calculateStandardDeviation(irValues);
     threshold = min - sd;
 #endif
 

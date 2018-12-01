@@ -49,8 +49,9 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
   * CALIBRATION for calibrating the IR Sensors on startup
   * USE_COUNTER_BUTTONS
 */
-#define USE_SHARP_IR
+// #define USE_SHARP_IR
 // #define USE_VL53L0X
+#define USE_VL53L1X
 #define USE_OLED
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
@@ -85,6 +86,22 @@ static VL53L0X ROOM_SENSOR;
 #define LONG_RANGE
 
 #endif
+
+#if defined(USE_VL53L1X) && !defined(USE_SHARP_IR)
+#include <VL53L1X.h>
+#include <Wire.h>
+#define CORRIDOR_SENSOR_newAddress 41
+#define ROOM_SENSOR_newAddress 42
+#define ROOM_ENABLE 7     //XSHUT Pin
+#define CORRIDOR_ENABLE 8 //XSHUT Pin
+static VL53L1X CORRIDOR_SENSOR;
+static VL53L1X ROOM_SENSOR;
+#define THRESHOLD_X 300 // x is the value added to the calibrated value
+#define LONG_RANGE
+
+#endif
+
+
 
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification

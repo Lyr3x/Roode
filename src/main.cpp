@@ -104,6 +104,43 @@ void setup()
 #endif
 #endif
 
+#if defined(USE_VL53L1X)
+  pinMode(ROOM_ENABLE, OUTPUT);
+  pinMode(CORRIDOR_ENABLE, OUTPUT);
+  Wire.begin();
+
+  pinMode(ROOM_ENABLE, INPUT);
+  delay(10);
+  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+  pinMode(CORRIDOR_ENABLE, INPUT);
+  delay(10);
+  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+
+  ROOM_SENSOR.init();
+  CORRIDOR_SENSOR.init();
+  ROOM_SENSOR.setTimeout(500);
+  CORRIDOR_SENSOR.setTimeout(500);
+  ROOM_SENSOR.startContinuous(33);
+  CORRIDOR_SENSOR.startContinuous(33);
+
+
+#if defined LONG_RANGE
+  // Short, Medium, Long, Unkown as ranges are possible
+  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
+  ROOM_SENSOR.setMeasurementTimingBudget(33000);
+  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
+#endif
+
+#if defined HIGH_SPEED
+  // reduce timing budget to 20 ms (default is about 33 ms)
+  sensor.setMeasurementTimingBudget(20000);
+#elif defined HIGH_ACCURACY
+  // increase timing budget to 200 ms
+  sensor.setMeasurementTimingBudget(200000);
+#endif
+#endif
+
 #ifdef CALIBRATION
 #ifdef USE_OLED
   oled.clear();
