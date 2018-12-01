@@ -50,8 +50,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
   * USE_COUNTER_BUTTONS
 */
 // #define USE_SHARP_IR
-// #define USE_VL53L0X
-#define USE_VL53L1X
+#define USE_VL53L0X
+// #define USE_VL53L1X
 #define USE_OLED
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
