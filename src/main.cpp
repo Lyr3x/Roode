@@ -27,9 +27,6 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 // MyMessage pcMsg(CHILD_ID_PC, V_TEXT);   //people counter child
 // MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold child
 
-/* Motion Sensor setup*/
-MotionSensor motion(DIGITAL_INPUT_SENSOR);
-
 // function prototypes
 // void readSensorData();
 // int calibration();

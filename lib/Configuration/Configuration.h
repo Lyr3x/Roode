@@ -49,11 +49,12 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
   * CALIBRATION for calibrating the IR Sensors on startup
   * USE_COUNTER_BUTTONS
 */
-// #define USE_SHARP_IR
-#define USE_VL53L0X
+#define USE_SHARP_IR
+// #define USE_VL53L0X
 #define USE_OLED
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
-#define CALIBRATION //enables calibration of the irsensors and motion sensor initializing
+#define USE_MOTION
+#define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_COUNTER_BUTTONS
 
 /* 
@@ -99,10 +100,14 @@ static SSD1306_text oled;
 /* 
 ###### Motion Sensor setup ###### 
 */
+#ifdef USE_MOTION
+#include <MotionSensor.h>
 #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
 #define MOTION_INIT_TIME 60    //initialization time in seconds
-
-/* 
+/* Motion Sensor setup*/
+static MotionSensor motion(DIGITAL_INPUT_SENSOR);
+#endif
+/*
 ###### Push-Button Setup ######
 */
 #ifdef USE_COUNTER_BUTTONS
