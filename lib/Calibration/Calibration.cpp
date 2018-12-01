@@ -27,8 +27,16 @@ int calculateStandardDeviation(int irValues[])
     return standardDeviation;
 }
 
+// First step: Sensor calibration
+// Second step: threshold calibration
 int calibration()
 {
+#ifdef USE_VL53L0X
+// init() performs all calibration steps again();
+ROOM_SENSOR.init();
+CORRIDOR_SENSOR.init();
+#endif
+
     int irValues[30] = {};
 #ifdef USE_OLED
     oled.clear();
