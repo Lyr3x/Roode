@@ -20,9 +20,7 @@ void readSensorData()
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined USE_VL53L0X
-        wait(10);
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-        wait(10);
         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
 #endif
 
@@ -160,7 +158,6 @@ void readSensorData()
             while ((endR - startR) <= MTIME)
             {
                 irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-                wait(10);
                 ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                 if (ircVal < threshold && irrVal < threshold)
                 {
@@ -175,7 +172,6 @@ void readSensorData()
                     while (irrVal < threshold || ircVal < threshold)
                     {
                         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-                        wait(10);
                         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                         if (ircVal < threshold && irrVal > threshold)
                         {
@@ -183,7 +179,6 @@ void readSensorData()
                             sendCounter(inout);
                             break;
                         }
-                        wait(11);
                     }
 
                     if (inout == 0)
@@ -198,7 +193,6 @@ void readSensorData()
                 }
                 else
                 {
-                    wait(10);
                     endR = millis();
                 }
             }
@@ -214,7 +208,6 @@ void readSensorData()
             while ((endC - startC) <= MTIME)
             {
                 irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-                wait(10);
                 ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                 if (irrVal < threshold && ircVal < threshold)
                 {
@@ -229,7 +222,6 @@ void readSensorData()
                     while (irrVal < threshold || ircVal < threshold)
                     {
                         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-                        wait(10);
                         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                         if (irrVal < threshold && ircVal > threshold)
                         {
@@ -252,7 +244,6 @@ void readSensorData()
                 }
                 else
                 {
-                    wait(10);
                     endC = millis();
                 }
             }
@@ -261,7 +252,6 @@ void readSensorData()
         {
             endtime = millis();
         }
-        wait(10);
 #endif
     }
 }
