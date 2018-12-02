@@ -83,7 +83,9 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 static VL53L0X CORRIDOR_SENSOR;
 static VL53L0X ROOM_SENSOR;
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
-#define LONG_RANGE
+// #define LONG_RANGE //supports ranged up to 2m 
+#define HIGH_SPEED // 1.2m accuracy +- 5%
+// #define HIGH_ACCURACY // 1.2m accuracy < +-3%
 
 #endif
 
