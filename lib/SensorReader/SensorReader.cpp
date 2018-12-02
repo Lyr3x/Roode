@@ -185,7 +185,7 @@ void readSensorData()
 
                     if (inout == 0)
                     {
-                        wait(150);
+                        //wait(150);
                         ircVal = 0;
                         endR = millis();
                         starttime = millis();
@@ -231,12 +231,12 @@ void readSensorData()
                             sendCounter(inout);
                             break;
                         }
-                        wait(11);
+                        //wait(11);
                     }
 
                     if (inout == 1)
                     {
-                        wait(150);
+                        //wait(150);
                         irrVal = 0;
                         endC = millis();
                         starttime = millis();
