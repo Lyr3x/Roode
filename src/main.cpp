@@ -123,7 +123,6 @@ void setup()
   ROOM_SENSOR.startContinuous(33);
   CORRIDOR_SENSOR.startContinuous(33);
 
-
 #if defined LONG_RANGE
   // Short, Medium, Long, Unkown as ranges are possible
   ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
@@ -226,6 +225,9 @@ void loop()
       digitalWrite(ROOM_ENABLE, LOW);
       wait(1);
       digitalWrite(CORRIDOR_ENABLE, LOW);
+#elif defined USE_VL53L0X || defined USE_VL53L1X
+      ROOM_SENSOR.stopContinuous();
+      CORRIDOR_SENSOR.stopContinuous();
 #endif
       request(CHILD_ID_THR, V_TEXT, 0);
       request(CHILD_ID_PC, V_TEXT, 0);

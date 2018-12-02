@@ -20,6 +20,8 @@ void readSensorData()
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined USE_VL53L0X
+        ROOM_SENSOR.startContinuous();
+        CORRIDOR_SENSOR.startContinuous();
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
 #endif
