@@ -63,14 +63,14 @@ void setup()
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
-  pinMode(ROOM_ENABLE, OUTPUT);
-  pinMode(CORRIDOR_ENABLE, OUTPUT);
+  pinMode(ROOM_XSHUT, OUTPUT);
+  pinMode(CORRIDOR_XSHUT, OUTPUT);
   Wire.begin();
 
-  pinMode(ROOM_ENABLE, INPUT);
+  pinMode(ROOM_XSHUT, INPUT);
   delay(10);
   ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_ENABLE, INPUT);
+  pinMode(CORRIDOR_XSHUT, INPUT);
   delay(10);
   CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
 

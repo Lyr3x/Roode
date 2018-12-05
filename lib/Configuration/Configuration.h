@@ -84,8 +84,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #include <Wire.h>
 #define CORRIDOR_SENSOR_newAddress 41
 #define ROOM_SENSOR_newAddress 42
-#define ROOM_ENABLE 7     //XSHUT Pin
-#define CORRIDOR_ENABLE 8 //XSHUT Pin
+#define ROOM_XSHUT 7     //XSHUT Pin
+#define CORRIDOR_XSHUT 8 //XSHUT Pin
 static VL53L0X CORRIDOR_SENSOR;
 static VL53L0X ROOM_SENSOR;
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
