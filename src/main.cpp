@@ -37,6 +37,8 @@ void setup()
 {
 #ifdef USE_OLED
   oled.init();
+  oled.sendCommand(BRIGHTNESS_CTRL);
+  oled.sendCommand(BRIGHTNESS);
   oled.clear();
   oled.setTextSize(1);
   oled.setCursor(0, 25);

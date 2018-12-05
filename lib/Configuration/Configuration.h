@@ -57,7 +57,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 // #define USE_SHARP_IR
 #define USE_VL53L0X
 // #define USE_VL53L1X
-#define USE_OLED
+#define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
@@ -120,6 +120,8 @@ static VL53L1X ROOM_SENSOR;
 /* use minimal lib */
 #include <SSD1306_text.h>
 static SSD1306_text oled;
+#define BRIGHTNESS_CTRL 0x81 // Do not change this value. This starts the Brightness control mode
+#define BRIGHTNESS 1 //Any value between 1 and 255
 #endif
 
 /* 
