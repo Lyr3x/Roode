@@ -9,16 +9,25 @@ Repository initialized with version 0.9.4 and MySensors 2.3.0-alpha
 
 ## Hardware
 * Arduino Pro Mini 5V 
-* 2x sharp gp2y0a02yk0f 20-150cm
-* 1x HC-SR501
+* 2x VL53L0X/VL53L1X or SHARP gp2y0a02yk0f 20-150cm.
+    * The VL53XXX are using I²C and are much more reliable up to 2m
+    * The Sharp Sensors are analog sensors
+* 1x HC-SR501 
+    * For waking up RooDe
 * 1x NRF24L01+ incl. Power Adapter
-  * Alternative: RFM69 or ESP8266
+  * Alternative: RFM69 or ESP8266 (not implemented yet)
 * 1x CP2101 Micro USB TTL Adapter
+    * Power Supply and Programming Interface
 * 1x 128x32 OLED Display (Optional)
 * 2x Push-Buttons (Optional)
 * Case (see .stl files) -> coming soon
 
 ## Changelog
+### Changelog v0.9.5-alpha
+* Added VL53L0X support
+    * Using the Pololu VL53XXX Library
+* Huge Code refactor
+
 ### Changelog v0.9.4-alpha2:
 * added incomplete push button support
     * There is a need of 2 spare interrupt PINS
