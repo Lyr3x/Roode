@@ -97,10 +97,12 @@ void setup()
 
 #if defined HIGH_SPEED
   // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
+  ROOM_SENSOR.setMeasurementTimingBudget(20000);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
 #elif defined HIGH_ACCURACY
   // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
+  ROOM_SENSOR.setMeasurementTimingBudget(200000);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
 #endif
 #endif
 
@@ -218,6 +220,7 @@ void loop()
 #ifdef USE_OLED
     oled.clear();
 #endif
+#ifdef USE_ENERGY_SAVING
     if (lastState == HIGH)
     {
       readSensorData(); //One more tracking phase before do some powersaving
@@ -236,6 +239,14 @@ void loop()
       readCounterButtons(); //We need two more interrupt pins to get this working!
 #endif
     }
+#else
+#ifdef USE_COUNTER_BUTTONS
+    readCounterButtons(); //We need two more interrupt pins to get this working!
+#endif
+    request(CHILD_ID_THR, V_TEXT, 0);
+    request(CHILD_ID_PC, V_TEXT, 0);
+    readSensorData();
+#endif
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     readSensorData();

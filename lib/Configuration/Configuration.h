@@ -13,7 +13,9 @@ Be carfeul with reconfiguring!
 * added experimental VL53L0X support
   * single Measurement  * LONG_RANGE (up to 2m) support
   * HIGH_SPEED and HIGH ACCURACY profiles
-  * Static I2C address
+  * static I2C address
+  * measruing speed improvements 
+  * general bug fixes and improvements
 */
 #define ROODE_VERSION "0.9.5-alpha"
 
@@ -46,8 +48,11 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 ###### Feature selection ######
   * USE_OLED for OLED 128x32 support
   * USE_BATTERY when powering the controller with an Lithium battery
-  * CALIBRATION for calibrating the IR Sensors on startup
+  * CALIBRATION for calibrating the Sensors on startup
   * USE_COUNTER_BUTTONS
+  * USE_ENERGY_SAVING If enabled the sensor will stop measuring when no motion is detected. 
+                      We still want to process incoming messages and request updated values from the controller,
+                      hence we nee to perform this after every measuring loop
 */
 // #define USE_SHARP_IR
 #define USE_VL53L0X
@@ -57,6 +62,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_COUNTER_BUTTONS
+#define USE_ENEGERY_SAVING
 
 /* 
 ###### IR Sensor setup ######
