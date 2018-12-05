@@ -9,7 +9,7 @@ Be carfeul with reconfiguring!
 /*
   RooDe version number
   Please update frequently
-### Changelog v0.9.5-alpha:
+### Changelog v0.9.5-beta:
   * added experimental VL53L0X support (VL53L1X following with the next release)
   * single Measurement  
   * * LONG_RANGE (up to 2m for the VL53L0X) support
