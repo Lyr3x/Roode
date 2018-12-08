@@ -26,7 +26,7 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 // MyMessage msg(CHILD_ID_R, V_STATUS);    //room on/off child
 // MyMessage pcMsg(CHILD_ID_PC, V_TEXT);   //people counter child
 // MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold child
-
+extern int peopleCount;
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
 void readCounterButtons();
@@ -214,18 +214,18 @@ int newState = LOW;
 
 void loop()
 {
-  readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
+  // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 
-//   // Sleep until interrupt comes in on motion sensor. Send never an update
+  //   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
 #ifdef USE_OLED
     oled.clear();
 #endif
-#ifdef USE_ENERGY_SAVING
+#ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
-      readSensorData(); //One more tracking phase before do some powersaving
+      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 #if defined USE_SHARP_IR
       digitalWrite(ROOM_ENABLE, LOW);
       wait(1);

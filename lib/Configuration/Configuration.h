@@ -29,7 +29,7 @@ DESCRIPTION
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
-#define MY_NODE_ID 10                   // Set a static Node ID if needed
+#define MY_NODE_ID 10 // Set a static Node ID if needed
 
 /* #### Security Functions ####
 If the MySensors Gateway uses the Signing feature you can enable this here too.
@@ -67,16 +67,15 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 /* 
 ###### IR Sensor setup ######
 */
-
-#define LTIME 10000          // loop time (should not be lower than 8 seconds)
-#define MTIME 800            // measuring/person
+#define LTIME 10000 // loop time (should not be lower than 8 seconds)
+#define MTIME 800   // measuring/person
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
 #define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
-#define ANALOG_IR_SENSORR 0 //IR Room Analog Pin
-#define ANALOG_IR_SENSORC 2 //IR Corridor Analog Pin
-#define ROOM_ENABLE 7       //IR Sensor Digital Pin for Room - EN Pin
-#define CORRIDOR_ENABLE 8   //IR Sensor Digital Pin for Corridor - EN Pin
-#define THRESHOLD_X 200     // x is the value added to the calibrated value
+#define ANALOG_IR_SENSORR 0  //IR Room Analog Pin
+#define ANALOG_IR_SENSORC 2  //IR Corridor Analog Pin
+#define ROOM_ENABLE 7        //IR Sensor Digital Pin for Room - EN Pin
+#define CORRIDOR_ENABLE 8    //IR Sensor Digital Pin for Corridor - EN Pin
+#define THRESHOLD_X 200      // x is the value added to the calibrated value
 //#define IR_BOOT 30 // Not needed for the new sensors caused by the enable pin
 #endif
 
@@ -89,8 +88,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #define CALIBRATION_VAL 1000 //read X values (X/2 from each sensor) and calculate the max value
-#define THRESHOLD_X 300 // x is the value added to the calibrated value
-// #define LONG_RANGE //supports ranged up to 2m 
+#define THRESHOLD_X 300      // x is the value added to the calibrated value
+// #define LONG_RANGE //supports ranged up to 2m
 #define HIGH_SPEED // 1.2m accuracy +- 5%
 // #define HIGH_ACCURACY // 1.2m accuracy < +-3%
 
@@ -110,8 +109,6 @@ static VL53L1X ROOM_SENSOR;
 
 #endif
 
-
-
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified
@@ -122,7 +119,7 @@ static VL53L1X ROOM_SENSOR;
 #include <SSD1306_text.h>
 static SSD1306_text oled;
 #define BRIGHTNESS_CTRL 0x81 // Do not change this value. This starts the Brightness control mode
-#define BRIGHTNESS 1 //Any value between 1 and 255
+#define BRIGHTNESS 1         //Any value between 1 and 255
 #endif
 
 /* 
@@ -134,7 +131,7 @@ static SSD1306_text oled;
 #ifdef MY_DEBUG
 #define MOTION_INIT_TIME 1
 #else
-#define MOTION_INIT_TIME 60    //initialization time in seconds
+#define MOTION_INIT_TIME 1 //initialization time in seconds
 #endif
 /* Motion Sensor setup*/
 static MotionSensor motion(DIGITAL_INPUT_SENSOR);
