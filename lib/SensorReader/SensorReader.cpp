@@ -1,7 +1,7 @@
 #include "SensorReader.h"
 int irrVal = 0;
 int ircVal = 0;
-int threshold = 180;
+int threshold = 0;
 void readSensorData()
 {
     int starttime = millis();
@@ -20,10 +20,9 @@ void readSensorData()
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
 #elif defined USE_VL53L0X
-        ROOM_SENSOR.startContinuous();
-        CORRIDOR_SENSOR.startContinuous();
-        irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-        ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
+        // ROOM_SENSOR.startContinuous();
+        // CORRIDOR_SENSOR.startContinuous();
+
 #endif
 
 #ifdef MY_DEBUG
@@ -153,6 +152,8 @@ void readSensorData()
         }
         wait(10);
 #elif defined USE_VL53L0X
+        irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
+        ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
         if (irrVal < threshold && ircVal > threshold && inout != 1)
         {
             int startR = millis();
@@ -203,6 +204,7 @@ void readSensorData()
         {
             endtime = millis();
         }
+        
         if (ircVal < threshold && irrVal > threshold && inout != 0)
         {
             int startC = millis();

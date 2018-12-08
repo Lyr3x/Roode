@@ -24,7 +24,7 @@ Be carfeul with reconfiguring!
 DESCRIPTION
 */
 
-// #define MY_DEBUG                       //Comment out in production mode
+#define MY_DEBUG                       //Comment out in production mode
 #define MY_RADIO_NRF24 //Define for using NRF24L01+ radio
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
@@ -67,10 +67,11 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 /* 
 ###### IR Sensor setup ######
 */
-#define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
+
 #define LTIME 10000          // loop time (should not be lower than 8 seconds)
 #define MTIME 800            // measuring/person
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
+#define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
 #define ANALOG_IR_SENSORR 0 //IR Room Analog Pin
 #define ANALOG_IR_SENSORC 2 //IR Corridor Analog Pin
 #define ROOM_ENABLE 7       //IR Sensor Digital Pin for Room - EN Pin
@@ -88,6 +89,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 static VL53L0X CORRIDOR_SENSOR;
 static VL53L0X ROOM_SENSOR;
+#define CALIBRATION_VAL 100 //read X values (X/2 from each sensor) and calculate the max value
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
 // #define LONG_RANGE //supports ranged up to 2m 
 #define HIGH_SPEED // 1.2m accuracy +- 5%
@@ -130,7 +132,11 @@ static SSD1306_text oled;
 #ifdef USE_MOTION
 #include <MotionSensor.h>
 #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#ifdef MY_DEBUG
+#define MOTION_INIT_TIME 1
+#else
 #define MOTION_INIT_TIME 60    //initialization time in seconds
+#endif
 /* Motion Sensor setup*/
 static MotionSensor motion(DIGITAL_INPUT_SENSOR);
 #endif

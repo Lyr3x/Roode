@@ -31,11 +31,11 @@ int calculateStandardDeviation(int irValues[])
 // Second step: threshold calibration
 int calibration()
 {
-#ifdef USE_VL53L0X
-// init() performs all calibration steps again();
-ROOM_SENSOR.init();
-CORRIDOR_SENSOR.init();
-#endif
+// #ifdef USE_VL53L0X
+// // init() performs all calibration steps again();
+// ROOM_SENSOR.init();
+// CORRIDOR_SENSOR.init();
+// #endif
 
     int irValues[30] = {};
 #ifdef USE_OLED
@@ -89,7 +89,10 @@ CORRIDOR_SENSOR.init();
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
         wait(10);
         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-
+        #ifdef MY_DEBUG
+        Serial.println(irrVal);
+        Serial.println(ircVal);
+        #endif
         //calculate the max without jumps for the room sensor
         if ((irrVal < min) || ((irrVal - min) == irrVal))
         {
