@@ -29,9 +29,11 @@ void readSensorData(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
         irrVal = analogRead(ANALOG_IR_SENSORR);
         wait(10);
         ircVal = analogRead(ANALOG_IR_SENSORC);
-#elif defined(USE_VL53L0X) && defined(USE_ENERGY_SAVING)
+#elif defined(USE_VL53L0X)
+#ifdef USE_ENEGERY_SAVING
         ROOM_SENSOR.startContinuous();
         CORRIDOR_SENSOR.startContinuous();
+#endif
 #endif
 
 #ifdef MY_DEBUG
