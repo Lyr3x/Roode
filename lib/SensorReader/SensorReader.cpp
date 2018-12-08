@@ -259,3 +259,150 @@ void readSensorData(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR)
 #endif
     }
 }
+#ifdef USE_SHARTP_IR
+void readSensorData()
+{
+    int starttime = millis();
+    int endtime = starttime;
+    int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; THIS STATE WILL BE SENT!
+    while ((endtime - starttime) <= LTIME) // do this loop for up to 5000mS
+    {
+        inout = -1;
+        // turn both sensors on
+        digitalWrite(ROOM_ENABLE, HIGH);
+        wait(1);
+        digitalWrite(CORRIDOR_ENABLE, HIGH);
+        wait(5);
+        irrVal = analogRead(ANALOG_IR_SENSORR);
+        wait(10);
+        ircVal = analogRead(ANALOG_IR_SENSORC);
+
+#ifdef MY_DEBUG
+        Serial.print("IRR:");
+        Serial.println(irrVal);
+        Serial.print("IRC:");
+        Serial.println(ircVal);
+#endif
+
+
+        if (irrVal > threshold && ircVal < threshold && inout != 1)
+        {
+            int startR = millis();
+            int endR = startR;
+            while ((endR - startR) <= MTIME)
+            {
+                irrVal = analogRead(ANALOG_IR_SENSORR);
+                wait(10);
+                ircVal = analogRead(ANALOG_IR_SENSORC);
+                if (ircVal > threshold && irrVal > threshold)
+                {
+#ifdef MY_DEBUG
+                    Serial.print("In Loop IRR: ");
+                    Serial.println(irrVal);
+                    Serial.print("In Loop IRC: ");
+                    Serial.println(ircVal);
+                    Serial.print("Delay Time: ");
+                    Serial.println(MTIME - (endR - startR));
+#endif
+                    while (irrVal > threshold || ircVal > threshold)
+                    {
+                        irrVal = analogRead(ANALOG_IR_SENSORR);
+                        wait(10);
+                        ircVal = analogRead(ANALOG_IR_SENSORC);
+                        if (ircVal > threshold && irrVal < threshold)
+                        {
+                            // turn both sensors off
+                            digitalWrite(ROOM_ENABLE, LOW);
+                            wait(1);
+                            digitalWrite(CORRIDOR_ENABLE, LOW);
+                            inout = 0;
+                            sendCounter(inout);
+                            break;
+                        }
+                        wait(11);
+                    }
+
+                    if (inout == 0)
+                    {
+                        wait(150);
+                        ircVal = 0;
+                        endR = millis();
+                        starttime = millis();
+                        endtime = starttime;
+                        break;
+                    }
+                }
+                else
+                {
+                    wait(1);
+                    endR = millis();
+                }
+            }
+        }
+        else
+        {
+            endtime = millis();
+        }
+        if (ircVal > threshold && irrVal < threshold && inout != 0)
+        {
+            int startC = millis();
+            int endC = startC;
+            while ((endC - startC) <= MTIME)
+            {
+                ircVal = analogRead(ANALOG_IR_SENSORR);
+                wait(10);
+                irrVal = analogRead(ANALOG_IR_SENSORC);
+                if (irrVal > threshold && ircVal > threshold)
+                {
+#ifdef MY_DEBUG
+                    Serial.print("In Loop IRC: ");
+                    Serial.println(ircVal);
+                    Serial.print("In Loop IRR: ");
+                    Serial.println(irrVal);
+                    Serial.print("Delay Time: ");
+                    Serial.println(MTIME - (endC - startC));
+#endif
+                    while (irrVal > threshold || ircVal > threshold)
+                    {
+                        irrVal = analogRead(ANALOG_IR_SENSORR);
+                        wait(10);
+                        ircVal = analogRead(ANALOG_IR_SENSORC);
+                        if (irrVal > threshold && ircVal < threshold)
+                        {
+                            // turn both sensors off
+                            digitalWrite(ROOM_ENABLE, LOW);
+                            wait(1);
+                            digitalWrite(CORRIDOR_ENABLE, LOW);
+
+                            inout = 1;
+                            sendCounter(inout);
+                            break;
+                        }
+                        wait(11);
+                    }
+
+                    if (inout == 1)
+                    {
+                        wait(150);
+                        irrVal = 0;
+                        endC = millis();
+                        starttime = millis();
+                        endtime = starttime;
+                        break;
+                    }
+                }
+                else
+                {
+                    wait(11);
+                    endC = millis();
+                }
+            }
+        }
+        else
+        {
+            endtime = millis();
+        }
+        wait(10);
+    }
+}
+#endif
