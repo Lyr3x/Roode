@@ -29,10 +29,6 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
-// function prototypes
-// void readSensorData();
-// int calibration();
-// void sendCounter(int inout);
 void readCounterButtons();
 
 void setup()

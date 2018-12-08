@@ -17,7 +17,7 @@ Be carfeul with reconfiguring!
   * measruing speed improvements 
   * general bug fixes and improvements
 */
-#define ROODE_VERSION "0.9.5-alpha"
+#define ROODE_VERSION "0.9.6-beta"
 
 /* 
 ###### MySensors Configuration ######
@@ -29,7 +29,7 @@ DESCRIPTION
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
-// #define MY_NODE_ID 1                   // Set a static Node ID if needed
+#define MY_NODE_ID 10                   // Set a static Node ID if needed
 
 /* #### Security Functions ####
 If the MySensors Gateway uses the Signing feature you can enable this here too.
