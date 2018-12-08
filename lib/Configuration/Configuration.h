@@ -131,7 +131,7 @@ static SSD1306_text oled;
 #ifdef MY_DEBUG
 #define MOTION_INIT_TIME 1
 #else
-#define MOTION_INIT_TIME 1 //initialization time in seconds
+#define MOTION_INIT_TIME 60 //initialization time in seconds
 #endif
 /* Motion Sensor setup*/
 static MotionSensor motion(DIGITAL_INPUT_SENSOR);
