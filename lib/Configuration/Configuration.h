@@ -88,7 +88,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define ROOM_XSHUT 7     //XSHUT Pin
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
-#define CALIBRATION_VAL 100 //read X values (X/2 from each sensor) and calculate the max value
+#define CALIBRATION_VAL 1000 //read X values (X/2 from each sensor) and calculate the max value
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
 // #define LONG_RANGE //supports ranged up to 2m 
 #define HIGH_SPEED // 1.2m accuracy +- 5%
