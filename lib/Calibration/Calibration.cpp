@@ -29,7 +29,7 @@ int calculateStandardDeviation(int irValues[])
 
 // First step: Sensor calibration
 // Second step: threshold calibration
-int calibration()
+int calibration(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR)
 {
 // #ifdef USE_VL53L0X
 // // init() performs all calibration steps again();

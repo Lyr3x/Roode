@@ -2,7 +2,7 @@
 int irrVal = 0;
 int ircVal = 0;
 int threshold = 0;
-void readSensorData()
+void readSensorData(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR)
 {
     int starttime = millis();
     int endtime = starttime;

@@ -27,6 +27,8 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 // MyMessage pcMsg(CHILD_ID_PC, V_TEXT);   //people counter child
 // MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold child
 
+VL53L0X CORRIDOR_SENSOR;
+VL53L0X ROOM_SENSOR;
 // function prototypes
 // void readSensorData();
 // int calibration();
@@ -65,6 +67,7 @@ void setup()
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
+
   pinMode(ROOM_XSHUT, OUTPUT);
   pinMode(CORRIDOR_XSHUT, OUTPUT);
   Wire.begin();
@@ -156,7 +159,7 @@ void setup()
 
   Serial.println("#### calibrate the ir sensors ####");
 
-  calibration();
+  calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
@@ -199,7 +202,7 @@ void receive(const MyMessage &message)
     String newThreshold = message.getString();
     if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
     {
-      calibration();
+      calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 
     if (message.sensor == CHILD_ID_PC)
@@ -215,73 +218,74 @@ int newState = LOW;
 
 void loop()
 {
+  readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 
-  // Sleep until interrupt comes in on motion sensor. Send never an update
-  if (motion.checkMotion() == LOW)
-  {
-#ifdef USE_OLED
-    oled.clear();
-#endif
-#ifdef USE_ENERGY_SAVING
-    if (lastState == HIGH)
-    {
-      readSensorData(); //One more tracking phase before do some powersaving
-#if defined USE_SHARP_IR
-      digitalWrite(ROOM_ENABLE, LOW);
-      wait(1);
-      digitalWrite(CORRIDOR_ENABLE, LOW);
-#elif defined USE_VL53L0X || defined USE_VL53L1X
-      ROOM_SENSOR.stopContinuous();
-      CORRIDOR_SENSOR.stopContinuous();
-#endif
-      request(CHILD_ID_THR, V_TEXT, 0);
-      request(CHILD_ID_PC, V_TEXT, 0);
-      lastState = LOW;
-#ifdef USE_COUNTER_BUTTONS
-      readCounterButtons(); //We need two more interrupt pins to get this working!
-#endif
-    }
-#else
-#ifdef USE_COUNTER_BUTTONS
-    readCounterButtons(); //We need two more interrupt pins to get this working!
-#endif
-    request(CHILD_ID_THR, V_TEXT, 0);
-    request(CHILD_ID_PC, V_TEXT, 0);
-    readSensorData();
-#endif
-#ifdef USE_BATTERY
-    smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
-    readSensorData();
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
-#endif
+//   // Sleep until interrupt comes in on motion sensor. Send never an update
+//   if (motion.checkMotion() == LOW)
+//   {
+// #ifdef USE_OLED
+//     oled.clear();
+// #endif
+// #ifdef USE_ENERGY_SAVING
+//     if (lastState == HIGH)
+//     {
+//       readSensorData(); //One more tracking phase before do some powersaving
+// #if defined USE_SHARP_IR
+//       digitalWrite(ROOM_ENABLE, LOW);
+//       wait(1);
+//       digitalWrite(CORRIDOR_ENABLE, LOW);
+// #elif defined USE_VL53L0X || defined USE_VL53L1X
+//       ROOM_SENSOR.stopContinuous();
+//       CORRIDOR_SENSOR.stopContinuous();
+// #endif
+//       request(CHILD_ID_THR, V_TEXT, 0);
+//       request(CHILD_ID_PC, V_TEXT, 0);
+//       lastState = LOW;
+// #ifdef USE_COUNTER_BUTTONS
+//       readCounterButtons(); //We need two more interrupt pins to get this working!
+// #endif
+//     }
+// #else
+// #ifdef USE_COUNTER_BUTTONS
+//     readCounterButtons(); //We need two more interrupt pins to get this working!
+// #endif
+//     request(CHILD_ID_THR, V_TEXT, 0);
+//     request(CHILD_ID_PC, V_TEXT, 0);
+//     readSensorData();
+// #endif
+// #ifdef USE_BATTERY
+//     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
+//     readSensorData();
+// #ifdef USE_OLED
+//     oled.clear();
+//     oled.setCursor(5, 0);
+//     oled.setTextSize(2, 1);
+//     oled.print("Counter: ");
+//     oled.println(peopleCount);
+// #endif
 
-    while (motion.checkMotion() != LOW)
-    {
+//     while (motion.checkMotion() != LOW)
+//     {
 
-      readSensorData();
-    }
-#endif
-  }
-  else
-  {
-    lastState = HIGH;
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
-#endif
-    while (motion.checkMotion() != LOW)
-    {
-      readSensorData();
-    }
-  }
+//       readSensorData();
+//     }
+// #endif
+//   }
+//   else
+//   {
+//     lastState = HIGH;
+// #ifdef USE_OLED
+//     oled.clear();
+//     oled.setCursor(5, 0);
+//     oled.setTextSize(2, 1);
+//     oled.print("Counter: ");
+//     oled.println(peopleCount);
+// #endif
+//     while (motion.checkMotion() != LOW)
+//     {
+//       readSensorData();
+//     }
+//   }
 }
 
 // void readSensorData()
