@@ -3,6 +3,7 @@
 // #include <Configuration.h>
 #include <SendCounter.h>
 #include "core/MySensorsCore.h"
+void readSensorData(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR);
 void readSensorData();
 // some needed var declarations
 extern int irrVal;    //analog value store for the room sensor

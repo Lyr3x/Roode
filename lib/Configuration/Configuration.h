@@ -24,7 +24,7 @@ Be carfeul with reconfiguring!
 DESCRIPTION
 */
 
-#define MY_DEBUG                       //Comment out in production mode
+// #define MY_DEBUG                       //Comment out in production mode
 #define MY_RADIO_NRF24 //Define for using NRF24L01+ radio
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
@@ -83,12 +83,11 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #if defined(USE_VL53L0X) && !defined(USE_SHARP_IR)
 #include <VL53L0X.h>
 #include <Wire.h>
-#define CORRIDOR_SENSOR_newAddress 41
-#define ROOM_SENSOR_newAddress 42
+#define CORRIDOR_SENSOR_newAddress 42
+#define ROOM_SENSOR_newAddress 43
 #define ROOM_XSHUT 7     //XSHUT Pin
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
-static VL53L0X CORRIDOR_SENSOR;
-static VL53L0X ROOM_SENSOR;
+
 #define CALIBRATION_VAL 100 //read X values (X/2 from each sensor) and calculate the max value
 #define THRESHOLD_X 300 // x is the value added to the calibrated value
 // #define LONG_RANGE //supports ranged up to 2m 

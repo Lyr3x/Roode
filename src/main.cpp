@@ -27,6 +27,8 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 // MyMessage pcMsg(CHILD_ID_PC, V_TEXT);   //people counter child
 // MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold child
 
+VL53L0X CORRIDOR_SENSOR;
+VL53L0X ROOM_SENSOR;
 // function prototypes
 // void readSensorData();
 // int calibration();
@@ -65,6 +67,7 @@ void setup()
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
+
   pinMode(ROOM_XSHUT, OUTPUT);
   pinMode(CORRIDOR_XSHUT, OUTPUT);
   Wire.begin();
@@ -156,7 +159,7 @@ void setup()
 
   Serial.println("#### calibrate the ir sensors ####");
 
-  calibration();
+  calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
@@ -199,7 +202,7 @@ void receive(const MyMessage &message)
     String newThreshold = message.getString();
     if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
     {
-      calibration();
+      calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 
     if (message.sensor == CHILD_ID_PC)
@@ -215,8 +218,9 @@ int newState = LOW;
 
 void loop()
 {
+  readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 
-  // Sleep until interrupt comes in on motion sensor. Send never an update
+//   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
 #ifdef USE_OLED
@@ -247,7 +251,7 @@ void loop()
 #endif
     request(CHILD_ID_THR, V_TEXT, 0);
     request(CHILD_ID_PC, V_TEXT, 0);
-    readSensorData();
+    readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 #endif
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
@@ -263,7 +267,7 @@ void loop()
     while (motion.checkMotion() != LOW)
     {
 
-      readSensorData();
+      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 #endif
   }
@@ -279,7 +283,7 @@ void loop()
 #endif
     while (motion.checkMotion() != LOW)
     {
-      readSensorData();
+      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
   }
 }

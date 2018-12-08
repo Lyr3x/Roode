@@ -9,7 +9,7 @@
 #include <VL53L0X.h>
 #endif
 
-int calibration();
+int calibration(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR);
 int calculateStandardDeviation(int irValues[]);
 
 #endif
