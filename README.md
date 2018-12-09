@@ -23,7 +23,14 @@ Repository initialized with version 0.9.4 and MySensors 2.3.0-alpha
 * Case (see .stl files) -> coming soon
 
 ## Changelog
-### Changelog v0.9.5-alpha
+### Changelog v0.9.6
+* added full VL53L0X support
+* measruing speed improvements 
+* Fixed receiving and sending message issues
+* Added OLED brightness config option
+* general bug fixes and improvements
+
+### Changelog v0.9.5
 * Added VL53L0X support
     * Using the Pololu VL53XXX Library
 * Huge Code refactor
