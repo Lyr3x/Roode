@@ -198,14 +198,18 @@ void receive(const MyMessage &message)
     String newThreshold = message.getString();
     if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
     {
+      ROOM_SENSOR.startContinuous();
+      CORRIDOR_SENSOR.startContinuous();
+      wait(30);
       calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 
     if (message.sensor == CHILD_ID_PC)
     {
+      wait(30);
       Serial.println(message.getInt());
       peopleCount = message.getInt();
-      send(pcMsg.set(peopleCount));
+      // send(pcMsg.set(peopleCount));
     }
   }
 }
@@ -214,7 +218,22 @@ int newState = LOW;
 
 void loop()
 {
-  // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
+  if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
+  {
+#ifdef USE_OLED
+    oled.clear();
+    oled.setCursor(5, 0);
+    oled.setTextSize(2, 1);
+    oled.print("Timeout occured!");
+#endif
+    Serial.println("Timeout occured. Reinitialize Sensors");
+    ROOM_SENSOR.init();
+    CORRIDOR_SENSOR.init();
+    ROOM_SENSOR.setTimeout(500);
+    CORRIDOR_SENSOR.setTimeout(500);
+    ROOM_SENSOR.startContinuous();
+    CORRIDOR_SENSOR.startContinuous();
+  }
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
@@ -231,11 +250,14 @@ void loop()
       wait(1);
       digitalWrite(CORRIDOR_ENABLE, LOW);
 #elif defined USE_VL53L0X || defined USE_VL53L1X
+      Serial.println("Shutting down sensors");
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
 #endif
-      request(CHILD_ID_THR, V_TEXT, 0);
-      request(CHILD_ID_PC, V_TEXT, 0);
+      // wait(30);
+      // request(CHILD_ID_THR, V_TEXT, 0);
+      // wait(30);
+      // request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
 #ifdef USE_COUNTER_BUTTONS
       readCounterButtons(); //We need two more interrupt pins to get this working!
@@ -245,8 +267,9 @@ void loop()
 #ifdef USE_COUNTER_BUTTONS
     readCounterButtons(); //We need two more interrupt pins to get this working!
 #endif
-    request(CHILD_ID_THR, V_TEXT, 0);
-    request(CHILD_ID_PC, V_TEXT, 0);
+    // request(CHILD_ID_THR, V_TEXT, 0);
+    // wait(30);
+    // request(CHILD_ID_PC, V_TEXT, 0);
     readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 #endif
 #ifdef USE_BATTERY
@@ -269,6 +292,17 @@ void loop()
   }
   else
   {
+    if (lastState == LOW)
+    {
+#ifdef USE_ENEGERY_SAVING
+#ifdef MY_DEBUG
+      Serial.println("Starting continuous mode again");
+#endif
+      ROOM_SENSOR.startContinuous();
+      CORRIDOR_SENSOR.startContinuous();
+      wait(10);
+#endif
+    }
     lastState = HIGH;
 #ifdef USE_OLED
     oled.clear();
@@ -284,269 +318,6 @@ void loop()
   }
 }
 
-// void readSensorData()
-// {
-//   int starttime = millis();
-//   int endtime = starttime;
-//   int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; THIS STATE WILL BE SENT!
-//   while ((endtime - starttime) <= LTIME) // do this loop for up to 5000mS
-//   {
-//     inout = -1;
-// #if defined USE_SHARP_IR
-//     // turn both sensors on
-//     digitalWrite(ROOM_ENABLE, HIGH);
-//     wait(1);
-//     digitalWrite(CORRIDOR_ENABLE, HIGH);
-//     wait(5);
-//     irrVal = analogRead(ANALOG_IR_SENSORR);
-//     wait(10);
-//     ircVal = analogRead(ANALOG_IR_SENSORC);
-// #elif defined USE_VL53L0X
-//     wait(10);
-//     irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//     wait(10);
-//     ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-// #endif
-
-// #ifdef MY_DEBUG
-//     Serial.print("IRR:");
-//     Serial.println(irrVal);
-//     Serial.print("IRC:");
-//     Serial.println(ircVal);
-// #endif
-
-// #if defined USE_SHARP_IR
-//     if (irrVal > threshold && ircVal < threshold && inout != 1)
-//     {
-//       int startR = millis();
-//       int endR = startR;
-//       while ((endR - startR) <= MTIME)
-//       {
-//         irrVal = analogRead(ANALOG_IR_SENSORR);
-//         wait(10);
-//         ircVal = analogRead(ANALOG_IR_SENSORC);
-//         if (ircVal > threshold && irrVal > threshold)
-//         {
-// #ifdef MY_DEBUG
-//           Serial.print("In Loop IRR: ");
-//           Serial.println(irrVal);
-//           Serial.print("In Loop IRC: ");
-//           Serial.println(ircVal);
-//           Serial.print("Delay Time: ");
-//           Serial.println(MTIME - (endR - startR));
-// #endif
-//           while (irrVal > threshold || ircVal > threshold)
-//           {
-//             irrVal = analogRead(ANALOG_IR_SENSORR);
-//             wait(10);
-//             ircVal = analogRead(ANALOG_IR_SENSORC);
-//             if (ircVal > threshold && irrVal < threshold)
-//             {
-//               // turn both sensors off
-//               digitalWrite(ROOM_ENABLE, LOW);
-//               wait(1);
-//               digitalWrite(CORRIDOR_ENABLE, LOW);
-//               inout = 0;
-//               sendCounter(inout);
-//               break;
-//             }
-//             wait(11);
-//           }
-
-//           if (inout == 0)
-//           {
-//             wait(150);
-//             ircVal = 0;
-//             endR = millis();
-//             starttime = millis();
-//             endtime = starttime;
-//             break;
-//           }
-//         }
-//         else
-//         {
-//           wait(1);
-//           endR = millis();
-//         }
-//       }
-//     }
-//     else
-//     {
-//       endtime = millis();
-//     }
-//     if (ircVal > threshold && irrVal < threshold && inout != 0)
-//     {
-//       int startC = millis();
-//       int endC = startC;
-//       while ((endC - startC) <= MTIME)
-//       {
-//         ircVal = analogRead(ANALOG_IR_SENSORR);
-//         wait(10);
-//         irrVal = analogRead(ANALOG_IR_SENSORC);
-//         if (irrVal > threshold && ircVal > threshold)
-//         {
-// #ifdef MY_DEBUG
-//           Serial.print("In Loop IRC: ");
-//           Serial.println(ircVal);
-//           Serial.print("In Loop IRR: ");
-//           Serial.println(irrVal);
-//           Serial.print("Delay Time: ");
-//           Serial.println(MTIME - (endC - startC));
-// #endif
-//           while (irrVal > threshold || ircVal > threshold)
-//           {
-//             irrVal = analogRead(ANALOG_IR_SENSORR);
-//             wait(10);
-//             ircVal = analogRead(ANALOG_IR_SENSORC);
-//             if (irrVal > threshold && ircVal < threshold)
-//             {
-//               // turn both sensors off
-//               digitalWrite(ROOM_ENABLE, LOW);
-//               wait(1);
-//               digitalWrite(CORRIDOR_ENABLE, LOW);
-
-//               inout = 1;
-//               sendCounter(inout);
-//               break;
-//             }
-//             wait(11);
-//           }
-
-//           if (inout == 1)
-//           {
-//             wait(150);
-//             irrVal = 0;
-//             endC = millis();
-//             starttime = millis();
-//             endtime = starttime;
-//             break;
-//           }
-//         }
-//         else
-//         {
-//           wait(11);
-//           endC = millis();
-//         }
-//       }
-//     }
-//     else
-//     {
-//       endtime = millis();
-//     }
-//     wait(10);
-// #elif defined USE_VL53L0X
-//     if (irrVal < threshold && ircVal > threshold && inout != 1)
-//     {
-//       int startR = millis();
-//       int endR = startR;
-//       while ((endR - startR) <= MTIME)
-//       {
-//         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//         wait(10);
-//         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-//         if (ircVal < threshold && irrVal < threshold)
-//         {
-// #ifdef MY_DEBUG
-//           Serial.print("In Loop IRR: ");
-//           Serial.println(irrVal);
-//           Serial.print("In Loop IRC: ");
-//           Serial.println(ircVal);
-//           Serial.print("Delay Time: ");
-//           Serial.println(MTIME - (endR - startR));
-// #endif
-//           while (irrVal < threshold || ircVal < threshold)
-//           {
-//             irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//             wait(10);
-//             ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-//             if (ircVal < threshold && irrVal > threshold)
-//             {
-//               inout = 0;
-//               sendCounter(inout);
-//               break;
-//             }
-//             wait(11);
-//           }
-
-//           if (inout == 0)
-//           {
-//             wait(150);
-//             ircVal = 0;
-//             endR = millis();
-//             starttime = millis();
-//             endtime = starttime;
-//             break;
-//           }
-//         }
-//         else
-//         {
-//           wait(10);
-//           endR = millis();
-//         }
-//       }
-//     }
-//     else
-//     {
-//       endtime = millis();
-//     }
-//     if (ircVal < threshold && irrVal > threshold && inout != 0)
-//     {
-//       int startC = millis();
-//       int endC = startC;
-//       while ((endC - startC) <= MTIME)
-//       {
-//         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//         wait(10);
-//         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-//         if (irrVal < threshold && ircVal < threshold)
-//         {
-// #ifdef MY_DEBUG
-//           Serial.print("In Loop IRC: ");
-//           Serial.println(ircVal);
-//           Serial.print("In Loop IRR: ");
-//           Serial.println(irrVal);
-//           Serial.print("Delay Time: ");
-//           Serial.println(MTIME - (endC - startC));
-// #endif
-//           while (irrVal < threshold || ircVal < threshold)
-//           {
-//             irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//             wait(10);
-//             ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-//             if (irrVal < threshold && ircVal > threshold)
-//             {
-//               inout = 1;
-//               sendCounter(inout);
-//               break;
-//             }
-//             wait(11);
-//           }
-
-//           if (inout == 1)
-//           {
-//             wait(150);
-//             irrVal = 0;
-//             endC = millis();
-//             starttime = millis();
-//             endtime = starttime;
-//             break;
-//           }
-//         }
-//         else
-//         {
-//           wait(10);
-//           endC = millis();
-//         }
-//       }
-//     }
-//     else
-//     {
-//       endtime = millis();
-//     }
-//     wait(10);
-// #endif
-//   }
-// }
 #ifdef USE_COUNTER_BUTTONS
 void readCounterButtons()
 {
@@ -560,192 +331,3 @@ void readCounterButtons()
   }
 }
 #endif
-
-// void sendCounter(int inout)
-// {
-//   if (inout == 1)
-//   {
-//     peopleCount++;
-//     send(msg.set(inout));
-//     wait(30);
-//     send(pcMsg.set(peopleCount));
-//   }
-//   else if (inout == 0)
-//   {
-//     if (peopleCount > 0)
-//     {
-//       peopleCount--;
-//     }
-//     if (peopleCount == 0)
-//     {
-//       send(msg.set(inout));
-//     }
-//     wait(30);
-//     send(pcMsg.set(peopleCount));
-//   }
-
-// #ifdef USE_BATTERY
-//   float voltage = battery.checkBatteryLevel();
-//   send(voltage_msg.set(voltage, 3)); // redVcc returns millivolts. Set wants volts and how many decimals (3 in our case)
-//   sendBatteryLevel(round((voltage - BATTERY_ZERO) * 100.0 / (BATTERY_FULL - BATTERY_ZERO)));
-// #endif
-// #ifdef USE_OLED
-//   oled.clear();
-//   oled.setCursor(5, 0);
-//   oled.setTextSize(2, 1);
-//   oled.print("Counter: ");
-//   oled.println(peopleCount);
-// #endif
-// }
-
-// int calculateStandardDeviation(int irValues[])
-// {
-//   auto sumOfValues = 0;
-//   auto arrLength = 0;
-//   for (int i = 0; i < 30; i++)
-//   {
-//     if (irValues[i] != 0)
-//     {
-//       sumOfValues += irValues[i];
-//       arrLength++;
-//     }
-//   }
-
-//   auto meanValue = sumOfValues / arrLength;
-
-//   auto standardDeviation = 0;
-//   for (int i = 0; i < arrLength; ++i)
-//   {
-//     standardDeviation += pow(irValues[i] - meanValue, 2);
-//   }
-//   standardDeviation /= arrLength;
-
-//   standardDeviation = sqrt(standardDeviation);
-
-//   return standardDeviation;
-// }
-
-// int calibration()
-// {
-//   int irValues[30] = {};
-// #ifdef USE_OLED
-//   oled.clear();
-//   oled.setCursor(0, 5);
-//   oled.setTextSize(1, 1);
-//   oled.println("### Calibrate IR ###");
-// #endif
-
-// #if defined(USE_SHARP_IR)
-//   digitalWrite(CORRIDOR_ENABLE, HIGH);
-//   digitalWrite(ROOM_ENABLE, HIGH);
-//   delay(100);
-//   auto max = 0;
-// #elif defined USE_VL53L0X
-//   auto min = 0;
-// #endif
-//   auto n = 0;
-//   for (int m = 0; m < CALIBRATION_VAL; m++)
-//   {
-// #if defined(USE_SHARP_IR)
-//     wait(10);
-//     irrVal = analogRead(ANALOG_IR_SENSORR);
-//     wait(10);
-//     ircVal = analogRead(ANALOG_IR_SENSORC);
-
-//     //calculate the max without jumps for the room sensor
-//     if (((irrVal > max) && ((irrVal - max) < THRESHOLD_X)) || ((irrVal - max) == irrVal))
-//     {
-//       Serial.println(irrVal);
-//       max = irrVal;
-//       if (n < 30)
-//       {
-//         irValues[n] = max;
-//         n++;
-//       }
-//     }
-//     //calculate the max without jumps for the corridor sensor
-//     if (((ircVal > max) && ((ircVal - max) < THRESHOLD_X)) || ((ircVal - max) == ircVal))
-//     {
-//       Serial.println(ircVal);
-//       max = ircVal;
-//       if (n < 30)
-//       {
-//         irValues[n] = max;
-//         n++;
-//       }
-//     }
-// #elif defined(USE_VL53L0X)
-//     wait(10);
-//     irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
-//     wait(10);
-//     ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-
-//     //calculate the max without jumps for the room sensor
-//     if ((irrVal < min) || ((irrVal - min) == irrVal))
-//     {
-//       Serial.println(irrVal);
-//       min = irrVal;
-//       if (n < 30)
-//       {
-//         irValues[n] = min;
-//         n++;
-//       }
-//     }
-//     //calculate the max without jumps for the corridor sensor
-//     if ((ircVal < min) || ((ircVal - min) == ircVal))
-//     {
-//       Serial.println(ircVal);
-//       min = ircVal;
-//       if (n < 30)
-//       {
-//         irValues[n] = min;
-//         n++;
-//       }
-//     }
-// #endif
-//   }
-
-// #if defined USE_SHARP_IR
-//   // shutdown both sensors
-//   digitalWrite(CORRIDOR_ENABLE, LOW);
-//   digitalWrite(ROOM_ENABLE, LOW);
-//   auto sd = calculateStandardDeviation(irValues);
-//   threshold = max + sd;
-// #elif defined USE_VL53L0X
-//   auto sd = calculateStandardDeviation(irValues);
-//   threshold = min - sd;
-// #endif
-
-//   // Serial.print("standard deviation: " + threshold);
-//   // threshold = max + THRESHOLD_X;
-// #ifdef USE_OLED
-//   oled.setCursor(15, 0);
-//   oled.print("Threshold: ");
-//   oled.println(threshold);
-//   wait(2000);
-//   oled.clear();
-//   oled.setCursor(10, 0);
-//   oled.setTextSize(1, 1);
-//   oled.println("Calibration done!");
-//   wait(2000);
-// #endif
-//   Serial.print("standard deviation: ");
-//   Serial.println(sd);
-//   Serial.print("New threshold is: ");
-//   Serial.println(threshold);
-//   send(thrMsg.set(threshold));
-//   Serial.println("#### calibration done ####");
-//   return threshold;
-// }
-
-/*
-  - Not sure if this function ever will be used... But good idea to have this as backup
-  - Tests will be show more about RAM problems
-  - commented out as it is not used yet!
-*/
-// int freeRam()
-// {
-//   extern int __heap_start, *__brkval;
-//   int v;
-//   return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
-// }

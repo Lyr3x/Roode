@@ -24,8 +24,9 @@ Be carfeul with reconfiguring!
 DESCRIPTION
 */
 
-// #define MY_DEBUG                       //Comment out in production mode
+// #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues. 
 #define MY_RADIO_NRF24 //Define for using NRF24L01+ radio
+#define MY_RF24_PA_LEVEL RF24_PA_LOW//Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
@@ -87,7 +88,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define ROOM_XSHUT 7     //XSHUT Pin
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
-#define CALIBRATION_VAL 1000 //read X values (X/2 from each sensor) and calculate the max value
+#define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
 #define THRESHOLD_X 300      // x is the value added to the calibrated value
 // #define LONG_RANGE //supports ranged up to 2m
 #define HIGH_SPEED // 1.2m accuracy +- 5%
