@@ -9,15 +9,14 @@ Be carfeul with reconfiguring!
 /*
   RooDe version number
   Please update frequently
-### Changelog v0.9.5-alpha:
-* added experimental VL53L0X support
-  * single Measurement  * LONG_RANGE (up to 2m) support
-  * HIGH_SPEED and HIGH ACCURACY profiles
-  * static I2C address
+### Changelog v0.9.6:
+* added full VL53L0X support
   * measruing speed improvements 
+  * Fixed receiving and sending message issues
+  * Added OLED brightness config option
   * general bug fixes and improvements
 */
-#define ROODE_VERSION "0.9.6-beta"
+#define ROODE_VERSION "0.9.6"
 
 /* 
 ###### MySensors Configuration ######
