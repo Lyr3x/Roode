@@ -52,15 +52,14 @@ void setup()
 
   Serial.println("##### RooDe Presence Detection System #####");
 
+  //Motion Sensor
+  pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
   //Corridor Sensor Enable PIN
   pinMode(CORRIDOR_ENABLE, OUTPUT);
 
   //Room Sensor Voltage Enable PIN
   pinMode(ROOM_ENABLE, OUTPUT);
-
-  //Motion Sensor
-  pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
 
