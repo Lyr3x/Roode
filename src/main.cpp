@@ -250,7 +250,9 @@ void loop()
       wait(1);
       digitalWrite(CORRIDOR_ENABLE, LOW);
 #elif defined USE_VL53L0X || defined USE_VL53L1X
+#ifdef MY_DEBUG
       Serial.println("Shutting down sensors");
+#endif
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
 #endif
