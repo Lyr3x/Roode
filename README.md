@@ -29,11 +29,15 @@ It is crucial that you turned off `#define MY_DEBUG`! Otherwise Roode will crash
 
 ## Changelog
 ### Changelog v0.9.6
+#### Additions
 * added full VL53L0X support
+* Added OLED brightness config option
+* Updated to MySensors@2.3.1
+#### Bugfixes and other changes
 * measruing speed improvements 
 * Fixed receiving and sending message issues
-* Added OLED brightness config option
-* general bug fixes and improvements
+* General bug fixes and improvements
+* Changed default PA_LEVEL to HIGH
 
 ### Changelog v0.9.5
 * Added VL53L0X support
