@@ -3,7 +3,7 @@
 
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
-Be carfeul with reconfiguring! 
+Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 
 /*
@@ -23,9 +23,9 @@ Be carfeul with reconfiguring!
 DESCRIPTION
 */
 
-// #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues. 
-#define MY_RADIO_RF24 //Define for using NRF24L01+ radio
-#define MY_RF24_PA_LEVEL RF24_PA_HIGH//Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
+// #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
+#define MY_RADIO_RF24                 //Define for using NRF24L01+ radio
+#define MY_RF24_PA_LEVEL RF24_PA_HIGH //Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
@@ -88,9 +88,17 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
-#define THRESHOLD_X 300      // x is the value added to the calibrated value
-// #define LONG_RANGE //supports ranged up to 2m
+#define THRESHOLD_X 300     // x is the value added to the calibrated value
+
+/*
+ Feature switches:
+ * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
+ * If you got en error code just toggle off HIGH_SPEED to off.
+ * If you are still receiving an unreliable reading/error code turn on LONG_RANGE mode which
+   is working for up to 2m with the VL53L0X or 4m with the VL53L1X.
+*/
 #define HIGH_SPEED // 1.2m accuracy +- 5%
+// #define LONG_RANGE //supports ranged up to 2m
 // #define HIGH_ACCURACY // 1.2m accuracy < +-3%
 
 #endif
@@ -119,7 +127,7 @@ static VL53L1X ROOM_SENSOR;
 #include <SSD1306_text.h>
 static SSD1306_text oled;
 #define BRIGHTNESS_CTRL 0x81 // Do not change this value. This starts the Brightness control mode
-#define BRIGHTNESS 1         //Any value between 1 and 255
+#define BRIGHTNESS 1         //Set the OLED brightness value to a val between 1 and 255
 #endif
 
 /* 
@@ -136,6 +144,7 @@ static SSD1306_text oled;
 /* Motion Sensor setup*/
 static MotionSensor motion(DIGITAL_INPUT_SENSOR);
 #endif
+
 /*
 ###### Push-Button Setup ######
 */
