@@ -13,12 +13,13 @@
 int calculateStandardDeviation(int irValues[]);
 
 template <typename T>
-int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR=VL53L0X()){
+int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
+{
     // #ifdef USE_VL53L0X
-// // init() performs all calibration steps again();
-// ROOM_SENSOR.init();
-// CORRIDOR_SENSOR.init();
-// #endif
+    // // init() performs all calibration steps again();
+    // ROOM_SENSOR.init();
+    // CORRIDOR_SENSOR.init();
+    // #endif
 
     int irValues[30] = {};
 #ifdef USE_OLED
@@ -72,10 +73,10 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR=VL53L0X()){
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
         wait(10);
         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-        #ifdef MY_DEBUG
+#ifdef MY_DEBUG
         Serial.println(irrVal);
         Serial.println(ircVal);
-        #endif
+#endif
         //calculate the max without jumps for the room sensor
         if ((irrVal < min) || ((irrVal - min) == irrVal))
         {
@@ -128,11 +129,17 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR=VL53L0X()){
     Serial.print("standard deviation: ");
     Serial.println(sd);
     Serial.print("New threshold is: ");
-    Serial.println(threshold);
-    send(thrMsg.set(threshold));
     Serial.println("#### calibration done ####");
+    if (threshold > 8000)
+    {
+        reportToController(threshold);
+    }
+    else
+    {
+        Serial.println(threshold);
+        send(thrMsg.set(threshold));
+    }
     return threshold;
-
 }
 
 #endif
