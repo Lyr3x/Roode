@@ -68,10 +68,10 @@ void setup()
   Wire.begin();
 
   pinMode(ROOM_XSHUT, INPUT);
-  delay(10);
+  wait(10);
   ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
   pinMode(CORRIDOR_XSHUT, INPUT);
-  delay(10);
+  wait(10);
   CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
   ROOM_SENSOR.init();
   CORRIDOR_SENSOR.init();
@@ -231,6 +231,7 @@ void loop()
     CORRIDOR_SENSOR.setTimeout(500);
     ROOM_SENSOR.startContinuous();
     CORRIDOR_SENSOR.startContinuous();
+    calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
   }
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
