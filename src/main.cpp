@@ -224,6 +224,7 @@ void loop()
     oled.setTextSize(2, 1);
     oled.print("Timeout occured!");
 #endif
+    reportToController(0, 65535);
     Serial.println("Timeout occured. Reinitialize Sensors");
     ROOM_SENSOR.init();
     CORRIDOR_SENSOR.init();

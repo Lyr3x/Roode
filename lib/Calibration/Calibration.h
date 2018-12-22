@@ -132,7 +132,10 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
     Serial.println("#### calibration done ####");
     if (threshold > 8000)
     {
-        reportToController(threshold);
+        reportToController(threshold, 8196);
+    }
+    else if(threshold == -1){
+        reportToController(threshold, -1);
     }
     else
     {
