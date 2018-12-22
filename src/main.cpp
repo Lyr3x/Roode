@@ -73,13 +73,10 @@ void setup()
   pinMode(CORRIDOR_XSHUT, INPUT);
   delay(10);
   CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-
   ROOM_SENSOR.init();
   CORRIDOR_SENSOR.init();
   ROOM_SENSOR.setTimeout(500);
   CORRIDOR_SENSOR.setTimeout(500);
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
 
 #if defined LONG_RANGE
   // lower the return signal rate limit (default is 0.25 MCPS)
@@ -104,6 +101,8 @@ void setup()
   ROOM_SENSOR.setMeasurementTimingBudget(200000);
   CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
 #endif
+  ROOM_SENSOR.startContinuous();
+  CORRIDOR_SENSOR.startContinuous();
 #endif
 
 #if defined(USE_VL53L1X)
