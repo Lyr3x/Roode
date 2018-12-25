@@ -4,6 +4,7 @@ License: GPLv3
 */
 
 #include <Configuration.h>
+#include <OptionChecker.h>
 #include <MySensors.h>    // include the MySensors library
 #include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
 #include <MotionSensor.h> //MotionSensorLib

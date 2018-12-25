@@ -164,5 +164,4 @@ Keep in Mind that you need an Voltage regulator to stable 5V!
 #define BATTERY_FULL 4.2   // a 18650 lithium ion battery usually give 4.2V when full
 #define BATTERY_ZERO 3.5   // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
 #endif
-
 #endif //Include guard
