@@ -8,13 +8,13 @@ License: GPLv3
 #include <MySensors.h>    // include the MySensors library
 #include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
 #include <MotionSensor.h> //MotionSensorLib
-#include <BatteryMeter.h> //Include and Set Up BatteryMeter Library
 #include <SensorReader.h>
 #include <Communication.h>
 #include <Calibration.h>
 
 // battery setup
 #ifdef USE_BATTERY
+#include <BatteryMeter.h> //Include and Set Up BatteryMeter Library
 BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
