@@ -14,19 +14,11 @@ License: GPLv3
 
 // battery setup
 #ifdef USE_BATTERY
-#include <BatteryMeter.h> //Include and Set Up BatteryMeter Library
+#include <BatteryMeter.h>                           //Include and Set Up BatteryMeter Library
 BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-// /* MySensors Message types and default settings */
-// unsigned long SLEEP_TIME = 0; //sleep forever
-// #define CHILD_ID_R 0
-// #define CHILD_ID_PC 1
-// #define CHILD_ID_THR 3
-// MyMessage msg(CHILD_ID_R, V_STATUS);    //room on/off child
-// MyMessage pcMsg(CHILD_ID_PC, V_TEXT);   //people counter child
-// MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold child
 extern int peopleCount;
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
