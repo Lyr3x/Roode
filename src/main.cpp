@@ -19,7 +19,7 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-extern int peopleCount;
+extern uint8_t peopleCount;
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
 void readCounterButtons();

@@ -1,6 +1,6 @@
 #include <Configuration.h>
 #include <SendCounter.h>
-int peopleCount = 0; //default state: nobody is inside the room
+uint8_t peopleCount = 0; //default state: nobody is inside the room
 void sendCounter(int inout)
 {
     if (inout == 1)
