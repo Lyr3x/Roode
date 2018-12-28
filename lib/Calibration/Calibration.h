@@ -39,9 +39,9 @@ int calibration(T ROOM_SENSOR, T CORRIDOR_SENSOR)
     {
 #if defined(USE_SHARP_IR)
         wait(10);
-        irrVal = analogRead(ANALOG_IR_SENSORR);
+        irrVal = analogRead(ROOM_SENSOR);
         wait(10);
-        ircVal = analogRead(ANALOG_IR_SENSORC);
+        ircVal = analogRead(CORRIDOR_SENSOR);
 
         //calculate the max without jumps for the room sensor
         if (((irrVal > max) && ((irrVal - max) < THRESHOLD_X)) || ((irrVal - max) == irrVal))

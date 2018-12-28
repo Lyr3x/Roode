@@ -26,9 +26,9 @@ void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
         wait(1);
         digitalWrite(CORRIDOR_ENABLE, HIGH);
         wait(5);
-        irrVal = analogRead(ANALOG_IR_SENSORR);
+        irrVal = analogRead(ROOM_SENSOR);
         wait(10);
-        ircVal = analogRead(ANALOG_IR_SENSORC);
+        ircVal = analogRead(CORRIDOR_SENSOR);
 
 #endif
 
@@ -46,9 +46,9 @@ void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
             int endR = startR;
             while ((endR - startR) <= MTIME)
             {
-                irrVal = analogRead(ANALOG_IR_SENSORR);
+                irrVal = analogRead(ROOM_SENSOR);
                 wait(10);
-                ircVal = analogRead(ANALOG_IR_SENSORC);
+                ircVal = analogRead(CORRIDOR_SENSOR);
                 if (ircVal > threshold && irrVal > threshold)
                 {
 #ifdef MY_DEBUG
@@ -61,9 +61,9 @@ void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
 #endif
                     while (irrVal > threshold || ircVal > threshold)
                     {
-                        irrVal = analogRead(ANALOG_IR_SENSORR);
+                        irrVal = analogRead(ROOM_SENSOR);
                         wait(10);
-                        ircVal = analogRead(ANALOG_IR_SENSORC);
+                        ircVal = analogRead(CORRIDOR_SENSOR);
                         if (ircVal > threshold && irrVal < threshold)
                         {
                             // turn both sensors off
@@ -104,9 +104,9 @@ void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
             int endC = startC;
             while ((endC - startC) <= MTIME)
             {
-                ircVal = analogRead(ANALOG_IR_SENSORR);
+                ircVal = analogRead(ROOM_SENSOR);
                 wait(10);
-                irrVal = analogRead(ANALOG_IR_SENSORC);
+                irrVal = analogRead(CORRIDOR_SENSOR);
                 if (irrVal > threshold && ircVal > threshold)
                 {
 #ifdef MY_DEBUG
@@ -119,9 +119,9 @@ void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
 #endif
                     while (irrVal > threshold || ircVal > threshold)
                     {
-                        irrVal = analogRead(ANALOG_IR_SENSORR);
+                        irrVal = analogRead(ROOM_SENSOR);
                         wait(10);
-                        ircVal = analogRead(ANALOG_IR_SENSORC);
+                        ircVal = analogRead(CORRIDOR_SENSOR);
                         if (irrVal > threshold && ircVal < threshold)
                         {
                             // turn both sensors off

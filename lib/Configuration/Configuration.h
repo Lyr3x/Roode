@@ -72,8 +72,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define MTIME 800   // measuring/person
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
 #define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
-#define ANALOG_IR_SENSORR 0  //IR Room Analog Pin
-#define ANALOG_IR_SENSORC 2  //IR Corridor Analog Pin
+#define ROOM_SENSOR 0        //IR Room Analog Pin
+#define CORRIDOR_SENSOR 2    //IR Corridor Analog Pin
 #define ROOM_ENABLE 7        //IR Sensor Digital Pin for Room - EN Pin
 #define CORRIDOR_ENABLE 8    //IR Sensor Digital Pin for Corridor - EN Pin
 #define THRESHOLD_X 200      // x is the value added to the calibrated value
