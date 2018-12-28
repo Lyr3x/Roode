@@ -107,13 +107,14 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #if defined(USE_VL53L1X) && !defined(USE_SHARP_IR)
 #include <VL53L1X.h>
 #include <Wire.h>
+#include <VL53L1XWrap.h>
 #define CORRIDOR_SENSOR_newAddress 41
 #define ROOM_SENSOR_newAddress 42
-#define ROOM_ENABLE 7     //XSHUT Pin
-#define CORRIDOR_ENABLE 8 //XSHUT Pin
-static VL53L1X CORRIDOR_SENSOR;
-static VL53L1X ROOM_SENSOR;
-#define THRESHOLD_X 300 // x is the value added to the calibrated value
+#define ROOM_XSHUT 7     //XSHUT Pin
+#define CORRIDOR_XSHUT 8 //XSHUT Pin
+
+#define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
+#define THRESHOLD_X 300     // x is the value added to the calibrated value
 #define LONG_RANGE
 
 #endif

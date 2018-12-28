@@ -20,8 +20,15 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 #endif
 
 extern uint8_t peopleCount;
+#ifdef USE_VL53L0X
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
+#elif defined USE_VL53L1X
+VL53L1X CORRIDOR_SENSOR_pololu;
+VL53L1X ROOM_SENSOR_pololu;
+VL53L1XWrap ROOM_SENSOR(ROOM_SENSOR_pololu);
+VL53L1XWrap CORRIDOR_SENSOR(CORRIDOR_SENSOR_pololu);
+#endif
 void readCounterButtons();
 
 void setup()
@@ -99,14 +106,14 @@ void setup()
 #endif
 
 #if defined(USE_VL53L1X)
-  pinMode(ROOM_ENABLE, OUTPUT);
-  pinMode(CORRIDOR_ENABLE, OUTPUT);
+  pinMode(ROOM_XSHUT, OUTPUT);
+  pinMode(CORRIDOR_XSHUT, OUTPUT);
   Wire.begin();
 
-  pinMode(ROOM_ENABLE, INPUT);
+  pinMode(ROOM_XSHUT, INPUT);
   delay(10);
   ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_ENABLE, INPUT);
+  pinMode(CORRIDOR_XSHUT, INPUT);
   delay(10);
   CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
 

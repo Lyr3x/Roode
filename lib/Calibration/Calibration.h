@@ -5,15 +5,12 @@
 #include <Math.h>
 #include <Configuration.h>
 #include <SensorReader.h>
-#ifdef USE_VL53L0X
-#include <VL53L0X.h>
-#endif
 
 // int calibration(VL53L0X ROOM_SENSOR, VL53L0X CORRIDOR_SENSOR);
 int calculateStandardDeviation(int irValues[]);
 
 template <typename T>
-int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
+int calibration(T ROOM_SENSOR, T CORRIDOR_SENSOR)
 {
     // #ifdef USE_VL53L0X
     // // init() performs all calibration steps again();
@@ -34,7 +31,7 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
     digitalWrite(ROOM_ENABLE, HIGH);
     delay(100);
     auto max = 0;
-#elif defined USE_VL53L0X
+#elif defined USE_VL53L0X || defined USE_VL53L1X
     auto min = 0;
 #endif
     auto n = 0;
@@ -68,7 +65,7 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
                 n++;
             }
         }
-#elif defined(USE_VL53L0X)
+#elif defined(USE_VL53L0X) || defined USE_VL53L1X
         wait(10);
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
         wait(10);
@@ -108,7 +105,7 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
     digitalWrite(ROOM_ENABLE, LOW);
     sd = calculateStandardDeviation(irValues);
     threshold = max + sd;
-#elif defined USE_VL53L0X
+#elif defined USE_VL53L0X || defined USE_VL53L1X
     sd = calculateStandardDeviation(irValues);
     threshold = min - sd;
 #endif
@@ -134,7 +131,8 @@ int calibration(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
     {
         reportToController(threshold, 8196);
     }
-    else if(threshold == -1){
+    else if (threshold == -1)
+    {
         reportToController(threshold, -1);
     }
     else

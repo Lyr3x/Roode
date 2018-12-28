@@ -12,7 +12,7 @@ extern int irrVal;    //analog value store for the room sensor
 extern int ircVal;    //analog value store for the corridor sensor
 extern int threshold; //if CALIBRATION is not defined, this threshold is used (okay for a 80cm doorway using reflection foil or white paper)
 template <typename T>
-void readSensorData(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
+void readSensorData(T ROOM_SENSOR, T CORRIDOR_SENSOR)
 {
     int starttime = millis();
     int endtime = starttime;
@@ -158,7 +158,7 @@ void readSensorData(T ROOM_SENSOR = VL53L0X(), T CORRIDOR_SENSOR = VL53L0X())
             endtime = millis();
         }
         wait(10);
-#elif defined USE_VL53L0X
+#elif defined USE_VL53L0X || defined USE_VL53L1X
         irrVal = ROOM_SENSOR.readRangeContinuousMillimeters();
         ircVal = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
         if (irrVal < threshold && ircVal > threshold && inout != 1)
