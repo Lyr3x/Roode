@@ -127,19 +127,11 @@ int calibration(T ROOM_SENSOR, T CORRIDOR_SENSOR)
     Serial.println(sd);
     Serial.print("New threshold is: ");
     Serial.println("#### calibration done ####");
-    if (threshold > 8000)
-    {
-        reportToController(threshold, 8196);
-    }
-    else if (threshold == -1)
-    {
-        reportToController(threshold, -1);
-    }
-    else
-    {
-        Serial.println(threshold);
-        send(thrMsg.set(threshold));
-    }
+
+    reportToController(threshold);
+    Serial.println(threshold);
+    send(thrMsg.set(threshold));
+
     return threshold;
 }
 

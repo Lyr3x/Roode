@@ -23,6 +23,7 @@ extern uint8_t peopleCount;
 #ifdef USE_VL53L0X
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;
+
 #elif defined USE_VL53L1X
 VL53L1X CORRIDOR_SENSOR_pololu;
 VL53L1X ROOM_SENSOR_pololu;
@@ -77,7 +78,6 @@ void setup()
   CORRIDOR_SENSOR.init();
   ROOM_SENSOR.setTimeout(500);
   CORRIDOR_SENSOR.setTimeout(500);
-
 #if defined LONG_RANGE
   // lower the return signal rate limit (default is 0.25 MCPS)
   ROOM_SENSOR.setSignalRateLimit(0.1);
@@ -198,7 +198,7 @@ void receive(const MyMessage &message)
     {
       ROOM_SENSOR.startContinuous();
       CORRIDOR_SENSOR.startContinuous();
-      wait(30);
+      
       calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 
@@ -224,14 +224,9 @@ void loop()
     oled.setTextSize(2, 1);
     oled.print("Timeout occured!");
 #endif
-    reportToController(0, 65535);
-    Serial.println("Timeout occured. Reinitialize Sensors");
-    ROOM_SENSOR.init();
-    CORRIDOR_SENSOR.init();
-    ROOM_SENSOR.setTimeout(500);
-    CORRIDOR_SENSOR.setTimeout(500);
-    ROOM_SENSOR.startContinuous();
-    CORRIDOR_SENSOR.startContinuous();
+    reportToController(65535);
+    Serial.println("Timeout occured. Restart the System");
+
     calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
   }
 

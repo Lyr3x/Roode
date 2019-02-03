@@ -17,7 +17,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
   * Added OLED brightness config option
   * general bug fixes and improvements
 */
-#define ROODE_VERSION "0.9.6"
+#define ROODE_VERSION "0.9.6-beta"
 
 /* 
 ###### MySensors Configuration ######
