@@ -31,7 +31,74 @@ VL53L1XWrap ROOM_SENSOR(ROOM_SENSOR_pololu);
 VL53L1XWrap CORRIDOR_SENSOR(CORRIDOR_SENSOR_pololu);
 #endif
 void readCounterButtons();
+void VL53LXX_init()
+{
+  // Wire.end();
+  pinMode(ROOM_XSHUT, OUTPUT);
+  pinMode(CORRIDOR_XSHUT, OUTPUT);
+  wait(10);
+  digitalWrite(ROOM_XSHUT, LOW);
+  digitalWrite(CORRIDOR_XSHUT, LOW);
+  wait(10);
 
+  pinMode(ROOM_XSHUT, INPUT);
+  wait(10);
+  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+  pinMode(CORRIDOR_XSHUT, INPUT);
+  wait(10);
+  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+  ROOM_SENSOR.init();
+  CORRIDOR_SENSOR.init();
+  ROOM_SENSOR.setTimeout(500);
+  CORRIDOR_SENSOR.setTimeout(500);
+
+#if defined(USE_VL53L0X)
+#if defined LONG_RANGE
+  // lower the return signal rate limit (default is 0.25 MCPS)
+  ROOM_SENSOR.setSignalRateLimit(0.1);
+  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+
+  // lower the return signal rate limit (default is 0.25 MCPS)
+  CORRIDOR_SENSOR.setSignalRateLimit(0.1);
+  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+#endif
+
+#if defined HIGH_SPEED
+  // reduce timing budget to 20 ms (default is about 33 ms)
+  ROOM_SENSOR.setMeasurementTimingBudget(20000);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
+#elif defined HIGH_ACCURACY
+  // increase timing budget to 200 ms
+  ROOM_SENSOR.setMeasurementTimingBudget(200000);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
+#endif
+#endif //endif USE_VL53L0X
+
+#if defined(USE_VL53L1X)
+#if defined LONG_RANGE
+  // Short, Medium, Long, Unkown as ranges are possible
+  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
+  ROOM_SENSOR.setMeasurementTimingBudget(33000);
+  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
+  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
+#endif
+
+#if defined HIGH_SPEED
+  // reduce timing budget to 20 ms (default is about 33 ms)
+  sensor.setMeasurementTimingBudget(20000);
+#elif defined HIGH_ACCURACY
+  // increase timing budget to 200 ms
+  sensor.setMeasurementTimingBudget(200000);
+#endif
+#endif
+
+  ROOM_SENSOR.startContinuous();
+  CORRIDOR_SENSOR.startContinuous();
+}
 void setup()
 {
 #ifdef USE_OLED
@@ -63,66 +130,69 @@ void setup()
   pinMode(ROOM_ENABLE, OUTPUT);
 #endif
 #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
-
-  pinMode(ROOM_XSHUT, OUTPUT);
-  pinMode(CORRIDOR_XSHUT, OUTPUT);
   Wire.begin();
+  VL53LXX_init();
 
-  pinMode(ROOM_XSHUT, INPUT);
-  wait(10);
-  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_XSHUT, INPUT);
-  wait(10);
-  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  ROOM_SENSOR.init();
-  CORRIDOR_SENSOR.init();
-  ROOM_SENSOR.setTimeout(500);
-  CORRIDOR_SENSOR.setTimeout(500);
-#if defined LONG_RANGE
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  ROOM_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+  // pinMode(ROOM_XSHUT, OUTPUT);
+  // pinMode(CORRIDOR_XSHUT, OUTPUT);
+  // Wire.begin();
 
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  CORRIDOR_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-#endif
+  // pinMode(ROOM_XSHUT, INPUT);
+  // wait(10);
+  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+  // pinMode(CORRIDOR_XSHUT, INPUT);
+  // wait(10);
+  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+  // ROOM_SENSOR.init();
+  // CORRIDOR_SENSOR.init();
+  // ROOM_SENSOR.setTimeout(500);
+  // CORRIDOR_SENSOR.setTimeout(500);
+// #if defined LONG_RANGE
+//   // lower the return signal rate limit (default is 0.25 MCPS)
+//   ROOM_SENSOR.setSignalRateLimit(0.1);
+//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
 
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  ROOM_SENSOR.setMeasurementTimingBudget(20000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  ROOM_SENSOR.setMeasurementTimingBudget(200000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
-#endif
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
+//   // lower the return signal rate limit (default is 0.25 MCPS)
+//   CORRIDOR_SENSOR.setSignalRateLimit(0.1);
+//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
+//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+// #endif
+
+// #if defined HIGH_SPEED
+//   // reduce timing budget to 20 ms (default is about 33 ms)
+//   ROOM_SENSOR.setMeasurementTimingBudget(20000);
+//   CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
+// #elif defined HIGH_ACCURACY
+//   // increase timing budget to 200 ms
+//   ROOM_SENSOR.setMeasurementTimingBudget(200000);
+//   CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
+// #endif
+//   ROOM_SENSOR.startContinuous();
+//   CORRIDOR_SENSOR.startContinuous();
 #endif
 
 #if defined(USE_VL53L1X)
-  pinMode(ROOM_XSHUT, OUTPUT);
-  pinMode(CORRIDOR_XSHUT, OUTPUT);
-  Wire.begin();
+  VL53LXX_init();
+  // pinMode(ROOM_XSHUT, OUTPUT);
+  // pinMode(CORRIDOR_XSHUT, OUTPUT);
+  // Wire.begin();
 
-  pinMode(ROOM_XSHUT, INPUT);
-  delay(10);
-  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_XSHUT, INPUT);
-  delay(10);
-  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
+  // pinMode(ROOM_XSHUT, INPUT);
+  // delay(10);
+  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
+  // pinMode(CORRIDOR_XSHUT, INPUT);
+  // delay(10);
+  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
 
-  ROOM_SENSOR.init();
-  CORRIDOR_SENSOR.init();
-  ROOM_SENSOR.setTimeout(500);
-  CORRIDOR_SENSOR.setTimeout(500);
-  ROOM_SENSOR.startContinuous(33);
-  CORRIDOR_SENSOR.startContinuous(33);
+  // ROOM_SENSOR.init();
+  // CORRIDOR_SENSOR.init();
+  // ROOM_SENSOR.setTimeout(500);
+  // CORRIDOR_SENSOR.setTimeout(500);
+  // ROOM_SENSOR.startContinuous(33);
+  // CORRIDOR_SENSOR.startContinuous(33);
 
 #if defined LONG_RANGE
   // Short, Medium, Long, Unkown as ranges are possible
@@ -196,9 +266,10 @@ void receive(const MyMessage &message)
     String newThreshold = message.getString();
     if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
     {
-      ROOM_SENSOR.startContinuous();
-      CORRIDOR_SENSOR.startContinuous();
-      
+      // ROOM_SENSOR.stopContinuous();
+      // CORRIDOR_SENSOR.stopContinuous();
+      // VL53LXX_init();
+
       calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
 
