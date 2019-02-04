@@ -5,13 +5,11 @@ License: GPLv3
 #include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 #include <Configuration.h>
 #include <Wire.h>
-
 #ifdef USE_MYSENSORS
 #include <MySensors.h> // include the MySensors library
 #include <MySensorsTransmitter.h>
 MySensorsTransmitter transmitter;
 #endif
-
 #ifdef USE_MQTT
 #include <ESP8266WiFi.h>
 #include <MQTTTransmitter.h>
@@ -19,13 +17,12 @@ MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";   //$$
 const char *topic_Domoticz_OUT = "domoticz/out"; //$$
 #endif
-
 #include <OptionChecker.h>
 #include <MotionSensor.h> //MotionSensorLib
 #include <Calibration.h>
 #include <VL53L0XSensor.h>
 #include <PeopleCounter.h>
-//USE_MQTT
+
 // battery setup
 #ifdef USE_BATTERY
 #include <BatteryMeter.h>                           //Include and Set Up BatteryMeter Library
@@ -48,7 +45,7 @@ void setup()
   Serial.println(transmitter.ssid);
 
   // connect to WiFi Access Point
-  // ESP.wdtDisable(); //Disable soft watch dog 
+  // ESP.wdtDisable(); //Disable soft watch dog
   WiFi.mode(WIFI_STA);
   WiFi.begin(transmitter.ssid, transmitter.password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED)
@@ -283,7 +280,7 @@ void loop()
     while (motion.checkMotion() != LOW)
     {
       yield();
-      #ifdef MY_DEBUG
+#ifdef MY_DEBUG
       Serial.println("4. Motion sensor is on. Start counting");
 #endif
       peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
@@ -317,7 +314,7 @@ void loop()
     while (motion.checkMotion() != LOW)
     {
       yield();
-      #ifdef MY_DEBUG
+#ifdef MY_DEBUG
       Serial.println("7. Motion sensor is on. Start counting");
 #endif
       peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
@@ -326,6 +323,7 @@ void loop()
 }
 
 #ifdef USE_MQTT
+// !! Needs to be implemented !!
 void callback(char *topic, byte *payload, unsigned int length)
 { // ****************
 

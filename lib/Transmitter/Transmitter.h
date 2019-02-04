@@ -10,7 +10,9 @@ public:
   ~Transmitter() {}
   int transmit();
   int receive();
-  struct Devices{};
+  struct Devices
+  {
+  };
   Devices devices;
 };
 #endif

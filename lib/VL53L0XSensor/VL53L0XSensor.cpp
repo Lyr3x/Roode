@@ -65,9 +65,9 @@ int VL53L0XSensor::calibration()
         delay(10);
         auto sensor_value = _Sensor.readRangeContinuousMillimeters();
 
-// #ifdef MY_DEBUG
+        // #ifdef MY_DEBUG
         Serial.println(sensor_value);
-// #endif
+        // #endif
         //calculate the max without jumps for the room sensor
         if ((sensor_value < min) || ((sensor_value - min) == sensor_value))
         {
