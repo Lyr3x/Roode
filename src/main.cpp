@@ -83,6 +83,10 @@ void setup()
     Serial.println(transmitter.ssid2);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  if (!client.connected())
+  { // MQTT connection
+    transmitter.reconnect();
+  }
 #endif
 
 #ifdef USE_MYSENSORS
@@ -132,8 +136,13 @@ void setup()
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
-
-  transmitter.transmit(transmitter.devices.room_switch, 0);
+#ifdef USE_MQTT
+  if (!client.connected())
+  { // MQTT connection
+    transmitter.reconnect();
+  }
+#endif
+  transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
 #ifdef USE_OLED
@@ -205,7 +214,9 @@ void loop()
     transmitter.reconnect();
   }
 #endif
-
+  // transmitter.transmit(transmitter.devices.room_switch, 0);
+  // delay(1000);
+  // transmitter.transmit(transmitter.devices.room_switch, 1);
   if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
   {
 #ifdef USE_OLED
@@ -221,7 +232,7 @@ void loop()
     ROOM_SENSOR.calibration();
     CORRIDOR_SENSOR.calibration();
   }
-  /*
+  
   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
@@ -238,10 +249,6 @@ void loop()
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
 
-      // delay(30);
-      // request(CHILD_ID_THR, V_TEXT, 0);
-      // delay(30);
-      // request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
     }
 #else
@@ -277,7 +284,6 @@ void loop()
       // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
     }
   }
-  */
 }
 
 #ifdef USE_MQTT

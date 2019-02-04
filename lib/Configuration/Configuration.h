@@ -69,7 +69,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 // Setup MQTT IDX for Domoticz
 #define ROOM_MQTT "256"
 #define CORRIDOR_MQTT "257"
-#define HOME_SWITCH "258"
+#define ROOM_SWITCH "258"
 #define INFO "259"
 #define PEOPLECOUNTER "260"
 #elif USE_MYSENSORS

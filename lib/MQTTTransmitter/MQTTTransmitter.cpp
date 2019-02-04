@@ -60,7 +60,7 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + val + "\"}";
     }
-    else if (idx == HOME_SWITCH)
+    else if (idx == ROOM_SWITCH)
     {
         if (val == 1)
         {
