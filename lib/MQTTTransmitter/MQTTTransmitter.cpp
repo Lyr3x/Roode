@@ -53,7 +53,7 @@ int MQTTTransmitter::receive()
 //     Serial.println("Call send(String idx, int val, String text");
 //     return -1;
 // }
-int MQTTTransmitter::send(String idx, int val, String text)
+int MQTTTransmitter::transmit(String idx, int val, String text)
 {
     String string;
     if (idx == ROOM_MQTT || idx == CORRIDOR_MQTT)

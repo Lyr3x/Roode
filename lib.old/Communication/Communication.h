@@ -2,7 +2,7 @@
 #define COMMUNICATION_H
 
 #include <Configuration.h>
-#ifdef USE_ARDUINO
+#ifdef USE_MYSENSORS
 #include "core/MySensorsCore.h"
 #endif
 /* MySensors Message types and default settings */

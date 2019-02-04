@@ -2,23 +2,29 @@
 Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
-
-#include <Configuration.h>
-#include <OptionChecker.h>
-#ifdef USE_ARDUINO
-#include <MySensors.h>    // include the MySensors library
-#endif
 #include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
-#include <MotionSensor.h> //MotionSensorLib
-#include <Calibration.h>
-#include <VL53L0XSensor.h>
-#ifdef USE_ESP
+#include <Configuration.h>
+#include <Wire.h>
+
+#ifdef USE_MYSENSORS
+  #include <MySensors.h> // include the MySensors library
+  #include <MySensorsTransmitter.h>
+  MySensorsTransmitter transmitter;
+#endif
+
+#ifdef USE_MQTT
 #include <ESP8266WiFi.h>
 #include <MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";   //$$
 const char *topic_Domoticz_OUT = "domoticz/out"; //$$
-#endif                                           //USE_ESP
+#endif
+
+#include <OptionChecker.h>
+#include <MotionSensor.h> //MotionSensorLib
+#include <Calibration.h>
+#include <VL53L0XSensor.h>
+//USE_MQTT
 // battery setup
 #ifdef USE_BATTERY
 #include <BatteryMeter.h>                           //Include and Set Up BatteryMeter Library
@@ -43,77 +49,12 @@ VL53L1XWrap ROOM_SENSOR(ROOM_SENSOR_pololu);
 VL53L1XWrap CORRIDOR_SENSOR(CORRIDOR_SENSOR_pololu);
 #endif
 void readCounterButtons();
-void VL53LXX_init()
-{
-  // Wire.end();
-  pinMode(ROOM_XSHUT, OUTPUT);
-  pinMode(CORRIDOR_XSHUT, OUTPUT);
-  wait(10);
-  digitalWrite(ROOM_XSHUT, LOW);
-  digitalWrite(CORRIDOR_XSHUT, LOW);
-  wait(10);
+*/
 
-  pinMode(ROOM_XSHUT, INPUT);
-  wait(10);
-  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_XSHUT, INPUT);
-  wait(10);
-  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  ROOM_SENSOR.init();
-  CORRIDOR_SENSOR.init();
-  ROOM_SENSOR.setTimeout(500);
-  CORRIDOR_SENSOR.setTimeout(500);
-*
-#if defined(USE_VL53L0X)
-#if defined LONG_RANGE
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  ROOM_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  CORRIDOR_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-#endif
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  ROOM_SENSOR.setMeasurementTimingBudget(20000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  ROOM_SENSOR.setMeasurementTimingBudget(200000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
-#endif
-#endif //endif USE_VL53L0X
-
-#if defined(USE_VL53L1X)
-#if defined LONG_RANGE
-  // Short, Medium, Long, Unkown as ranges are possible
-  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
-  ROOM_SENSOR.setMeasurementTimingBudget(33000);
-  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
-#endif
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
-#endif
-#endif
-
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
-}*/
 void setup()
 {
-#ifdef USE_ESP
+#ifdef USE_MQTT
+  Wire.begin(D6, D5);
   // transmitter.init();
   Serial.begin(115200);
   // Connect to WiFi access point.
@@ -157,9 +98,10 @@ void setup()
     Serial.println(transmitter.ssid2);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-
+#elif defined USE_MYSENSORS
+  Wire.begin();
 #endif
-  Wire.begin(D6, D5);
+
 #ifdef USE_OLED
   oled.init();
   oled.sendCommand(BRIGHTNESS_CTRL);
@@ -174,7 +116,7 @@ void setup()
   oled.print("\n");
   oled.print("MySensors: ");
   oled.println(MYSENSORS_LIBRARY_VERSION);
-  wait(2000);
+  delay(2000);
 #endif
 
   Serial.println("##### RooDe Presence Detection System #####");
@@ -185,96 +127,7 @@ void setup()
   //DistanceSensors
   ROOM_SENSOR.init();
   CORRIDOR_SENSOR.init();
-  // #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
-  //Corridor Sensor Enable PIN
-  // pinMode(CORRIDOR_ENABLE, OUTPUT);
 
-  //Room Sensor Voltage Enable PIN
-  // pinMode(ROOM_ENABLE, OUTPUT);
-  // #endif
-  // #if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
-  //   Wire.begin();
-  // VL53LXX_init();
-
-  // pinMode(ROOM_XSHUT, OUTPUT);
-  // pinMode(CORRIDOR_XSHUT, OUTPUT);
-  // Wire.begin();
-
-  // pinMode(ROOM_XSHUT, INPUT);
-  // wait(10);
-  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  // pinMode(CORRIDOR_XSHUT, INPUT);
-  // wait(10);
-  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  // ROOM_SENSOR.init();
-  // CORRIDOR_SENSOR.init();
-  // ROOM_SENSOR.setTimeout(500);
-  // CORRIDOR_SENSOR.setTimeout(500);
-// #if defined LONG_RANGE
-//   // lower the return signal rate limit (default is 0.25 MCPS)
-//   ROOM_SENSOR.setSignalRateLimit(0.1);
-//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-
-//   // lower the return signal rate limit (default is 0.25 MCPS)
-//   CORRIDOR_SENSOR.setSignalRateLimit(0.1);
-//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-// #endif
-
-// #if defined HIGH_SPEED
-//   // reduce timing budget to 20 ms (default is about 33 ms)
-//   ROOM_SENSOR.setMeasurementTimingBudget(20000);
-//   CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
-// #elif defined HIGH_ACCURACY
-//   // increase timing budget to 200 ms
-//   ROOM_SENSOR.setMeasurementTimingBudget(200000);
-//   CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
-// #endif
-//   ROOM_SENSOR.startContinuous();
-//   CORRIDOR_SENSOR.startContinuous();
-// #endif
-/* DEPRICATED
-
-#if defined(USE_VL53L1X)
-  VL53LXX_init();
-  // pinMode(ROOM_XSHUT, OUTPUT);
-  // pinMode(CORRIDOR_XSHUT, OUTPUT);
-  // Wire.begin();
-
-  // pinMode(ROOM_XSHUT, INPUT);
-  // delay(10);
-  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  // pinMode(CORRIDOR_XSHUT, INPUT);
-  // delay(10);
-  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-
-  // ROOM_SENSOR.init();
-  // CORRIDOR_SENSOR.init();
-  // ROOM_SENSOR.setTimeout(500);
-  // CORRIDOR_SENSOR.setTimeout(500);
-  // ROOM_SENSOR.startContinuous(33);
-  // CORRIDOR_SENSOR.startContinuous(33);
-
-#if defined LONG_RANGE
-  // Short, Medium, Long, Unkown as ranges are possible
-  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
-  ROOM_SENSOR.setMeasurementTimingBudget(33000);
-  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
-#endif
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
-#endif
-#endif
-*/
 #ifdef CALIBRATION
 #ifdef USE_OLED
   oled.clear();
@@ -292,15 +145,23 @@ void setup()
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
-  // send(msg.set(0));   //Setting presence status to 0
-  // send(pcMsg.set(0)); //Setting the people counter to 0
+
+  transmitter.transmit(transmitter.devices.room_switch, 0);
+  transmitter.transmit(transmitter.devices.peoplecounter, 0);
+
 #ifdef USE_OLED
   oled.clear();
   oled.setCursor(10, 0);
   oled.println("Setting Counter to 0");
-  wait(1000);
+  delay(1000);
 #endif
+} // end of setup()
+#ifdef USE_MYSENSORS
+void presentation()
+{
+  transmitter.presentation();
 }
+#endif
 /* MySensors presentation
 void presentation()
 {
@@ -338,7 +199,7 @@ void receive(const MyMessage &message)
 
     if (message.sensor == CHILD_ID_PC)
     {
-      wait(30);
+      delay(30);
       Serial.println(message.getInt());
       peopleCount = message.getInt();
       // send(pcMsg.set(peopleCount));
@@ -351,12 +212,13 @@ int newState = LOW;
 
 void loop()
 {
-
+#ifdef USE_MQTT
   if (!client.connected())
   { // MQTT connection
     transmitter.reconnect();
   }
-  
+#endif
+
   if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
   {
 #ifdef USE_OLED
@@ -372,7 +234,7 @@ void loop()
     ROOM_SENSOR.calibration();
     CORRIDOR_SENSOR.calibration();
   }
-/*
+  /*
   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
@@ -389,15 +251,15 @@ void loop()
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
 
-      // wait(30);
+      // delay(30);
       // request(CHILD_ID_THR, V_TEXT, 0);
-      // wait(30);
+      // delay(30);
       // request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
     }
 #else
     // request(CHILD_ID_THR, V_TEXT, 0);
-    // wait(30);
+    // delay(30);
     // request(CHILD_ID_PC, V_TEXT, 0);
     // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 #endif
@@ -431,6 +293,7 @@ void loop()
   */
 }
 
+#ifdef USE_MQTT
 void callback(char *topic, byte *payload, unsigned int length)
 { // ****************
 
@@ -481,3 +344,5 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   delay(15);
 } // void callback(char* to   ****************
+
+#endif

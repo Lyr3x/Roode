@@ -2,12 +2,13 @@
 #define TRANSMITTER_H
 
 #include "Arduino.h"
+#include <Configuration.h>
 
 class Transmitter
 {
-  public:
-    ~Transmitter() {}
-    int send();
-    int receive();
+public:
+  ~Transmitter() {}
+  int transmit();
+  int receive();
 };
 #endif

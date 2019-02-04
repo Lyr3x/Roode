@@ -1,6 +1,6 @@
 #ifndef MotionSensor_h
 #define MotionSensor_h
-	#ifdef USE_ARDUINO
+	#ifdef USE_MYSENSORS
 	#include "core/MySensorsCore.h"
 	#endif
 	#include "SPI.h" 
