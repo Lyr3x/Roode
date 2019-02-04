@@ -1,7 +1,8 @@
 #ifndef MotionSensor_h
 #define MotionSensor_h
-
+	#ifdef USE_ARDUINO
 	#include "core/MySensorsCore.h"
+	#endif
 	#include "SPI.h" 
 	#include "Arduino.h"
 

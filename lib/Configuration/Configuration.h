@@ -55,15 +55,14 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
                       We still want to process incoming messages and request updated values from the controller,
                       hence we nee to perform this after every measuring loop
 */
-// #define USE_SHARP_IR
 #define USE_VL53L0X
 // #define USE_VL53L1X
-#define USE_OLED // Activates OLED 128x32 support including brightness control.
+// #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
-// #define USE_COUNTER_BUTTONS
 #define USE_ENEGERY_SAVING
+#define USE_ESP
 
 /* 
 ###### IR Sensor setup ######
@@ -72,11 +71,11 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define MTIME 800   // measuring/person
 #if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
 #define CALIBRATION_VAL 4000 //read X values (X/2 from each sensor) and calculate the max value
-#define ROOM_SENSOR 0        //IR Room Analog Pin
-#define CORRIDOR_SENSOR 2    //IR Corridor Analog Pin
-#define ROOM_ENABLE 7        //IR Sensor Digital Pin for Room - EN Pin
-#define CORRIDOR_ENABLE 8    //IR Sensor Digital Pin for Corridor - EN Pin
-#define THRESHOLD_X 200      // x is the value added to the calibrated value
+// #define ROOM_SENSOR 0        //IR Room Analog Pin
+// #define CORRIDOR_SENSOR 2    //IR Corridor Analog Pin
+#define ROOM_ENABLE 7     //IR Sensor Digital Pin for Room - EN Pin
+#define CORRIDOR_ENABLE 8 //IR Sensor Digital Pin for Corridor - EN Pin
+#define THRESHOLD_X 200   // x is the value added to the calibrated value
 //#define IR_BOOT 30 // Not needed for the new sensors caused by the enable pin
 #endif
 
@@ -85,10 +84,23 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #include <Wire.h>
 #define CORRIDOR_SENSOR_newAddress 42
 #define ROOM_SENSOR_newAddress 43
+#ifdef USE_ESP
+#define ROOM_XSHUT D3     //XSHUT Pin
+#define CORRIDOR_XSHUT D4 //XSHUT Pin
+// Setup MQTT IDX for Domoticz
+#define ROOM_MQTT "256"
+#define CORRIDOR_MQTT "257"
+#define HOME_SWITCH "258"
+#define INFO "259"
+#define PEOPLECOUNTER "260"
+#elif defined USE_ARDUINO
 #define ROOM_XSHUT 7     //XSHUT Pin
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
+#endif //USE_ESP #elif USE_ARDUINO
+#define SDA_PIN D6
+#define SCL_PIN D5
 
-#define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
+#define CALIBRATION_VAL 500 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define THRESHOLD_X 300     // x is the value added to the calibrated value
 
 /*
@@ -98,26 +110,27 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
  * If you are still receiving an unreliable reading/error code turn on LONG_RANGE mode which
    is working for up to 2m with the VL53L0X or 4m with the VL53L1X.
 */
-#define HIGH_SPEED // 1.2m accuracy +- 5%
-// #define LONG_RANGE //supports ranged up to 2m
-// #define HIGH_ACCURACY // 1.2m accuracy < +-3%
+#define HIGH_SPEED 0    // 1.2m accuracy +- 5%
+#define LONG_RANGE 1    //supports ranged up to 2m
+#define HIGH_ACCURACY 2 // 1.2m accuracy < +-3%
+#define MODE = HIGH_SPEED;
 
 #endif
 
-#if defined(USE_VL53L1X) && !defined(USE_SHARP_IR)
-#include <VL53L1X.h>
-#include <Wire.h>
-#include <VL53L1XWrap.h>
-#define CORRIDOR_SENSOR_newAddress 41
-#define ROOM_SENSOR_newAddress 42
-#define ROOM_XSHUT 7     //XSHUT Pin
-#define CORRIDOR_XSHUT 8 //XSHUT Pin
+// #if defined(USE_VL53L1X) && !defined(USE_SHARP_IR)
+// #include <VL53L1X.h>
+// #include <Wire.h>
+// #include <VL53L1XWrap.h>
+// #define CORRIDOR_SENSOR_newAddress 41
+// #define ROOM_SENSOR_newAddress 42
+// #define ROOM_XSHUT 7     //XSHUT Pin
+// #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
-#define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
-#define THRESHOLD_X 300     // x is the value added to the calibrated value
-#define LONG_RANGE
+// #define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
+// #define THRESHOLD_X 300     // x is the value added to the calibrated value
+// #define LONG_RANGE
 
-#endif
+// #endif
 
 /* OLED setup 
   For now only the OLED 128x32 monochrom displays are supported without modification
@@ -126,8 +139,13 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #ifdef USE_OLED
 // includes for OLED 128x32 and 128x64 support
 /* use minimal lib */
+#if defined(USE_ARDUINO)
 #include <SSD1306_text.h>
 static SSD1306_text oled;
+#elif defined(USE_ESP)
+#include <SSD1306Wire.h>
+static SSD1306Wire oled(0x3c, SDA_PIN, SCL_PIN);
+#endif
 #define BRIGHTNESS_CTRL 0x81 // Do not change this value. This starts the Brightness control mode
 #define BRIGHTNESS 1         //Set the OLED brightness value to a val between 1 and 255
 #endif
@@ -137,11 +155,15 @@ static SSD1306_text oled;
 */
 #ifdef USE_MOTION
 #include <MotionSensor.h>
+#if defined USE_ARDUINO
 #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#elif defined USE_ESP
+#define DIGITAL_INPUT_SENSOR D2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#endif
 #ifdef MY_DEBUG
 #define MOTION_INIT_TIME 1
 #else
-#define MOTION_INIT_TIME 60 //initialization time in seconds
+#define MOTION_INIT_TIME 1 //initialization time in seconds
 #endif
 /* Motion Sensor setup*/
 static MotionSensor motion(DIGITAL_INPUT_SENSOR);

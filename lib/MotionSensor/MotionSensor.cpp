@@ -14,7 +14,7 @@ void MotionSensor::Setup(int initTime){
 	Serial.println("##### Begin Motion Sensor initializing #####");
 	if(initTime > 0){
 		for(int i = 0; i <= initTime; i++){
-			wait(1000);
+			delay(1000);
 		}
 	}
 	Serial.println("##### Motion Sensor initializing done! #####");

@@ -2,8 +2,9 @@
 #define COMMUNICATION_H
 
 #include <Configuration.h>
+#ifdef USE_ARDUINO
 #include "core/MySensorsCore.h"
-
+#endif
 /* MySensors Message types and default settings */
 extern unsigned long SLEEP_TIME; //sleep forever
 #define CHILD_ID_R 0

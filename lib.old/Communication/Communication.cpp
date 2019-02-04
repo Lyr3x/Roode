@@ -2,7 +2,7 @@
 
 unsigned long SLEEP_TIME = 0; //sleep forever
 
-void reportToController(int sensor_value = 0)
+void reportToController(int sensor_value)
 {
     if (sensor_value > 8000)
     {
