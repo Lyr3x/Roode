@@ -15,7 +15,7 @@
 
 extern const char *topic_Domoticz_IN;  //$$
 extern const char *topic_Domoticz_OUT; //$$
-class MQTTTransmitter : Transmitter
+class MQTTTransmitter : public Transmitter
 {
 
 public:

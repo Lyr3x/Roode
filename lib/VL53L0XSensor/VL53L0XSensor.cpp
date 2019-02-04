@@ -83,7 +83,7 @@ int VL53L0XSensor::calibration()
     auto sd = 0;
 
     sd = calculateStandardDeviation(irValues);
-    auto threshold = min - sd;
+    this->threshold = min - sd;
 
 // Serial.print("standard deviation: " + threshold);
 // threshold = max + THRESHOLD_X;
@@ -102,15 +102,15 @@ int VL53L0XSensor::calibration()
     Serial.println(sd);
     Serial.print("New threshold is: ");
     Serial.println("#### calibration done ####");
-    Serial.println(threshold);
+    Serial.println(this->threshold);
     //send(thrMsg.set(threshold)); //REWORK
 
-    return threshold;
+    return this->threshold;
 }
 
 int VL53L0XSensor::getThreshold()
 {
-    return threshold;
+    return this->threshold;
 }
 
 void VL53L0XSensor::startContinuous(uint32_t period_ms)

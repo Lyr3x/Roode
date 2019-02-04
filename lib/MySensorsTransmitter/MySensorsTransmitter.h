@@ -13,7 +13,7 @@ __attribute__((weak)) void delay(unsigned long ms)
 // static MyMessage thrMsg(CHILD_ID_THR, V_TEXT); //Threshold and recalibration child
 // MyMessage *test = new MyMessage msg2(CHILD_ID_PC, V_STATUS);
 
-class MySensorsTransmitter : Transmitter
+class MySensorsTransmitter : public Transmitter
 {
   public:
     struct Devices

@@ -24,6 +24,7 @@ const char *topic_Domoticz_OUT = "domoticz/out"; //$$
 #include <MotionSensor.h> //MotionSensorLib
 #include <Calibration.h>
 #include <VL53L0XSensor.h>
+#include <PeopleCounter.h>
 //USE_MQTT
 // battery setup
 #ifdef USE_BATTERY
@@ -32,8 +33,6 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-// extern uint8_t peopleCount;
-uint8_t peopleCount;
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
 
@@ -49,6 +48,7 @@ void setup()
   Serial.println(transmitter.ssid);
 
   // connect to WiFi Access Point
+  // ESP.wdtDisable(); //Disable soft watch dog 
   WiFi.mode(WIFI_STA);
   WiFi.begin(transmitter.ssid, transmitter.password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED)
@@ -214,6 +214,15 @@ void loop()
     transmitter.reconnect();
   }
 #endif
+  Serial.print("Room Sensor Threshold: ");
+  Serial.println(ROOM_SENSOR.getThreshold());
+  Serial.print("Room Sensor Threshold: ");
+  Serial.println(ROOM_SENSOR.threshold);
+
+  Serial.print("Corridor Sensor Threshold: ");
+  Serial.println(CORRIDOR_SENSOR.getThreshold());
+  Serial.print("Corridor Sensor Threshold: ");
+  Serial.println(CORRIDOR_SENSOR.threshold);
   // transmitter.transmit(transmitter.devices.room_switch, 0);
   // delay(1000);
   // transmitter.transmit(transmitter.devices.room_switch, 1);
@@ -232,30 +241,53 @@ void loop()
     ROOM_SENSOR.calibration();
     CORRIDOR_SENSOR.calibration();
   }
-  
-  // Sleep until interrupt comes in on motion sensor. Send never an update
+
+  //   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
+#ifdef MY_DEBUG
+    Serial.println("1. Motion sensor is off");
+#endif
 #ifdef USE_OLED
     oled.clear();
 #endif
 #ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
-      // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
 #ifdef MY_DEBUG
-      Serial.println("Shutting down sensors");
+      Serial.println("2. Motion sensor is off. Last readloop");
+#endif
+      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+
+#ifdef MY_DEBUG
+      Serial.println("3. Shutting down sensors");
 #endif
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
-
       lastState = LOW;
     }
 #else
-    // request(CHILD_ID_THR, V_TEXT, 0);
-    // delay(30);
-    // request(CHILD_ID_PC, V_TEXT, 0);
-    // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
+    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+#endif
+#ifdef USE_BATTERY
+    smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
+    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+#ifdef USE_OLED
+    oled.clear();
+    oled.setCursor(5, 0);
+    oled.setTextSize(2, 1);
+    oled.print("Counter: ");
+    oled.println(peopleCount);
+#endif
+
+    while (motion.checkMotion() != LOW)
+    {
+      yield();
+      #ifdef MY_DEBUG
+      Serial.println("4. Motion sensor is on. Start counting");
+#endif
+      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+    }
 #endif
   }
   else
@@ -264,7 +296,10 @@ void loop()
     {
 #ifdef USE_ENEGERY_SAVING
 #ifdef MY_DEBUG
-      Serial.println("Starting continuous mode again");
+      Serial.println("5. Starting continuous mode again");
+#endif
+#ifdef MY_DEBUG
+      Serial.println("6. Start Sensors");
 #endif
       ROOM_SENSOR.startContinuous();
       CORRIDOR_SENSOR.startContinuous();
@@ -281,7 +316,11 @@ void loop()
 #endif
     while (motion.checkMotion() != LOW)
     {
-      // readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
+      yield();
+      #ifdef MY_DEBUG
+      Serial.println("7. Motion sensor is on. Start counting");
+#endif
+      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
     }
   }
 }

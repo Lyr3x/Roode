@@ -61,7 +61,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
-#define USE_ENEGERY_SAVING
+// #define USE_ENEGERY_SAVING
 #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
 // #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
 
@@ -104,7 +104,7 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define SDA_PIN D6
 #define SCL_PIN D5
 
-#define CALIBRATION_VAL 500 //read X values (X from each sensor) and calculate the max value and standard deviation
+#define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define THRESHOLD_X 300     // x is the value added to the calibrated value
 
 /*

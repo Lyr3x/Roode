@@ -74,6 +74,8 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     else if (idx == INFO)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + text + "\"}";
+    }else if(idx == PEOPLECOUNTER){
+        string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"svalue\": \"" + val + "\"}";
     }
 
     string.toCharArray(msgToPublish, MQTT_MAX_PACKET_SIZE);
