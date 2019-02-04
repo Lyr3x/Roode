@@ -1,5 +1,5 @@
-#ifndef MYSENSORS_TRANSMITTER_H
-#define MYSENSORS_TRANSMITTER_H
+#ifndef MySensorsTransmitter_H
+#define MySensorsTransmitter_H
 #include "core/MySensorsCore.h"
 //override delay
 #ifndef delay

@@ -1,5 +1,5 @@
-#ifndef MQTT_TRANSMITTER_H
-#define MQTT_TRANSMITTER_H
+#ifndef MQTTTransmitter_H
+#define MQTTTransmitter_H
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -15,11 +15,11 @@
 
 extern const char *topic_Domoticz_IN;  //$$
 extern const char *topic_Domoticz_OUT; //$$
-class MQTT_Transmitter : Transmitter
+class MQTTTransmitter : Transmitter
 {
 
   public:
-    // ~MQTT_Transmitter() {}
+    // ~MQTTTransmitter() {}
     int send(String idx, int val = 0, String text = "");
     int receive();
     void reconnect();

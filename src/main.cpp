@@ -11,11 +11,11 @@ License: GPLv3
 #include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
 #include <MotionSensor.h> //MotionSensorLib
 #include <Calibration.h>
-#include <VL53L0X_Sensor.h>
+#include <VL53L0XSensor.h>
 #ifdef USE_ESP
 #include <ESP8266WiFi.h>
-#include <MQTT_Transmitter.h>
-MQTT_Transmitter transmitter;
+#include <MQTTTransmitter.h>
+MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";   //$$
 const char *topic_Domoticz_OUT = "domoticz/out"; //$$
 #endif                                           //USE_ESP
@@ -28,10 +28,10 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 
 // extern uint8_t peopleCount;
 uint8_t peopleCount;
-VL53L0X_Sensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-VL53L0X_Sensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-// VL53L0X_Sensor ROOM_SENSOR = new VL53L0X_Sensor(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-// VL53L0X_Sensor CORRIDOR_SENSOR = new VL53L0X_Sensor(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
+VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+// VL53L0XSensor ROOM_SENSOR = new VL53L0XSensor(ROOM_XSHUT, ROOM_SENSOR_newAddress);
+// VL53L0XSensor CORRIDOR_SENSOR = new VL53L0XSensor(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
 /*#ifdef USE_VL53L0X
 VL53L0X CORRIDOR_SENSOR;
 VL53L0X ROOM_SENSOR;

@@ -1,5 +1,5 @@
-#ifndef VL53L0X_SENSOR_H
-#define VL53L0X_SENSOR_H
+#ifndef VL53L0XSensor_H
+#define VL53L0XSensor_H
 
 #include "Arduino.h"
 #include <VL53L0X.h>
@@ -8,11 +8,11 @@
 #include <Configuration.h>
 #include <Wire.h>
 
-class VL53L0X_Sensor : public Sensor
+class VL53L0XSensor : public Sensor
 {
 public:
-  VL53L0X_Sensor(int XSHUT, int I2C_ADDRESS);
-  ~VL53L0X_Sensor(){};
+  VL53L0XSensor(int XSHUT, int I2C_ADDRESS);
+  ~VL53L0XSensor(){};
   void init();
   int readData();
   int calibration();

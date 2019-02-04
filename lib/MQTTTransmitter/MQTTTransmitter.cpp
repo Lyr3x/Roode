@@ -1,7 +1,7 @@
-#include <MQTT_Transmitter.h>
+#include <MQTTTransmitter.h>
 WiFiClient espClient;
 PubSubClient client(espClient);
-void MQTT_Transmitter::init()
+void MQTTTransmitter::init()
 {
     // Serial.begin(115200);
     // // Connect to WiFi access point.
@@ -44,16 +44,16 @@ void MQTT_Transmitter::init()
     // Serial.print("IP address: ");
     // Serial.println(WiFi.localIP());
 }
-int MQTT_Transmitter::receive()
+int MQTTTransmitter::receive()
 {
     //needs to be implemented
 }
-// int MQTT_Transmitter::send()
+// int MQTTTransmitter::send()
 // {
 //     Serial.println("Call send(String idx, int val, String text");
 //     return -1;
 // }
-int MQTT_Transmitter::send(String idx, int val, String text)
+int MQTTTransmitter::send(String idx, int val, String text)
 {
     String string;
     if (idx == ROOM_MQTT || idx == CORRIDOR_MQTT)
@@ -94,7 +94,7 @@ int MQTT_Transmitter::send(String idx, int val, String text)
 
 
 
-void MQTT_Transmitter::reconnect()
+void MQTTTransmitter::reconnect()
 { // ****************
     // Loop until we're reconnected
     while (!client.connected())
@@ -141,7 +141,7 @@ void MQTT_Transmitter::reconnect()
     } // while (!client.connected()) {
 } // void reconnect() { ****************
 
-void MQTT_Transmitter::test()
+void MQTTTransmitter::test()
 {
     Serial.println("Test");
 }

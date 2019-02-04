@@ -1,12 +1,12 @@
-#include <VL53L0X_Sensor.h>
+#include <VL53L0XSensor.h>
 #include <Configuration.h>
-VL53L0X_Sensor::VL53L0X_Sensor(int XSHUT, int I2C_ADDRESS)
+VL53L0XSensor::VL53L0XSensor(int XSHUT, int I2C_ADDRESS)
 {
     _XSHUT = XSHUT;
     _I2C_ADDRESS = I2C_ADDRESS;
 }
 
-void VL53L0X_Sensor::init()
+void VL53L0XSensor::init()
 {
     Serial.println("Init VL53L0X Sensor");
     // Reset Sensor
@@ -22,7 +22,7 @@ void VL53L0X_Sensor::init()
     _Sensor.startContinuous();
 }
 
-void VL53L0X_Sensor::setMode(int mode)
+void VL53L0XSensor::setMode(int mode)
 {
     if (mode == LONG_RANGE)
     {
@@ -43,12 +43,12 @@ void VL53L0X_Sensor::setMode(int mode)
         _Sensor.setMeasurementTimingBudget(200000);
     }
 }
-int VL53L0X_Sensor::readData()
+int VL53L0XSensor::readData()
 {
     return readRangeContinuousMillimeters();
 }
 
-int VL53L0X_Sensor::calibration()
+int VL53L0XSensor::calibration()
 {
     int irValues[30] = {};
 #ifdef USE_OLED
@@ -108,32 +108,32 @@ int VL53L0X_Sensor::calibration()
     return threshold;
 }
 
-int VL53L0X_Sensor::getThreshold()
+int VL53L0XSensor::getThreshold()
 {
     return threshold;
 }
 
-void VL53L0X_Sensor::startContinuous(uint32_t period_ms)
+void VL53L0XSensor::startContinuous(uint32_t period_ms)
 {
     return _Sensor.startContinuous();
 }
 
-void VL53L0X_Sensor::stopContinuous()
+void VL53L0XSensor::stopContinuous()
 {
     return _Sensor.stopContinuous();
 }
 
-uint16_t VL53L0X_Sensor::readRangeContinuousMillimeters(void)
+uint16_t VL53L0XSensor::readRangeContinuousMillimeters(void)
 {
     return _Sensor.readRangeContinuousMillimeters();
 }
-uint16_t VL53L0X_Sensor::readRangeSingleMillimeters(void)
+uint16_t VL53L0XSensor::readRangeSingleMillimeters(void)
 {
     return _Sensor.readRangeSingleMillimeters();
 }
-inline void VL53L0X_Sensor::setTimeout(uint16_t timeout) { return _Sensor.setTimeout(timeout); }
-inline uint16_t VL53L0X_Sensor::getTimeout(void) { return _Sensor.getTimeout(); }
-bool VL53L0X_Sensor::timeoutOccurred(void)
+inline void VL53L0XSensor::setTimeout(uint16_t timeout) { return _Sensor.setTimeout(timeout); }
+inline uint16_t VL53L0XSensor::getTimeout(void) { return _Sensor.getTimeout(); }
+bool VL53L0XSensor::timeoutOccurred(void)
 {
     return _Sensor.timeoutOccurred();
 }
