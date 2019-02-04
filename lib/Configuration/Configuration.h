@@ -62,45 +62,51 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING
-// #define USE_MQTT
-// #define USE_MYSENSORS
+#define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
+// #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+
+#ifdef USE_MQTT
+// Setup MQTT IDX for Domoticz
+#define ROOM_MQTT "256"
+#define CORRIDOR_MQTT "257"
+#define HOME_SWITCH "258"
+#define INFO "259"
+#define PEOPLECOUNTER "260"
+#elif USE_MYSENSORS
 // MySensors ID Setup
 #define CHILD_ID_ROOM_SWITCH 0
 #define CHILD_ID_PEOPE_COUNTER 1
 #define CHILD_ID_THRESHOLD 3
 #define CHILD_ID_INFO 4
-
+#endif
 /* 
 ###### IR Sensor setup ######
 */
 #define LTIME 10000 // loop time (should not be lower than 8 seconds)
 #define MTIME 800   // measuring/person
 #ifdef USE_VL53L0X
-  #include <VL53L0X.h>
-  #include <Wire.h>
-  #define CORRIDOR_SENSOR_newAddress 42
-  #define ROOM_SENSOR_newAddress 43
-  #ifdef USE_MQTT
-    #define ROOM_XSHUT D3     //XSHUT Pin
-    #define CORRIDOR_XSHUT D4 //XSHUT Pin
-    // Setup MQTT IDX for Domoticz
-    #define ROOM_MQTT "256"
-    #define CORRIDOR_MQTT "257"
-    #define HOME_SWITCH "258"
-    #define INFO "259"
-    #define PEOPLECOUNTER "260"
-  #endif
-
-  #ifdef USE_MYSENSORS
-  #define ROOM_XSHUT 7     //XSHUT Pin
-  #define CORRIDOR_XSHUT 8 //XSHUT Pin
-  #endif                   //USE_MYSENSORS
-  #define SDA_PIN D6
-  #define SCL_PIN D5
-
-  #define CALIBRATION_VAL 500 //read X values (X from each sensor) and calculate the max value and standard deviation
-  #define THRESHOLD_X 300     // x is the value added to the calibrated value
+#include <VL53L0X.h>
+#include <Wire.h>
+#define CORRIDOR_SENSOR_newAddress 42
+#define ROOM_SENSOR_newAddress 43
+#ifdef USE_MQTT
+#define ROOM_XSHUT D3     //XSHUT Pin
+#define CORRIDOR_XSHUT D4 //XSHUT Pin
 #endif
+
+#ifdef USE_MYSENSORS
+#define ROOM_XSHUT 7     //XSHUT Pin
+#define CORRIDOR_XSHUT 8 //XSHUT Pin
+
+#endif //USE_MYSENSORS
+
+// I2C PIN definition
+#define SDA_PIN D6
+#define SCL_PIN D5
+
+#define CALIBRATION_VAL 500 //read X values (X from each sensor) and calculate the max value and standard deviation
+#define THRESHOLD_X 300     // x is the value added to the calibrated value
+
 /*
  Feature switches:
  * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
@@ -155,23 +161,27 @@ static SSD1306Wire oled(0x3c, SDA_PIN, SCL_PIN);
 ###### Motion Sensor setup ###### 
 */
 #ifdef USE_MOTION
-  #include <MotionSensor.h>
+#include <MotionSensor.h>
 
-  #ifdef USE_MYSENSORS
-    #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-  #endif
+#ifdef USE_MYSENSORS
+#define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#endif
 
-  #ifdef USE_MQTT
-    #define DIGITAL_INPUT_SENSOR D2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-  #endif
+#ifdef USE_MQTT
+#define DIGITAL_INPUT_SENSOR D2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
+#endif
 
-  #ifdef MY_DEBUG
-  #define MOTION_INIT_TIME 1
-  #else
-  #define MOTION_INIT_TIME 1 //initialization time in seconds
-  #endif
-  /* Motion Sensor setup*/
-  static MotionSensor motion(DIGITAL_INPUT_SENSOR);
+#ifdef MY_DEBUG
+#define MOTION_INIT_TIME 1
+#else
+#define MOTION_INIT_TIME 1 //initialization time in seconds
+#endif
+
+#ifndef DIGITAL_INPUT_SENSOR
+#define DIGITAL_INPUT_SENSOR 2
+#endif
+/* Motion Sensor setup*/
+static MotionSensor motion(DIGITAL_INPUT_SENSOR);
 #endif
 
 /*
@@ -192,4 +202,5 @@ Keep in Mind that you need an Voltage regulator to stable 5V!
 #define BATTERY_FULL 4.2   // a 18650 lithium ion battery usually give 4.2V when full
 #define BATTERY_ZERO 3.5   // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
 #endif
-#endif //Include guard
+
+#endif // #endif //Include guard

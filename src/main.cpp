@@ -2,14 +2,14 @@
 Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
-#include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
+#include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 #include <Configuration.h>
 #include <Wire.h>
 
 #ifdef USE_MYSENSORS
-  #include <MySensors.h> // include the MySensors library
-  #include <MySensorsTransmitter.h>
-  MySensorsTransmitter transmitter;
+#include <MySensors.h> // include the MySensors library
+#include <MySensorsTransmitter.h>
+MySensorsTransmitter transmitter;
 #endif
 
 #ifdef USE_MQTT
@@ -36,26 +36,11 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 uint8_t peopleCount;
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-// VL53L0XSensor ROOM_SENSOR = new VL53L0XSensor(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-// VL53L0XSensor CORRIDOR_SENSOR = new VL53L0XSensor(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-/*#ifdef USE_VL53L0X
-VL53L0X CORRIDOR_SENSOR;
-VL53L0X ROOM_SENSOR;
-
-#elif defined USE_VL53L1X
-VL53L1X CORRIDOR_SENSOR_pololu;
-VL53L1X ROOM_SENSOR_pololu;
-VL53L1XWrap ROOM_SENSOR(ROOM_SENSOR_pololu);
-VL53L1XWrap CORRIDOR_SENSOR(CORRIDOR_SENSOR_pololu);
-#endif
-void readCounterButtons();
-*/
 
 void setup()
 {
 #ifdef USE_MQTT
   Wire.begin(D6, D5);
-  // transmitter.init();
   Serial.begin(115200);
   // Connect to WiFi access point.
   Serial.println();
@@ -98,7 +83,9 @@ void setup()
     Serial.println(transmitter.ssid2);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-#elif defined USE_MYSENSORS
+#endif
+
+#ifdef USE_MYSENSORS
   Wire.begin();
 #endif
 
