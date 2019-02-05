@@ -74,8 +74,14 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     else if (idx == INFO)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + text + "\"}";
-    }else if(idx == PEOPLECOUNTER){
+    }
+    else if (idx == PEOPLECOUNTER)
+    {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"svalue\": \"" + val + "\"}";
+    }
+    else if (idx == THRESHOLD)
+    {
+        string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + text + "\"}";
     }
 
     string.toCharArray(msgToPublish, MQTT_MAX_PACKET_SIZE);
@@ -93,8 +99,6 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     }
     return 0;
 }
-
-
 
 void MQTTTransmitter::reconnect()
 { // ****************
@@ -139,7 +143,7 @@ void MQTTTransmitter::reconnect()
             // Wait 1 seconds before retrying
             delay(1000);
         } // if (client.connect
-    } // while (!client.connected()) {
+    }     // while (!client.connected()) {
 } // void reconnect() { ****************
 
 void MQTTTransmitter::test()

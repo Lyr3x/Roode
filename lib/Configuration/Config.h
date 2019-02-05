@@ -29,19 +29,19 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 * added untested VL53L1X support
 */
 #define ROODE_VERSION "1.0-alpha"
-#define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
+// #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
 /*
 ###### FEATURE SELECTION ######
 */
 #define USE_VL53L0X
 // #define USE_VL53L1X
-// #define USE_OLED // Activates OLED 128x32 support including brightness control.
+#define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_ENEGERY_SAVING
-#define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
-// #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+// #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
+#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
 /*
 ###### MySensors configuration ######
 */
@@ -51,7 +51,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define MY_RADIO_RFM69                 // Define for using RFM69 radio
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
-#define MY_NODE_ID 10 // Set a static Node ID if needed
+#define MY_NODE_ID 100 // Set a static Node ID if needed
 #endif
 
 #ifdef USE_MQTT
@@ -61,11 +61,12 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define ROOM_SWITCH "258"
 #define INFO "259"
 #define PEOPLECOUNTER "260"
+#define THRESHOLD "261"
 #endif
 #ifdef USE_MYSENSORS
 // MySensors ID Setup
 #define CHILD_ID_ROOM_SWITCH 0
-#define CHILD_ID_PEOPE_COUNTER 1
+#define CHILD_ID_PEOPLECOUNTER 1
 #define CHILD_ID_THRESHOLD 3
 #define CHILD_ID_INFO 4
 #endif
@@ -126,12 +127,12 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #ifdef USE_OLED
 // includes for OLED 128x32 and 128x64 support
 /* use minimal lib */
-#ifdef(USE_MYSENSORS)
+#ifdef USE_MYSENSORS
 #include <SSD1306_text.h>
 static SSD1306_text oled;
 #endif
 
-#ifdef(USE_MQTT)
+#ifdef USE_MQTT
 #include <SSD1306Wire.h>
 static SSD1306Wire oled(0x3c, SDA_PIN, SCL_PIN);
 #endif

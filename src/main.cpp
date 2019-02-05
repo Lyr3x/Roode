@@ -86,7 +86,6 @@ void setup()
     transmitter.reconnect();
   }
 #endif
-
 #ifdef USE_MYSENSORS
   Wire.begin();
 #endif
@@ -156,51 +155,7 @@ void presentation()
   transmitter.presentation();
 }
 #endif
-/* MySensors presentation
-void presentation()
-{
-  sendSketchInfo("RooDe", ROODE_VERSION);
-  present(CHILD_ID_R, S_BINARY);
-  present(CHILD_ID_PC, S_INFO);
-#ifdef USE_BATTERY
-  present(CHILD_ID_BATTERY, S_CUSTOM);
-#endif
-  present(CHILD_ID_THR, S_INFO);
-}
-*/
-/* MySensors receive Function
-void receive(const MyMessage &message)
-{
-  if (message.type == V_TEXT)
-  {
-    Serial.println("V_TEXT update");
-    Serial.print("MySensor message received:");
-    Serial.println(message.sensor);
-    Serial.println(message.type);
-    Serial.println(message.sender);
-    Serial.println(message.getString());
-    String newThreshold = message.getString();
-    if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
-    {
-      // ROOM_SENSOR.stopContinuous();
-      // CORRIDOR_SENSOR.stopContinuous();
-      // VL53LXX_init();
 
-      // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-      ROOM_SENSOR.calibration();
-      CORRIDOR_SENSOR.calibration();
-    }
-
-    if (message.sensor == CHILD_ID_PC)
-    {
-      delay(30);
-      Serial.println(message.getInt());
-      peopleCount = message.getInt();
-      // send(pcMsg.set(peopleCount));
-    }
-  }
-}
-*/
 int lastState = LOW;
 int newState = LOW;
 
@@ -237,8 +192,15 @@ void loop()
     Serial.println("Timeout occured. Restart the System");
 
     // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-    ROOM_SENSOR.calibration();
-    CORRIDOR_SENSOR.calibration();
+    char buf[20];
+    const char *room_threhsold = itoa(ROOM_SENSOR.calibration(), buf, 10);
+    const char *corridor_threhsold = itoa(CORRIDOR_SENSOR.calibration(), buf, 10);
+
+    
+    strcpy(buf, "");
+    strcat(buf, room_threhsold);
+    strcat(buf, corridor_threhsold);
+    transmitter.transmit(transmitter.devices.threshold, 0, buf);
   }
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
@@ -321,7 +283,9 @@ void loop()
       peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
     }
   }
+#ifdef USE_MQTT
   client.loop();
+#endif
 }
 
 #ifdef USE_MQTT

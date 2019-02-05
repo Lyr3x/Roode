@@ -10,19 +10,22 @@ void sendCounter(int inout, T transmitter)
     {
         peopleCount++;
         transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
+        delay(10);
+        transmitter.transmit(transmitter.devices.room_switch, 1, "On");
     }
     else if (inout == 0)
     {
         if (peopleCount > 0)
         {
             peopleCount--;
+            transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
         }
         if (peopleCount == 0)
         {
             transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
+            delay(10);
+            transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
         }
-        delay(100);
-        transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
     }
 
 #ifdef USE_BATTERY

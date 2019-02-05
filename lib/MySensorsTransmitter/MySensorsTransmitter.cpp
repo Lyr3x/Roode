@@ -4,26 +4,45 @@
 MySensorsTransmitter::MySensorsTransmitter()
 {
     devices.threshold = MyMessage(CHILD_ID_THRESHOLD, V_TEXT);
-    devices.peoplecounter = MyMessage(CHILD_ID_PEOPE_COUNTER, V_TEXT);
+    devices.peoplecounter = MyMessage(CHILD_ID_PEOPLECOUNTER, V_TEXT);
     devices.info = MyMessage(CHILD_ID_INFO, V_TEXT);
     devices.room_switch = MyMessage(CHILD_ID_ROOM_SWITCH, V_STATUS);
 }
 void MySensorsTransmitter::presentation()
 {
-    sendSketchInfo("RooDe", ROODE_VERSION);
-    present(CHILD_ID_ROOM_SWITCH, S_BINARY);
-    present(CHILD_ID_PEOPE_COUNTER, S_INFO);
+    sendSketchInfo("RooDe", ROODE_VERSION, "Version");
+    present(CHILD_ID_ROOM_SWITCH, S_BINARY, "Room switch");
+    present(CHILD_ID_PEOPLECOUNTER, S_INFO, "Peoplecounter");
+    present(CHILD_ID_INFO, S_INFO, "Info");
+    // present(CHILD_ID_MOTION, S_BINARY, "Motion sensor");
+    present(CHILD_ID_THRESHOLD, S_INFO, "Threshold");
 #ifdef USE_BATTERY
     present(CHILD_ID_BATTERY, S_CUSTOM);
 #endif
-    present(CHILD_ID_THRESHOLD, S_INFO);
+    
 }
 
 // MySensors send function
-int MySensorsTransmitter::transmit(MyMessage &message, int val, String text)
+int MySensorsTransmitter::transmit(MyMessage &message, int val, const char* text)
 {
 
-    // return send(message.set(val));
+    if (message.sensor == CHILD_ID_THRESHOLD)
+    {
+        return send(message.set(text));
+    }
+    else if (message.sensor == CHILD_ID_PEOPLECOUNTER)
+    {
+        return send(message.set(val));
+    }
+    else if (message.sensor == CHILD_ID_INFO)
+    {
+        return send(message.set(text));
+    }
+    else if (message.sensor == CHILD_ID_ROOM_SWITCH)
+    {
+        return send(message.set(val));
+    }
+    return -1;
 }
 // MySensors receive function
 int MySensorsTransmitter::receive(const MyMessage &message)
@@ -48,7 +67,7 @@ int MySensorsTransmitter::receive(const MyMessage &message)
             // CORRIDOR_SENSOR.calibration();
         }
 
-        if (message.sensor == CHILD_ID_PEOPE_COUNTER)
+        if (message.sensor == CHILD_ID_PEOPLECOUNTER)
         {
             wait(30);
             Serial.println(message.getInt());
@@ -56,4 +75,5 @@ int MySensorsTransmitter::receive(const MyMessage &message)
             // send(pcMsg.set(peopleCount));
         }
     }
+    return EXIT_SUCCESS;
 }
