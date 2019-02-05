@@ -2,7 +2,7 @@
 #define TRANSMITTER_H
 
 #include "Arduino.h"
-#include <Configuration.h>
+#include <Config.h>
 
 class Transmitter
 {

@@ -1,5 +1,5 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
@@ -9,51 +9,29 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 /*
   RooDe version number
   Please update frequently
-### Changelog v0.9.6:
+### Changelog v1.0:
+* Complete architecture refactor
+  * New abstraction layers:
+    * Sensor
+    * Transmitter
+  * Easy to extend with the type of Sensors and Transmitters
+* Support for ESP8266 and MQTT
+* Support for Arduino with MySensors
+* Removed SHARP_IR infrared Sensors
+* Changed Message types
+* Added new message type INFO 
 * added full VL53L0X support
   * measruing speed improvements 
   * Fixed LONG_RANGE mode which gave just -1 as result
   * Fixed receiving and sending message issues
   * Added OLED brightness config option
   * general bug fixes and improvements
+* added untested VL53L1X support
 */
-#define ROODE_VERSION "0.9.6-beta"
-
-/* 
-###### MySensors Configuration ######
-DESCRIPTION
-*/
-
-// #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
-#define MY_RADIO_RF24                 //Define for using NRF24L01+ radio
-#define MY_RF24_PA_LEVEL RF24_PA_HIGH //Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
-// #define MY_RADIO_RFM69                 // Define for using RFM69 radio
-// #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
-// #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
-#define MY_NODE_ID 10 // Set a static Node ID if needed
-
-/* #### Security Functions ####
-If the MySensors Gateway uses the Signing feature you can enable this here too.
-When using the SIMPLE_PASSWD Flag the SIGNING_SOFT flag is set implicit.
-Signing should only be used without MY_DEBUG on 328p's due to memory problems. 
-Otherwise we cant ensure that the system will run smooth and without any problems. 
-The usage WEAK_SECURITY is not advised but maybe the only solution besides a dedicated ATSHA204A module.
-*/
-
-// #define MY_SIGNING_SOFT
-// #define MY_SIGNING_SIMPLE_PASSWD "a68PHafobmV8jeXN"
-// #define MY_DEBUG_VERBOSE_SIGNING
-// #define MY_SIGNING_WEAK_SECURITY
-
+#define ROODE_VERSION "1.0-alpha"
+#define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
 /*
-###### Feature selection ######
-  * USE_OLED for OLED 128x32 support
-  * USE_BATTERY when powering the controller with an Lithium battery
-  * CALIBRATION for calibrating the Sensors on startup
-  * USE_COUNTER_BUTTONS
-  * USE_ENERGY_SAVING If enabled the sensor will stop measuring when no motion is detected. 
-                      We still want to process incoming messages and request updated values from the controller,
-                      hence we nee to perform this after every measuring loop
+###### FEATURE SELECTION ######
 */
 #define USE_VL53L0X
 // #define USE_VL53L1X
@@ -64,6 +42,17 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 // #define USE_ENEGERY_SAVING
 #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
 // #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+/*
+###### MySensors configuration ######
+*/
+#ifdef USE_MYSENSORS
+#define MY_RADIO_RF24                 //Define for using NRF24L01+ radio
+#define MY_RF24_PA_LEVEL RF24_PA_HIGH //Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
+// #define MY_RADIO_RFM69                 // Define for using RFM69 radio
+// #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
+// #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
+#define MY_NODE_ID 10 // Set a static Node ID if needed
+#endif
 
 #ifdef USE_MQTT
 // Setup MQTT IDX for Domoticz
@@ -72,38 +61,48 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define ROOM_SWITCH "258"
 #define INFO "259"
 #define PEOPLECOUNTER "260"
-#elif USE_MYSENSORS
+#endif
+#ifdef USE_MYSENSORS
 // MySensors ID Setup
 #define CHILD_ID_ROOM_SWITCH 0
 #define CHILD_ID_PEOPE_COUNTER 1
 #define CHILD_ID_THRESHOLD 3
 #define CHILD_ID_INFO 4
 #endif
-/* 
-###### IR Sensor setup ######
+
+/*
+###### I2C Pin Definition ######
 */
-#define LTIME 10000 // loop time (should not be lower than 8 seconds)
-#define MTIME 800   // measuring/person
+#define SDA_PIN D6
+#define SCL_PIN D5
+
+/*
+###### VL53L0X/VL53L1X Definition ######
+*/
 #ifdef USE_VL53L0X
 #include <VL53L0X.h>
 #include <Wire.h>
+#endif //USE_VL53L0X
+#ifdef USE_VL53L1X
+// #include <VL53L1X.h>
+// #include <Wire.h>
+// #include <VL53L1XWrap.h>
+#endif //USE_VL53L1X
+
 #define CORRIDOR_SENSOR_newAddress 42
 #define ROOM_SENSOR_newAddress 43
 #ifdef USE_MQTT
 #define ROOM_XSHUT D3     //XSHUT Pin
 #define CORRIDOR_XSHUT D4 //XSHUT Pin
-#endif
+#endif                    //USE_MYSENSORS
 
 #ifdef USE_MYSENSORS
 #define ROOM_XSHUT 7     //XSHUT Pin
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
-#endif //USE_MYSENSORS
-
-// I2C PIN definition
-#define SDA_PIN D6
-#define SCL_PIN D5
-
+#endif                      //USE_MYSENSORS
+#define LTIME 10000         // loop time (should not be lower than 8 seconds)
+#define MTIME 800           // measuring/person
 #define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define THRESHOLD_X 300     // x is the value added to the calibrated value
 
@@ -119,24 +118,8 @@ The usage WEAK_SECURITY is not advised but maybe the only solution besides a ded
 #define HIGH_ACCURACY 2 // 1.2m accuracy < +-3%
 #define MODE = HIGH_SPEED;
 
-#endif
-
-// #if defined(USE_VL53L1X) && !defined(USE_SHARP_IR)
-// #include <VL53L1X.h>
-// #include <Wire.h>
-// #include <VL53L1XWrap.h>
-// #define CORRIDOR_SENSOR_newAddress 41
-// #define ROOM_SENSOR_newAddress 42
-// #define ROOM_XSHUT 7     //XSHUT Pin
-// #define CORRIDOR_XSHUT 8 //XSHUT Pin
-
-// #define CALIBRATION_VAL 500 //read X values (X/2 from each sensor) and calculate the max value
-// #define THRESHOLD_X 300     // x is the value added to the calibrated value
-// #define LONG_RANGE
-
-// #endif
-
-/* OLED setup 
+/* 
+###### OLED Definition ###### 
   For now only the OLED 128x32 monochrom displays are supported without modification
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified
 */
@@ -185,14 +168,6 @@ static MotionSensor motion(DIGITAL_INPUT_SENSOR);
 #endif
 
 /*
-###### Push-Button Setup ######
-*/
-#ifdef USE_COUNTER_BUTTONS
-#define DECREASE_BUTTON 5
-#define INCREASE_BUTTON 6
-#endif
-
-/*
 ###### Battery Module ######
 Keep in Mind that you need an Voltage regulator to stable 5V!
 */
@@ -202,5 +177,4 @@ Keep in Mind that you need an Voltage regulator to stable 5V!
 #define BATTERY_FULL 4.2   // a 18650 lithium ion battery usually give 4.2V when full
 #define BATTERY_ZERO 3.5   // 2.4V limit for 328p at 16MHz. 1.9V, limit for nrf24l01 without
 #endif
-
-#endif // #endif //Include guard
+#endif //CONFIG_H

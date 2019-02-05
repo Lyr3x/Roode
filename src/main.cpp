@@ -3,20 +3,21 @@ Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 #include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
-#include <Configuration.h>
+#include <Config.h>
 #include <Wire.h>
+#ifdef USE_MQTT
+#include <ESP8266WiFi.h>
+#include <MQTTTransmitter.h>
+MQTTTransmitter transmitter;
+const char *topic_Domoticz_IN = "domoticz/in";
+const char *topic_Domoticz_OUT = "domoticz/out";
+#endif
 #ifdef USE_MYSENSORS
 #include <MySensors.h> // include the MySensors library
 #include <MySensorsTransmitter.h>
 MySensorsTransmitter transmitter;
 #endif
-#ifdef USE_MQTT
-#include <ESP8266WiFi.h>
-#include <MQTTTransmitter.h>
-MQTTTransmitter transmitter;
-const char *topic_Domoticz_IN = "domoticz/in";   //$$
-const char *topic_Domoticz_OUT = "domoticz/out"; //$$
-#endif
+
 #include <OptionChecker.h>
 #include <MotionSensor.h> //MotionSensorLib
 #include <Calibration.h>
@@ -211,6 +212,7 @@ void loop()
     transmitter.reconnect();
   }
 #endif
+
   Serial.print("Room Sensor Threshold: ");
   Serial.println(ROOM_SENSOR.getThreshold());
   Serial.print("Room Sensor Threshold: ");
@@ -313,13 +315,13 @@ void loop()
 #endif
     while (motion.checkMotion() != LOW)
     {
-      yield();
 #ifdef MY_DEBUG
       Serial.println("7. Motion sensor is on. Start counting");
 #endif
       peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
     }
   }
+  client.loop();
 }
 
 #ifdef USE_MQTT

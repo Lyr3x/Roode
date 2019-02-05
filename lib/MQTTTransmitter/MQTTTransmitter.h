@@ -6,13 +6,12 @@
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <Transmitter.h>
-#include <Configuration.h>
+#include <Config.h>
 
 /************************* WiFi Access Point *********************************/
 
 #define WLAN_SSID "TP-LINK_851F"
 #define WLAN_PASS "kdsjifeunrnughdngjdwgbjsbdvfmhtrew21asxdfdswe467h9"
-
 extern const char *topic_Domoticz_IN;  //$$
 extern const char *topic_Domoticz_OUT; //$$
 class MQTTTransmitter : public Transmitter

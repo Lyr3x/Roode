@@ -5,7 +5,7 @@
 #include <VL53L0X.h>
 #include <Sensor.h>
 #include <Calibration.h>
-#include <Configuration.h>
+#include <Config.h>
 #include <Wire.h>
 
 class VL53L0XSensor : public Sensor

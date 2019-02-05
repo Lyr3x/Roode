@@ -1,5 +1,4 @@
 #include <VL53L0XSensor.h>
-#include <Configuration.h>
 VL53L0XSensor::VL53L0XSensor(int XSHUT, int I2C_ADDRESS)
 {
     _XSHUT = XSHUT;

@@ -1,6 +1,6 @@
 #ifndef CALIBRATION_HPP
 #define CALIBRATION_HPP
-#include <Configuration.h>
+#include <Config.h>
 #include <Sensor.h>
 #include <Math.h>
 

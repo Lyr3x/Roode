@@ -1,6 +1,6 @@
 #ifndef SENDCOUNTER_H
 #define SENDCOUNTER_H
-#include <Configuration.h>
+// #include <Config.h>
 #include <Transmitter.h>
 int peopleCount = 0;
 template <typename T>

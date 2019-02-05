@@ -1,6 +1,6 @@
 #ifndef PEOPLECOUNTER_H
 #define PEOPLECOUNTER_H
-#include <Configuration.h>
+#include <Config.h>
 #include <Transmitter.h>
 #include <SendCounter.h>
 int room_sensor_value;     //analog value store for the room sensor
@@ -8,25 +8,31 @@ int corridor_sensor_value; //analog value store for the corridor sensor
 
 template <typename T, typename G>
 void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
-{   
-    yield();
+{
     int starttime = millis();
     int endtime = starttime;
-    int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; THIS STATE WILL BE SENT!
-    while ((endtime - starttime) <= LTIME) // do this loop for up to 5000mS
+    int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; This var describes the direction
+    while ((endtime - starttime) <= LTIME) // perform the loop for 10 seconds
     {
+        #ifdef USE_MQTT
+        if (!client.connected())
+        { // MQTT connection
+            transmitter.reconnect();
+        }
+        client.loop();
         yield();
+        #endif
         inout = -1;
 
 #ifdef MY_DEBUG
-        Serial.print("ROOM_SENSOR:");
-        Serial.println(room_sensor_value);
-        Serial.print("ROOM_SENSOR THRESHOLD: ");
-        Serial.println(ROOM_SENSOR.threshold);
-        Serial.print("CORRIDOR_SENSOR:");
-        Serial.println(corridor_sensor_value);
-        Serial.print("CORRIDOR_SENSOR THRESHOLD: ");
-        Serial.println(CORRIDOR_SENSOR.threshold);
+        // Serial.print("ROOM_SENSOR:");
+        // Serial.println(room_sensor_value);
+        // Serial.print("ROOM_SENSOR THRESHOLD: ");
+        // Serial.println(ROOM_SENSOR.threshold);
+        // Serial.print("CORRIDOR_SENSOR:");
+        // Serial.println(corridor_sensor_value);
+        // Serial.print("CORRIDOR_SENSOR THRESHOLD: ");
+        // Serial.println(CORRIDOR_SENSOR.threshold);
 
 #endif
 
