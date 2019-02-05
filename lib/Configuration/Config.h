@@ -42,6 +42,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define USE_ENEGERY_SAVING
 // #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
 #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+#define USE_OLED_ASCII
 /*
 ###### MySensors configuration ######
 */
@@ -124,6 +125,18 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
   For now only the OLED 128x32 monochrom displays are supported without modification
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified
 */
+
+#ifdef USE_OLED_ASCII
+#include <Wire.h>
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiWire.h"
+
+#define OLED_I2C 0x3c
+// Define proper RST_PIN if required.
+#define RST_PIN -1
+#define BRIGHTNESS 1 //Set the OLED brightness value to a val between 1 and 255
+static SSD1306AsciiWire oled;
+#endif
 #ifdef USE_OLED
 // includes for OLED 128x32 and 128x64 support
 /* use minimal lib */

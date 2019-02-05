@@ -33,6 +33,7 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
 void manageTimeout();
+void updateDisplayCounter();
 void setup()
 {
 #ifdef USE_MQTT
@@ -88,7 +89,22 @@ void setup()
 #ifdef USE_MYSENSORS
   Wire.begin();
 #endif
-
+#ifdef USE_OLED_ASCII
+  oled.begin(&Adafruit128x32, OLED_I2C);
+  oled.setFont(Adafruit5x7);
+  oled.clear();
+  oled.setContrast(BRIGHTNESS);
+  oled.setCursor(0, 25);
+  oled.println("### RooDe ###");
+  oled.setCursor(10, 0);
+  oled.print("RooDe: ");
+  oled.print(ROODE_VERSION);
+  oled.print("\n");
+  oled.print("MySensors: ");
+  oled.println(MYSENSORS_LIBRARY_VERSION);
+  delay(2000);
+  oled.clear();
+#endif
 #ifdef USE_OLED
   oled.init();
   oled.sendCommand(BRIGHTNESS_CTRL);
@@ -149,11 +165,12 @@ void setup()
   delay(100);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
-#ifdef USE_OLED
+#if defined(USE_OLED) || defined(USE_OLED_ASCII)
   oled.clear();
   oled.setCursor(10, 0);
   oled.println("Setting Counter to 0");
   delay(1000);
+  oled.clear();
 #endif
 } // end of setup()
 #ifdef USE_MYSENSORS
@@ -210,15 +227,11 @@ void loop()
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
+#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+    updateDisplayCounter();
 #endif
 
-    while (motion.checkMotion() != LOW)
+        while (motion.checkMotion() != LOW)
     {
       yield();
 #ifdef MY_DEBUG
@@ -245,14 +258,10 @@ void loop()
 #endif
     }
     lastState = HIGH;
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
+#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+    updateDisplayCounter();
 #endif
-    while (motion.checkMotion() != LOW)
+        while (motion.checkMotion() != LOW)
     {
 #ifdef MY_DEBUG
       Serial.println("7. Motion sensor is on. Start counting");
@@ -263,6 +272,25 @@ void loop()
   delay(10);
 #ifdef USE_MQTT
   client.loop();
+#endif
+}
+
+void updateDisplayCounter()
+{
+#ifdef USE_OLED
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.setTextSize(2, 1);
+  oled.print("Counter: ");
+  oled.println(peopleCount);
+#endif
+
+#ifdef USE_OLED_ASCII
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.set1X();
+  oled.print("Counter: ");
+  oled.println(peopleCount);
 #endif
 }
 
