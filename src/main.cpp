@@ -193,13 +193,9 @@ void loop()
 
     // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
     char buf[20];
-    const char *room_threhsold = itoa(ROOM_SENSOR.calibration(), buf, 10);
-    const char *corridor_threhsold = itoa(CORRIDOR_SENSOR.calibration(), buf, 10);
-
-    
-    strcpy(buf, "");
-    strcat(buf, room_threhsold);
-    strcat(buf, corridor_threhsold);
+    int room_threhsold = ROOM_SENSOR.calibration();
+    int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+    sprintf(buf, "Room: %d; Corridor: %d", room_threshold , corridor_threshold);
     transmitter.transmit(transmitter.devices.threshold, 0, buf);
   }
 

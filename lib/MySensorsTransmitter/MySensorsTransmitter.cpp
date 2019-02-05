@@ -23,7 +23,7 @@ void MySensorsTransmitter::presentation()
 }
 
 // MySensors send function
-int MySensorsTransmitter::transmit(MyMessage &message, int val, const char* text)
+int MySensorsTransmitter::transmit(MyMessage &message, int val, String text)
 {
 
     if (message.sensor == CHILD_ID_THRESHOLD)
