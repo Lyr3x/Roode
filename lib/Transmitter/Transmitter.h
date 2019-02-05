@@ -1,6 +1,8 @@
 #ifndef TRANSMITTER_H
 #define TRANSMITTER_H
 
+#pragma once
+
 #include "Arduino.h"
 #include <Config.h>
 

@@ -1,5 +1,8 @@
 #ifndef PEOPLECOUNTER_H
 #define PEOPLECOUNTER_H
+
+#pragma once
+
 #include <Config.h>
 #include <Transmitter.h>
 #include <SendCounter.h>
@@ -14,32 +17,32 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
     int inout = -1;                        //if inout== 0 -> out; if inout == 1 --> in; This var describes the direction
     while ((endtime - starttime) <= LTIME) // perform the loop for 10 seconds
     {
-        #ifdef USE_MQTT
+#ifdef USE_MQTT
         if (!client.connected())
         { // MQTT connection
             transmitter.reconnect();
         }
         client.loop();
         yield();
-        #endif
+#endif
         inout = -1;
 
 #ifdef MY_DEBUG
         // Serial.print("ROOM_SENSOR:");
         // Serial.println(room_sensor_value);
         // Serial.print("ROOM_SENSOR THRESHOLD: ");
-        // Serial.println(ROOM_SENSOR.threshold);
+        // Serial.println(ROOM_SENSOR.getThreshold());
         // Serial.print("CORRIDOR_SENSOR:");
         // Serial.println(corridor_sensor_value);
         // Serial.print("CORRIDOR_SENSOR THRESHOLD: ");
-        // Serial.println(CORRIDOR_SENSOR.threshold);
+        // Serial.println(CORRIDOR_SENSOR.getThreshold());
 
 #endif
 
         room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
         corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
 
-        if (room_sensor_value < ROOM_SENSOR.threshold && corridor_sensor_value > CORRIDOR_SENSOR.threshold && inout != 1)
+        if (room_sensor_value < ROOM_SENSOR.getThreshold() && corridor_sensor_value > CORRIDOR_SENSOR.getThreshold() && inout != 1)
         {
             int startR = millis();
             int endR = startR;
@@ -48,7 +51,7 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
                 yield();
                 room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                 corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-                if (corridor_sensor_value < CORRIDOR_SENSOR.threshold && room_sensor_value < ROOM_SENSOR.threshold)
+                if (corridor_sensor_value < CORRIDOR_SENSOR.getThreshold() && room_sensor_value < ROOM_SENSOR.getThreshold())
                 {
 #ifdef MY_DEBUG
                     Serial.print("In Loop ROOM_SENSOR: ");
@@ -58,12 +61,12 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
                     Serial.print("Delay Time: ");
                     Serial.println(MTIME - (endR - startR));
 #endif
-                    while (room_sensor_value < ROOM_SENSOR.threshold || corridor_sensor_value < CORRIDOR_SENSOR.threshold)
+                    while (room_sensor_value < ROOM_SENSOR.getThreshold() || corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
                     {
                         yield();
                         room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                         corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-                        if (corridor_sensor_value < CORRIDOR_SENSOR.threshold && room_sensor_value > ROOM_SENSOR.threshold)
+                        if (corridor_sensor_value < CORRIDOR_SENSOR.getThreshold() && room_sensor_value > ROOM_SENSOR.getThreshold())
                         {
                             inout = 0;
                             sendCounter(inout, transmitter);
@@ -91,7 +94,7 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
             endtime = millis();
         }
 
-        if (corridor_sensor_value < CORRIDOR_SENSOR.threshold && room_sensor_value > ROOM_SENSOR.threshold && inout != 0)
+        if (corridor_sensor_value < CORRIDOR_SENSOR.getThreshold() && room_sensor_value > ROOM_SENSOR.getThreshold() && inout != 0)
         {
             int startC = millis();
             int endC = startC;
@@ -100,7 +103,7 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
                 yield();
                 room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                 corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-                if (room_sensor_value < ROOM_SENSOR.threshold && corridor_sensor_value < CORRIDOR_SENSOR.threshold)
+                if (room_sensor_value < ROOM_SENSOR.getThreshold() && corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
                 {
 #ifdef MY_DEBUG
                     Serial.print("In Loop CORRIDOR_SENSOR: ");
@@ -110,12 +113,12 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
                     Serial.print("Delay Time: ");
                     Serial.println(MTIME - (endC - startC));
 #endif
-                    while (room_sensor_value < ROOM_SENSOR.threshold || corridor_sensor_value < CORRIDOR_SENSOR.threshold)
+                    while (room_sensor_value < ROOM_SENSOR.getThreshold() || corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
                     {
                         yield();
                         room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                         corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
-                        if (room_sensor_value < ROOM_SENSOR.threshold && corridor_sensor_value > CORRIDOR_SENSOR.threshold)
+                        if (room_sensor_value < ROOM_SENSOR.getThreshold() && corridor_sensor_value > CORRIDOR_SENSOR.getThreshold())
                         {
                             inout = 1;
                             sendCounter(inout, transmitter);

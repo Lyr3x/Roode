@@ -90,20 +90,20 @@ int VL53L0XSensor::calibration()
     oled.setCursor(15, 0);
     oled.print("Threshold: ");
     oled.println(threshold);
-    wait(2000);
+    delay(2000);
     oled.clear();
     oled.setCursor(10, 0);
     oled.setTextSize(1, 1);
     oled.println("Calibration done!");
-    wait(2000);
+    delay(2000);
 #endif
     Serial.print("standard deviation: ");
     Serial.println(sd);
     Serial.print("New threshold is: ");
-    Serial.println("#### calibration done ####");
     Serial.println(this->threshold);
-    //send(thrMsg.set(threshold)); //REWORK
+    Serial.println("#### calibration done ####");
     
+    //send(thrMsg.set(threshold)); //REWORK
 
     return this->threshold;
 }

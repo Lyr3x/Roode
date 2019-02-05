@@ -20,7 +20,6 @@ MySensorsTransmitter transmitter;
 
 #include <OptionChecker.h>
 #include <MotionSensor.h> //MotionSensorLib
-#include <Calibration.h>
 #include <VL53L0XSensor.h>
 #include <PeopleCounter.h>
 
@@ -33,7 +32,7 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-
+void manageTimeout();
 void setup()
 {
 #ifdef USE_MQTT
@@ -114,6 +113,7 @@ void setup()
 
   //DistanceSensors
   ROOM_SENSOR.init();
+  delay(100);
   CORRIDOR_SENSOR.init();
 
 #ifdef CALIBRATION
@@ -127,9 +127,15 @@ void setup()
   // Serial.println("#### motion sensor initialized ####");
 
   Serial.println("#### calibrate the ir sensors ####");
-  ROOM_SENSOR.calibration();
-  CORRIDOR_SENSOR.calibration();
-  // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
+
+  char buf[20];
+  int room_threhsold = ROOM_SENSOR.calibration();
+  int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+  sprintf(buf, "%d;%d", room_threhsold, corridor_threhsold);
+  delay(10);
+  Serial.println(buf);
+  transmitter.transmit(transmitter.devices.threshold, 0, buf);
+  delay(10);
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
@@ -140,6 +146,7 @@ void setup()
   }
 #endif
   transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
+  delay(100);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
 #ifdef USE_OLED
@@ -168,35 +175,9 @@ void loop()
   }
 #endif
 
-  Serial.print("Room Sensor Threshold: ");
-  Serial.println(ROOM_SENSOR.getThreshold());
-  Serial.print("Room Sensor Threshold: ");
-  Serial.println(ROOM_SENSOR.threshold);
-
-  Serial.print("Corridor Sensor Threshold: ");
-  Serial.println(CORRIDOR_SENSOR.getThreshold());
-  Serial.print("Corridor Sensor Threshold: ");
-  Serial.println(CORRIDOR_SENSOR.threshold);
-  // transmitter.transmit(transmitter.devices.room_switch, 0);
-  // delay(1000);
-  // transmitter.transmit(transmitter.devices.room_switch, 1);
   if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
   {
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Timeout occured!");
-#endif
-    // reportToController(65535);
-    Serial.println("Timeout occured. Restart the System");
-
-    // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-    char buf[20];
-    int room_threhsold = ROOM_SENSOR.calibration();
-    int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-    sprintf(buf, "Room: %d; Corridor: %d", room_threshold , corridor_threshold);
-    transmitter.transmit(transmitter.devices.threshold, 0, buf);
+    manageTimeout();
   }
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
@@ -279,11 +260,32 @@ void loop()
       peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
     }
   }
+  delay(10);
 #ifdef USE_MQTT
   client.loop();
 #endif
 }
 
+void manageTimeout()
+{
+#ifdef USE_OLED
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.setTextSize(2, 1);
+  oled.print("Timeout occured!");
+#endif
+  // reportToController(65535);
+  Serial.println("Timeout occured. Restart the System");
+
+  // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
+  char buf[20];
+  ROOM_SENSOR.calibration();
+  CORRIDOR_SENSOR.calibration();
+  sprintf(buf, "Room: %d , Corridor: %d", ROOM_SENSOR.getThreshold(), CORRIDOR_SENSOR.getThreshold());
+  delay(100);
+  transmitter.transmit(transmitter.devices.threshold, 0, buf);
+  delay(100);
+}
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
 void callback(char *topic, byte *payload, unsigned int length)

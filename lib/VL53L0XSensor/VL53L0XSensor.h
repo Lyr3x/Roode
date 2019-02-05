@@ -25,9 +25,10 @@ public:
   uint16_t getTimeout(void);
   bool timeoutOccurred(void);
   int getThreshold();
-  int threshold;
+  
 
 private:
+int threshold;
   VL53L0X _Sensor;
   int _XSHUT;
   int _I2C_ADDRESS;

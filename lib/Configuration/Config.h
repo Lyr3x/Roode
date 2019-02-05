@@ -35,7 +35,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 #define USE_VL53L0X
 // #define USE_VL53L1X
-#define USE_OLED // Activates OLED 128x32 support including brightness control.
+// #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing

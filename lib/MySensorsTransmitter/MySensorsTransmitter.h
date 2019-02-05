@@ -23,7 +23,7 @@ class MySensorsTransmitter : public Transmitter
     };
     MySensorsTransmitter::MySensorsTransmitter();
     Devices devices;
-    int transmit(MyMessage &message, int val = 0, String text = "");
+    int transmit(MyMessage &message, int val = 0, const char* text = "");
     void presentation();
     int receive(const MyMessage &message);
 };
