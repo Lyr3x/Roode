@@ -118,10 +118,9 @@ void MQTTTransmitter::reconnect()
             if (client.subscribe(topic_Domoticz_OUT, 0))
                 Serial.println("OK");
             else
-                Serial.println("KO");
+                Serial.println("FAILED");
 
-            // Wait ten seconds to try to be sure DomoticZ available after a DomoticZ server reboot (i.e. means avoid MQTT available but not yet DomoticZ)
-            delay(10000);
+            delay(100);
             // Say now "Me the lighting, I'm here"
             string = "{\"command\" : \"addlogmessage\", \"message\" : \"RooDe v0.9.6-beta MQTT - IP : " + WiFi.localIP().toString() + "\"}";
             string.toCharArray(msgToPublish, MQTT_MAX_PACKET_SIZE);
@@ -130,15 +129,15 @@ void MQTTTransmitter::reconnect()
             if (client.publish(topic_Domoticz_IN, msgToPublish))
                 Serial.println("OK");
             else
-                Serial.println("KO");
+                Serial.println("FAILED");
         }
         else
         {
             Serial.print("MQTT connection failed, rc=");
             Serial.print(client.state());
-            Serial.println(" try again in 2 seconds");
-            // Wait 2 seconds before retrying
-            delay(2000);
+            Serial.println(" try again in a second");
+            // Wait 1 seconds before retrying
+            delay(1000);
         } // if (client.connect
     } // while (!client.connected()) {
 } // void reconnect() { ****************
