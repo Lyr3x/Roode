@@ -1,3 +1,7 @@
+/*  RooDe - Room Presence Detection
+Author: Kai Bepperling, kai.bepperling@gmail.com
+License: GPLv3
+*/
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -20,6 +24,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 * Removed SHARP_IR infrared Sensors
 * Changed Message types
 * Added new message type INFO 
+* Independent sensor calibration
 * added full VL53L0X support
   * measruing speed improvements 
   * Fixed LONG_RANGE mode which gave just -1 as result
@@ -103,7 +108,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #endif                      //USE_MYSENSORS
-#define LTIME 8000         // loop time (should not be lower than 8 seconds)
+#define LTIME 8000          // loop time (should not be lower than 8 seconds)
 #define MTIME 800           // measuring/person
 #define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define THRESHOLD_X 300     // x is the value added to the calibrated value
