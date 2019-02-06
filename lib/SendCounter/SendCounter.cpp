@@ -1,13 +1,13 @@
 #include <Configuration.h>
 #include <SendCounter.h>
-int peopleCount = 0;
+uint8_t peopleCount = 0; //default state: nobody is inside the room
 void sendCounter(int inout)
 {
     if (inout == 1)
     {
         peopleCount++;
         send(msg.set(inout));
-        wait(30);
+        wait(100);
         send(pcMsg.set(peopleCount));
     }
     else if (inout == 0)
@@ -20,7 +20,7 @@ void sendCounter(int inout)
         {
             send(msg.set(inout));
         }
-        wait(30);
+        wait(100);
         send(pcMsg.set(peopleCount));
     }
 
@@ -36,4 +36,6 @@ void sendCounter(int inout)
     oled.print("Counter: ");
     oled.println(peopleCount);
 #endif
+    Serial.print("PeopleCounter: ");
+    Serial.println(peopleCount);
 }
