@@ -56,7 +56,7 @@ int VL53L0XSensor::calibration()
     oled.setTextSize(1, 1);
     oled.println("### Calibrate IR ###");
 #endif
-    auto min = 0;
+    uint16_t min = 0;
 
     auto n = 0;
     for (int m = 0; m < CALIBRATION_VAL; m++)
@@ -85,7 +85,7 @@ int VL53L0XSensor::calibration()
     this->threshold = min - sd;
 
 // Serial.print("standard deviation: " + threshold);
-// threshold = max + THRESHOLD_X;
+// threshold = max + THRESHOLD_X;#
 #ifdef USE_OLED
     oled.setCursor(15, 0);
     oled.print("Threshold: ");

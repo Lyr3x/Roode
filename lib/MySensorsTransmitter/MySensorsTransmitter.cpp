@@ -19,11 +19,10 @@ void MySensorsTransmitter::presentation()
 #ifdef USE_BATTERY
     present(CHILD_ID_BATTERY, S_CUSTOM);
 #endif
-    
 }
 
 // MySensors send function
-int MySensorsTransmitter::transmit(MyMessage &message, int val, const char* text)
+int MySensorsTransmitter::transmit(MyMessage &message, int val, const char *text)
 {
 
     if (message.sensor == CHILD_ID_THRESHOLD)
@@ -44,36 +43,33 @@ int MySensorsTransmitter::transmit(MyMessage &message, int val, const char* text
     }
     return -1;
 }
-// MySensors receive function
+
 int MySensorsTransmitter::receive(const MyMessage &message)
 {
     if (message.type == V_TEXT)
     {
-        Serial.println("V_TEXT update");
-        Serial.print("MySensor message received:");
-        Serial.println(message.sensor);
-        Serial.println(message.type);
-        Serial.println(message.sender);
-        Serial.println(message.getString());
-        String newThreshold = message.getString();
-        if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
+        // Serial.println("V_TEXT update");
+        // Serial.print("MySensor message received:");
+        // Serial.println(message.sensor);
+        // Serial.println(message.type);
+        // Serial.println(message.sender);
+        // Serial.println(message.getString());
+        const char *newThreshold = message.getString();
+        char sub[11];
+        strncpy(sub, newThreshold, 11);
+        
+        // if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
+        if (message.sensor == CHILD_ID_THRESHOLD && strcmp(sub, "recalibrate"))
         {
-            // ROOM_SENSOR.stopContinuous();
-            // CORRIDOR_SENSOR.stopContinuous();
-            // VL53LXX_init();
-
-            // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-            // ROOM_SENSOR.calibration();
-            // CORRIDOR_SENSOR.calibration();
+            Serial.println(sub);
+            return -1;
         }
 
         if (message.sensor == CHILD_ID_PEOPLECOUNTER)
         {
-            wait(30);
+            delay(30);
             Serial.println(message.getInt());
-            // peopleCount = message.getInt();
-            // send(pcMsg.set(peopleCount));
+            return message.getInt();
         }
     }
-    return EXIT_SUCCESS;
 }

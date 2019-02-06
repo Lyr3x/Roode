@@ -10,7 +10,6 @@ void sendCounter(int inout, T transmitter)
     {
         peopleCount++;
         transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
-        delay(10);
         transmitter.transmit(transmitter.devices.room_switch, 1, "On");
     }
     else if (inout == 0)
@@ -23,7 +22,6 @@ void sendCounter(int inout, T transmitter)
         if (peopleCount == 0)
         {
             transmitter.transmit(transmitter.devices.peoplecounter, peopleCount);
-            delay(10);
             transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
         }
     }
@@ -39,6 +37,13 @@ void sendCounter(int inout, T transmitter)
     oled.setTextSize(2, 1);
     oled.print("Counter: ");
     oled.println(peopleCount);
+#endif
+#ifdef USE_OLED_ASCII
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.set2X();
+  oled.print("Counter: ");
+  oled.println(peopleCount);
 #endif
     Serial.print("PeopleCounter: ");
     Serial.println(peopleCount);

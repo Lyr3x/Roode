@@ -12,3 +12,4 @@ public:
   virtual int calibration() = 0;
 };
 #endif
+

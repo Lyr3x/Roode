@@ -32,8 +32,9 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-void manageTimeout();
-void updateDisplayCounter();
+void manageTimeout();        //move to sensor
+void updateDisplayCounter(); //move to display module
+void sensorCalibration();    //move to Calibration module
 void setup()
 {
 #ifdef USE_MQTT
@@ -95,7 +96,7 @@ void setup()
   oled.clear();
   oled.setContrast(BRIGHTNESS);
   oled.setCursor(0, 25);
-  oled.println("### RooDe ###");
+  oled.println("RooDe");
   oled.setCursor(10, 0);
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);
@@ -129,7 +130,7 @@ void setup()
 
   //DistanceSensors
   ROOM_SENSOR.init();
-  delay(100);
+  delay(10);
   CORRIDOR_SENSOR.init();
 
 #ifdef CALIBRATION
@@ -144,14 +145,7 @@ void setup()
 
   Serial.println("#### calibrate the ir sensors ####");
 
-  char buf[20];
-  int room_threhsold = ROOM_SENSOR.calibration();
-  int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-  sprintf(buf, "%d;%d", room_threhsold, corridor_threhsold);
-  delay(10);
-  Serial.println(buf);
-  transmitter.transmit(transmitter.devices.threshold, 0, buf);
-  delay(10);
+  sensorCalibration();
 #endif
 
   Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
@@ -162,7 +156,6 @@ void setup()
   }
 #endif
   transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
-  delay(100);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
 #if defined(USE_OLED) || defined(USE_OLED_ASCII)
@@ -206,6 +199,9 @@ void loop()
 #ifdef USE_OLED
     oled.clear();
 #endif
+#ifdef USE_OLED_ASCII
+    oled.clear();
+#endif
 #ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
@@ -231,7 +227,7 @@ void loop()
     updateDisplayCounter();
 #endif
 
-        while (motion.checkMotion() != LOW)
+    while (motion.checkMotion() != LOW)
     {
       yield();
 #ifdef MY_DEBUG
@@ -261,7 +257,7 @@ void loop()
 #if defined(USE_OLED) || defined(USE_OLED_ASCII)
     updateDisplayCounter();
 #endif
-        while (motion.checkMotion() != LOW)
+    while (motion.checkMotion() != LOW)
     {
 #ifdef MY_DEBUG
       Serial.println("7. Motion sensor is on. Start counting");
@@ -288,7 +284,7 @@ void updateDisplayCounter()
 #ifdef USE_OLED_ASCII
   oled.clear();
   oled.setCursor(5, 0);
-  oled.set1X();
+  oled.set2X();
   oled.print("Counter: ");
   oled.println(peopleCount);
 #endif
@@ -304,15 +300,20 @@ void manageTimeout()
 #endif
   // reportToController(65535);
   Serial.println("Timeout occured. Restart the System");
+  sensorCalibration();
+}
 
-  // calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-  char buf[20];
-  ROOM_SENSOR.calibration();
-  CORRIDOR_SENSOR.calibration();
-  sprintf(buf, "Room: %d , Corridor: %d", ROOM_SENSOR.getThreshold(), CORRIDOR_SENSOR.getThreshold());
-  delay(100);
+void sensorCalibration()
+{
+  Serial.println("#### calibrate the ir sensors ####");
+
+  char buf[40];
+
+  int room_threhsold = ROOM_SENSOR.calibration();
+  int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+  sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
+
   transmitter.transmit(transmitter.devices.threshold, 0, buf);
-  delay(100);
 }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
@@ -366,5 +367,23 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   delay(15);
 } // void callback(char* to   ****************
+
+#endif
+
+#ifdef USE_MYSENSORS
+// MySensors receive function
+void receive(const MyMessage &message)
+{
+  int result = transmitter.receive(message);
+  if (result == -1)
+  {
+    Serial.println("Sensor calibration");
+    sensorCalibration();
+  }
+  else
+  {
+    peopleCount = result;
+  }
+}
 
 #endif

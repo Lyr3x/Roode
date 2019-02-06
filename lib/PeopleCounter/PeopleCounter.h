@@ -48,7 +48,9 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
             int endR = startR;
             while ((endR - startR) <= MTIME)
             {
+#ifdef USE_MQTT
                 yield();
+#endif
                 room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                 corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                 if (corridor_sensor_value < CORRIDOR_SENSOR.getThreshold() && room_sensor_value < ROOM_SENSOR.getThreshold())
@@ -63,7 +65,9 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
 #endif
                     while (room_sensor_value < ROOM_SENSOR.getThreshold() || corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
                     {
+#ifdef USE_MQTT
                         yield();
+#endif
                         room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                         corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                         if (corridor_sensor_value < CORRIDOR_SENSOR.getThreshold() && room_sensor_value > ROOM_SENSOR.getThreshold())
@@ -100,7 +104,9 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
             int endC = startC;
             while ((endC - startC) <= MTIME)
             {
+#ifdef USE_MQTT
                 yield();
+#endif
                 room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                 corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                 if (room_sensor_value < ROOM_SENSOR.getThreshold() && corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
@@ -115,7 +121,9 @@ void peoplecounting(T ROOM_SENSOR, T CORRIDOR_SENSOR, G transmitter)
 #endif
                     while (room_sensor_value < ROOM_SENSOR.getThreshold() || corridor_sensor_value < CORRIDOR_SENSOR.getThreshold())
                     {
+#ifdef USE_MQTT
                         yield();
+#endif
                         room_sensor_value = ROOM_SENSOR.readRangeContinuousMillimeters();
                         corridor_sensor_value = CORRIDOR_SENSOR.readRangeContinuousMillimeters();
                         if (room_sensor_value < ROOM_SENSOR.getThreshold() && corridor_sensor_value > CORRIDOR_SENSOR.getThreshold())
