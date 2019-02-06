@@ -33,18 +33,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
   * general bug fixes and improvements
 * added untested VL53L1X support
 */
-<<<<<<< HEAD:lib/Configuration/Configuration.h
-
-#define ROODE_VERSION "0.9.6-beta"
-
-/* 
-###### MySensors Configuration ######
-DESCRIPTION
-*/
-
-=======
 #define ROODE_VERSION "1.0-alpha"
->>>>>>> v0.9.6-rework:lib/Configuration/Config.h
 // #define MY_DEBUG                       //!!Comment out in production mode!! Its not possible to test all features of roode wiht DEBUG mode actiavted due to performance issues.
 /*
 ###### FEATURE SELECTION ######
