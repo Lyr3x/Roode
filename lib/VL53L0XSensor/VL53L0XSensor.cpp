@@ -98,9 +98,9 @@ int VL53L0XSensor::calibration()
     delay(2000);
 #endif
     Serial.print(F("standard deviation: "));
-    Serial.println(F(sd));
+    Serial.println(sd);
     Serial.print(F("New threshold is: "));
-    Serial.println(F(this->threshold));
+    Serial.println(this->threshold);
     Serial.println(F("#### calibration done ####"));
 
     //send(thrMsg.set(threshold)); //REWORK
