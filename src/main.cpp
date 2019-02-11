@@ -2,15 +2,19 @@
 Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
-#include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 #include <Config.h>
+#include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
+
 #include <Wire.h>
+
 #ifdef USE_MQTT
 #include <MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
+
+
 
 #ifdef USE_MYSENSORS
 #include <MySensors.h> // include the MySensors library

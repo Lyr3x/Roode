@@ -1,12 +1,13 @@
 #ifndef MQTTTransmitter_H
 #define MQTTTransmitter_H
 
+#include <Config.h>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <Transmitter.h>
-#include <Config.h>
+
 
 /************************* WiFi Access Point *********************************/
 

@@ -45,9 +45,9 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_ENEGERY_SAVING
- #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
-//#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
-//#define USE_OLED_ASCII
+// #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
+#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+
 /*
 ###### MySensors configuration ######
 */
@@ -58,6 +58,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
 #define MY_NODE_ID 100 // Set a static Node ID if needed
+#define USE_OLED_ASCII
 #endif
 
 #ifdef USE_MQTT
