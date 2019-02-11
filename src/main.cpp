@@ -135,7 +135,10 @@ void setup()
   // Serial.println("#### motion sensor initialized ####");
 
   Serial.println(F("#### Sensor calibration starting ####"));
-
+#ifdef USE_OLED
+  oled.clear();
+  oled.println("Sensor calibration");
+#endif
   sensorCalibration();
 #if defined(USE_OLED)
   oled.clear();
@@ -157,11 +160,11 @@ void setup()
   transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
   delay(10);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
-
-#if defined(USE_OLED)
   peopleCount = 0;
-  updateDisplayCounter();
-#endif
+  // #if defined(USE_OLED)
+  //   peopleCount = 0;
+  //   updateDisplayCounter();
+  // #endif
 } // end of setup()
 #ifdef USE_MYSENSORS
 void presentation()
@@ -171,8 +174,6 @@ void presentation()
 #endif
 
 int lastState = LOW;
-int newState = LOW;
-
 void loop()
 {
 #ifdef USE_MQTT
@@ -215,7 +216,6 @@ void loop()
     oled.clear();
 #endif
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-    lastState = LOW; //setting last state of motion sensor to low
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
@@ -233,7 +233,7 @@ void loop()
     }
 #endif
   }
-  else
+  else //Motion HIGH
   {
     if (lastState == LOW)
     {
@@ -247,10 +247,6 @@ void loop()
       ROOM_SENSOR.startContinuous();
       CORRIDOR_SENSOR.startContinuous();
       delay(10);
-#endif
-
-#ifdef USE_OLED
-      updateDisplayCounter();
 #endif
     }
     lastState = HIGH;

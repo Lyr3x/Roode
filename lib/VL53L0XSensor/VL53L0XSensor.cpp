@@ -50,12 +50,12 @@ int VL53L0XSensor::readData()
 int VL53L0XSensor::calibration()
 {
     int irValues[30] = {};
-#ifdef USE_OLED
+/*#ifdef USE_OLED
     oled.clear();
     oled.setCursor(0, 5);
-    oled.set2X();
     oled.println("### Calibrate IR ###");
 #endif
+*/
     uint16_t min = 0;
 
     auto n = 0;

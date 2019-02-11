@@ -45,8 +45,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_ENEGERY_SAVING
-#define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
-// #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+// #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
+#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
 
 /*
 ###### MySensors configuration ######
@@ -128,7 +128,7 @@ enum MysensorsId
 #endif                      //USE_MYSENSORS
 #define LTIME 1000          // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
-#define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
+#define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
 
 /*
  Feature switches:
@@ -160,11 +160,9 @@ enum SensorProfiles
 #define OLED_I2C 0x3c
 // Define proper RST_PIN if required.
 #define RST_PIN -1
-#define BRIGHTNESS 1 //Set the OLED brightness value to a val between 1 and 255
+#define BRIGHTNESS 1 //Set the OLED brightness value to a val between 0 and 255
 static SSD1306AsciiWire oled;
 #endif
-
-
 
 /* 
 ###### Motion Sensor setup ###### 
