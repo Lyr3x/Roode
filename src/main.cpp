@@ -6,17 +6,17 @@ License: GPLv3
 #include <Config.h>
 #include <Wire.h>
 #ifdef USE_MQTT
-#include "ESP8266WiFi.h"
 #include <MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
-// #ifdef USE_MYSENSORS
-// #include <MySensors.h> // include the MySensors library
-// #include <MySensorsTransmitter.h>
-// MySensorsTransmitter transmitter;
-// #endif
+
+#ifdef USE_MYSENSORS
+#include <MySensors.h> // include the MySensors library
+#include <MySensorsTransmitter.h>
+MySensorsTransmitter transmitter;
+#endif
 
 #include <OptionChecker.h>
 #include <MotionSensor.h> //MotionSensorLib
@@ -330,7 +330,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   Serial.print("] ");
 
   // decode payload message
-  for (int i = 0; i < length; i++)
+  for (unsigned int i = 0; i < length; i++)
   {
     messageReceived += ((char)payload[i]);
   }
