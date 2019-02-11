@@ -93,7 +93,7 @@ void setup()
 #ifdef USE_MYSENSORS
   Wire.begin();
 #endif
-#ifdef USE_OLED_ASCII
+#ifdef USE_OLED
   oled.begin(&Adafruit128x32, OLED_I2C);
   oled.setFont(Adafruit5x7);
   oled.clear();
@@ -104,26 +104,16 @@ void setup()
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);
   oled.print("\n");
+#ifdef USE_MYSENSORS
   oled.print("MySensors: ");
   oled.println(MYSENSORS_LIBRARY_VERSION);
-  delay(2000);
-  oled.clear();
 #endif
-#ifdef USE_OLED
-  oled.init();
-  oled.sendCommand(BRIGHTNESS_CTRL);
-  oled.sendCommand(BRIGHTNESS);
-  oled.clear();
-  oled.setTextSize(1);
-  oled.setCursor(0, 25);
-  oled.println("### Roode ###");
-  oled.setCursor(10, 0);
-  oled.print("RooDe: ");
-  oled.print(ROODE_VERSION);
-  oled.print("\n");
-  oled.print("MySensors: ");
-  oled.println(MYSENSORS_LIBRARY_VERSION);
+#ifdef USE_MQTT
+  oled.println("PubSubClient: v2.7 ");
+
+#endif
   delay(2000);
+  oled.clear();
 #endif
 
   Serial.println(F("##### RooDe Presence Detection System #####"));
@@ -140,19 +130,14 @@ void setup()
   CORRIDOR_SENSOR.setMode(SENSOR_MODE);
 
 #ifdef CALIBRATION
-#ifdef USE_OLED
-  oled.clear();
-  oled.setCursor(0, 0);
-  oled.setTextSize(1, 1);
-  oled.println("# Calibrate Motion #");
-#endif
+
   motion.Setup(MOTION_INIT_TIME);
   // Serial.println("#### motion sensor initialized ####");
 
   Serial.println(F("#### Sensor calibration starting ####"));
 
   sensorCalibration();
-#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+#if defined(USE_OLED)
   oled.clear();
   oled.print("Right: ");
   oled.println(ROOM_SENSOR.getThreshold());
@@ -173,7 +158,7 @@ void setup()
   delay(10);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
-#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+#if defined(USE_OLED)
   peopleCount = 0;
   updateDisplayCounter();
 #endif
@@ -229,15 +214,12 @@ void loop()
 #ifdef USE_OLED
     oled.clear();
 #endif
-#ifdef USE_OLED_ASCII
-    oled.clear();
-#endif
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
     lastState = LOW; //setting last state of motion sensor to low
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+#if defined(USE_OLED) || defined(USE_OLED)
     updateDisplayCounter();
 #endif
 
@@ -266,10 +248,8 @@ void loop()
       CORRIDOR_SENSOR.startContinuous();
       delay(10);
 #endif
+
 #ifdef USE_OLED
-      updateDisplayCounter();
-#endif
-#ifdef USE_OLED_ASCII
       updateDisplayCounter();
 #endif
     }
@@ -288,17 +268,9 @@ void loop()
 #endif
 }
 
-void updateDisplayCounter()
+inline void updateDisplayCounter()
 {
 #ifdef USE_OLED
-  oled.clear();
-  oled.setCursor(5, 0);
-  oled.setTextSize(2, 1);
-  oled.print("Inside: ");
-  oled.println(peopleCount);
-#endif
-
-#ifdef USE_OLED_ASCII
   oled.clear();
   oled.setCursor(5, 0);
   oled.set2X();
@@ -312,7 +284,7 @@ inline void manageTimeout()
 #ifdef USE_OLED
   oled.clear();
   oled.setCursor(5, 0);
-  oled.setTextSize(2, 1);
+  oled.set2X();
   oled.print("Timeout occured!");
 #endif
   // reportToController(65535);

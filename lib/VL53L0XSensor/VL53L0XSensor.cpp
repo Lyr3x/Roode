@@ -7,7 +7,7 @@ VL53L0XSensor::VL53L0XSensor(int XSHUT, int I2C_ADDRESS)
 
 void VL53L0XSensor::init()
 {
-    Serial.println("Init VL53L0X Sensor");
+    Serial.println(F("Init VL53L0X Sensor"));
     // Reset Sensor
     pinMode(_XSHUT, OUTPUT);
     digitalWrite(_XSHUT, LOW);
@@ -53,7 +53,7 @@ int VL53L0XSensor::calibration()
 #ifdef USE_OLED
     oled.clear();
     oled.setCursor(0, 5);
-    oled.setTextSize(1, 1);
+    oled.set2X();
     oled.println("### Calibrate IR ###");
 #endif
     uint16_t min = 0;
@@ -84,24 +84,14 @@ int VL53L0XSensor::calibration()
     sd = calculateStandardDeviation(irValues);
     this->threshold = min - sd;
 
-// Serial.print("standard deviation: " + threshold);
-// threshold = max + THRESHOLD_X;#
-#ifdef USE_OLED
-    oled.setCursor(15, 0);
-    oled.print("Threshold: ");
-    oled.println(threshold);
-    delay(2000);
-    oled.clear();
-    oled.setCursor(10, 0);
-    oled.setTextSize(1, 1);
-    oled.println("Calibration done!");
-    delay(2000);
-#endif
-    Serial.print("standard deviation: ");
+    // Serial.print("standard deviation: " + threshold);
+    // threshold = max + THRESHOLD_X;#
+
+    Serial.print(F("standard deviation: "));
     Serial.println(sd);
-    Serial.print("New threshold is: ");
+    Serial.print(F("New threshold is: "));
     Serial.println(this->threshold);
-    Serial.println("#### calibration done ####");
+    Serial.println(F("#### calibration done ####"));
 
     //send(thrMsg.set(threshold)); //REWORK
 

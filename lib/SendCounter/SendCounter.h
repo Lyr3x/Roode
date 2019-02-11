@@ -32,20 +32,13 @@ void sendCounter(int inout, T transmitter)
     sendBatteryLevel(round((voltage - BATTERY_ZERO) * 100.0 / (BATTERY_FULL - BATTERY_ZERO)));
 #endif
 #ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
-#endif
-#ifdef USE_OLED_ASCII
   oled.clear();
   oled.setCursor(5, 0);
   oled.set2X();
   oled.print("Inside: ");
   oled.println(peopleCount);
 #endif
-    Serial.print(F("PeopleCounter: "));
+    Serial.print("PeopleCounter: ");
     Serial.println(peopleCount);
 }
 

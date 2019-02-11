@@ -40,7 +40,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 #define USE_VL53L0X
 // #define USE_VL53L1X
-// #define USE_OLED // Activates OLED 128x32 support including brightness control.
+#define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
@@ -58,7 +58,6 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
 // #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
 #define MY_NODE_ID 100 // Set a static Node ID if needed
-#define USE_OLED_ASCII
 #endif
 
 #ifdef USE_MQTT
@@ -153,7 +152,7 @@ enum SensorProfiles
   For the bigger 128x64 OLED's the SSD1306_text.h must be modified
 */
 
-#ifdef USE_OLED_ASCII
+#ifdef USE_OLED
 #include <Wire.h>
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
@@ -164,22 +163,8 @@ enum SensorProfiles
 #define BRIGHTNESS 1 //Set the OLED brightness value to a val between 1 and 255
 static SSD1306AsciiWire oled;
 #endif
-#ifdef USE_OLED
-// includes for OLED 128x32 and 128x64 support
-/* use minimal lib */
-#ifdef USE_MYSENSORS
-#include <SSD1306_text.h>
-static SSD1306_text oled;
-#endif
 
-#ifdef USE_MQTT
-#include <SSD1306Wire.h>
-static SSD1306Wire oled(0x3c, SDA_PIN, SCL_PIN);
-#endif
 
-#define BRIGHTNESS_CTRL 0x81 // Do not change this value. This starts the Brightness control mode
-#define BRIGHTNESS 1         //Set the OLED brightness value to a val between 1 and 255
-#endif
 
 /* 
 ###### Motion Sensor setup ###### 
