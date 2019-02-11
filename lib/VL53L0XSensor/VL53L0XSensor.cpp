@@ -7,7 +7,7 @@ VL53L0XSensor::VL53L0XSensor(int XSHUT, int I2C_ADDRESS)
 
 void VL53L0XSensor::init()
 {
-    Serial.println("Init VL53L0X Sensor");
+    Serial.println(F("Init VL53L0X Sensor"));
     // Reset Sensor
     pinMode(_XSHUT, OUTPUT);
     digitalWrite(_XSHUT, LOW);
@@ -97,12 +97,12 @@ int VL53L0XSensor::calibration()
     oled.println("Calibration done!");
     delay(2000);
 #endif
-    Serial.print("standard deviation: ");
-    Serial.println(sd);
-    Serial.print("New threshold is: ");
-    Serial.println(this->threshold);
-    Serial.println("#### calibration done ####");
-    
+    Serial.print(F("standard deviation: "));
+    Serial.println(F(sd));
+    Serial.print(F("New threshold is: "));
+    Serial.println(F(this->threshold));
+    Serial.println(F("#### calibration done ####"));
+
     //send(thrMsg.set(threshold)); //REWORK
 
     return this->threshold;
@@ -115,7 +115,7 @@ int VL53L0XSensor::getThreshold()
 
 void VL53L0XSensor::startContinuous(uint32_t period_ms)
 {
-    return _Sensor.startContinuous();
+    return _Sensor.startContinuous(period_ms);
 }
 
 void VL53L0XSensor::stopContinuous()

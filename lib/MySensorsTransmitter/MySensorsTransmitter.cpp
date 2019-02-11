@@ -57,7 +57,7 @@ int MySensorsTransmitter::receive(const MyMessage &message)
         const char *newThreshold = message.getString();
         char sub[11];
         strncpy(sub, newThreshold, 11);
-        
+
         // if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
         if (message.sensor == CHILD_ID_THRESHOLD && strcmp(sub, "recalibrate"))
         {
@@ -72,4 +72,6 @@ int MySensorsTransmitter::receive(const MyMessage &message)
             return message.getInt();
         }
     }
+
+    return -2;
 }

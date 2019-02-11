@@ -11,13 +11,13 @@ MotionSensor::MotionSensor(int pin)
 MotionSensor::~MotionSensor(){}
 
 void MotionSensor::Setup(int initTime){
-	Serial.println("##### Begin Motion Sensor initializing #####");
+	Serial.println(F("##### Begin Motion Sensor initializing #####"));
 	if(initTime > 0){
 		for(int i = 0; i <= initTime; i++){
 			delay(1000);
 		}
 	}
-	Serial.println("##### Motion Sensor initializing done! #####");
+	Serial.println(F("##### Motion Sensor initializing done! #####"));
 
 }
 

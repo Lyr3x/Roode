@@ -21,7 +21,7 @@ class MySensorsTransmitter : public Transmitter
         MyMessage corridor_sensor_value;
         MyMessage room_switch;
     };
-    MySensorsTransmitter::MySensorsTransmitter();
+    MySensorsTransmitter();
     Devices devices;
     int transmit(MyMessage &message, int val = 0, const char* text = "");
     void presentation();

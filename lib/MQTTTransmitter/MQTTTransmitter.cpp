@@ -89,12 +89,12 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     Serial.print(" Published to domoticz/in. Status=");
     if (client.publish(topic_Domoticz_IN, msgToPublish))
     {
-        Serial.println("OK");
+        Serial.println(F("OK"));
         return 1;
     }
     else
     {
-        Serial.println("failed");
+        Serial.println(F("FAILED"));
         return -1;
     }
     return 0;
@@ -106,7 +106,7 @@ void MQTTTransmitter::reconnect()
     while (!client.connected())
     {
         yield();
-        Serial.print("Attempting MQTT connection...");
+        Serial.print(F("Attempting MQTT connection..."));
         String string;
 
         // Attempt to connect
@@ -115,38 +115,32 @@ void MQTTTransmitter::reconnect()
         // if ( client.connect(buf) ) {
         if (client.connect(MQTT_ID, topic_Domoticz_IN, willQoS, willRetain, willMessage))
         {
-            Serial.println("connected");
+            Serial.println(F("connected"));
 
             // suscribe to MQTT topics
-            Serial.print("Subscribe to domoticz/out topic. Status=");
+            Serial.print(F("Subscribe to domoticz/out topic. Status="));
             if (client.subscribe(topic_Domoticz_OUT, 0))
-                Serial.println("OK");
+                Serial.println(F("OK"));
             else
-                Serial.println("FAILED");
+                Serial.println(F("FAILED"));
 
             delay(100);
-            // Say now "Me the lighting, I'm here"
-            string = "{\"command\" : \"addlogmessage\", \"message\" : \"RooDe v0.9.6-beta MQTT - IP : " + WiFi.localIP().toString() + "\"}";
+            string = "{\"command\" : \"addlogmessage\", \"message\" : \"RooDe v1.0-alpha MQTT - IP : " + WiFi.localIP().toString() + "\"}";
             string.toCharArray(msgToPublish, MQTT_MAX_PACKET_SIZE);
             Serial.print(msgToPublish);
             Serial.print("Published to domoticz/in. Status=");
             if (client.publish(topic_Domoticz_IN, msgToPublish))
-                Serial.println("OK");
+                Serial.println(F("OK"));
             else
-                Serial.println("FAILED");
+                Serial.println(F("FAILED"));
         }
         else
         {
-            Serial.print("MQTT connection failed, rc=");
-            Serial.print(client.state());
-            Serial.println(" try again in a second");
+            Serial.print(F("MQTT connection failed, rc="));
+            Serial.print(F(client.state()));
+            Serial.println(F(" try again in a second"));
             // Wait 1 seconds before retrying
             delay(1000);
         } // if (client.connect
     }     // while (!client.connected()) {
 } // void reconnect() { ****************
-
-void MQTTTransmitter::test()
-{
-    Serial.println("Test");
-}

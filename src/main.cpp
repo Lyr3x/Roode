@@ -52,18 +52,18 @@ void setup()
   WiFi.begin(transmitter.ssid, transmitter.password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
-    Serial.println("Connection to the main WiFi Failed!");
+    Serial.println(F("Connection to the main WiFi Failed!"));
     delay(2000);
     if (transmitter.WiFi_AP == 1)
     {
       transmitter.WiFi_AP = 2;
-      Serial.println("Trying to connect to the alternate WiFi...");
+      Serial.println(F("Trying to connect to the alternate WiFi..."));
       WiFi.begin(transmitter.ssid2, transmitter.password2);
     }
     else
     {
       transmitter.WiFi_AP = 1;
-      Serial.println("Trying to connect to the main WiFi...");
+      Serial.println(F("Trying to connect to the main WiFi..."));
       WiFi.begin(transmitter.ssid, transmitter.password);
     }
   }
@@ -74,14 +74,14 @@ void setup()
   client.setCallback(callback);
 
   // say we are now ready and give configuration items
-  Serial.println("Ready");
-  Serial.print("Connected to ");
+  Serial.println(F("Ready"));
+  Serial.print(F("Connected to "));
   if (transmitter.WiFi_AP == 1)
-    Serial.println(transmitter.ssid);
+    Serial.println(F(transmitter.ssid));
   else
-    Serial.println(transmitter.ssid2);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+    Serial.println(F(transmitter.ssid2));
+  Serial.print(F("IP address: "));
+  Serial.println(F(WiFi.localIP()));
   if (!client.connected())
   { // MQTT connection
     transmitter.reconnect();
@@ -123,7 +123,7 @@ void setup()
   delay(2000);
 #endif
 
-  Serial.println("##### RooDe Presence Detection System #####");
+  Serial.println(F("##### RooDe Presence Detection System #####"));
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
@@ -143,12 +143,12 @@ void setup()
   motion.Setup(MOTION_INIT_TIME);
   // Serial.println("#### motion sensor initialized ####");
 
-  Serial.println("#### calibrate the ir sensors ####");
+  Serial.println(F("#### calibrate the ir sensors ####"));
 
   sensorCalibration();
 #endif
 
-  Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
+  Serial.println(F("#### Setting the PresenceCounter and Status to OUT (0) ####"));
 #ifdef USE_MQTT
   if (!client.connected())
   { // MQTT connection
@@ -290,7 +290,7 @@ void updateDisplayCounter()
 #endif
 }
 
-void manageTimeout()
+inline void manageTimeout()
 {
 #ifdef USE_OLED
   oled.clear();
@@ -299,13 +299,13 @@ void manageTimeout()
   oled.print("Timeout occured!");
 #endif
   // reportToController(65535);
-  Serial.println("Timeout occured. Restart the System");
+  Serial.println(F("Timeout occured. Restart the System"));
   sensorCalibration();
 }
 
-void sensorCalibration()
+inline void sensorCalibration()
 {
-  Serial.println("#### calibrate the ir sensors ####");
+  Serial.println(F("#### calibrate the ir sensors ####"));
 
   char buf[40];
 
@@ -324,9 +324,9 @@ void callback(char *topic, byte *payload, unsigned int length)
   String messageReceived = "";
 
   // Affiche le topic entrant - display incoming Topic
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
+  Serial.print(F("Message arrived ["));
+  Serial.print(F(topic));
+  Serial.print(F("] "));
 
   // decode payload message
   for (int i = 0; i < length; i++)
@@ -334,7 +334,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     messageReceived += ((char)payload[i]);
   }
   // display incoming message
-  Serial.print(messageReceived);
+  Serial.print(F(messageReceived));
 
   // if domoticz message
   if (strcmp(topic, topic_Domoticz_OUT) == 0)
@@ -377,7 +377,7 @@ void receive(const MyMessage &message)
   int result = transmitter.receive(message);
   if (result == -1)
   {
-    Serial.println("Sensor calibration");
+    Serial.println(F("Sensor calibration"));
     sensorCalibration();
   }
   else

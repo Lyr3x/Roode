@@ -123,13 +123,13 @@ int calibration(T ROOM_SENSOR, T CORRIDOR_SENSOR)
     oled.println("Calibration done!");
     wait(2000);
 #endif
-    Serial.print("standard deviation: ");
-    Serial.println(sd);
-    Serial.print("New threshold is: ");
-    Serial.println("#### calibration done ####");
+    Serial.print(F("standard deviation: "));
+    Serial.println(F(sd));
+    Serial.print(F("New threshold is: "));
+    Serial.println(F("#### calibration done ####"));
 
     reportToController(threshold);
-    Serial.println(threshold);
+    Serial.println(F(threshold));
     send(thrMsg.set(threshold));
 
     return threshold;
