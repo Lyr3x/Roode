@@ -14,8 +14,6 @@ const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
 
-
-
 #ifdef USE_MYSENSORS
 #include <MySensors.h> // include the MySensors library
 #include <MySensorsTransmitter.h>
@@ -36,6 +34,7 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+
 void manageTimeout();        //move to sensor
 void updateDisplayCounter(); //move to display module
 void sensorCalibration();    //move to Calibration module
@@ -127,15 +126,18 @@ void setup()
   delay(2000);
 #endif
 
-  Serial.println("##### RooDe Presence Detection System #####");
+  Serial.println(F("##### RooDe Presence Detection System #####"));
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 
-  //DistanceSensors
+  // Initialize VL53LXX sensors
   ROOM_SENSOR.init();
   delay(10);
   CORRIDOR_SENSOR.init();
+  // Set the Profile for both sensors
+  ROOM_SENSOR.setMode(SENSOR_MODE);
+  CORRIDOR_SENSOR.setMode(SENSOR_MODE);
 
 #ifdef CALIBRATION
 #ifdef USE_OLED
@@ -147,12 +149,20 @@ void setup()
   motion.Setup(MOTION_INIT_TIME);
   // Serial.println("#### motion sensor initialized ####");
 
-  Serial.println("#### calibrate the ir sensors ####");
+  Serial.println(F("#### Sensor calibration starting ####"));
 
   sensorCalibration();
+#if defined(USE_OLED) || defined(USE_OLED_ASCII)
+  oled.clear();
+  oled.print("Right: ");
+  oled.println(ROOM_SENSOR.getThreshold());
+  oled.print("Left: ");
+  oled.println(CORRIDOR_SENSOR.getThreshold());
+  delay(1500);
+#endif
 #endif
 
-  Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
+  Serial.println(F("#### Setting the PresenceCounter and Status to OUT (0) ####"));
 #ifdef USE_MQTT
   if (!client.connected())
   { // MQTT connection
@@ -160,14 +170,12 @@ void setup()
   }
 #endif
   transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
+  delay(10);
   transmitter.transmit(transmitter.devices.peoplecounter, 0);
 
 #if defined(USE_OLED) || defined(USE_OLED_ASCII)
-  oled.clear();
-  oled.setCursor(10, 0);
-  oled.println("Setting Counter to 0");
-  delay(1000);
-  oled.clear();
+  peopleCount = 0;
+  updateDisplayCounter();
 #endif
 } // end of setup()
 #ifdef USE_MYSENSORS
@@ -200,15 +208,11 @@ void loop()
 #ifdef MY_DEBUG
     Serial.println("1. Motion sensor is off");
 #endif
-#ifdef USE_OLED
-    oled.clear();
-#endif
-#ifdef USE_OLED_ASCII
-    oled.clear();
-#endif
+
 #ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
+
 #ifdef MY_DEBUG
       Serial.println("2. Motion sensor is off. Last readloop");
 #endif
@@ -217,13 +221,19 @@ void loop()
 #ifdef MY_DEBUG
       Serial.println("3. Shutting down sensors");
 #endif
+      lastState = LOW;
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
-      lastState = LOW;
     }
-#else
-    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
 #endif
+#ifdef USE_OLED
+    oled.clear();
+#endif
+#ifdef USE_OLED_ASCII
+    oled.clear();
+#endif
+    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+    lastState = LOW; //setting last state of motion sensor to low
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
@@ -256,11 +266,14 @@ void loop()
       CORRIDOR_SENSOR.startContinuous();
       delay(10);
 #endif
+#ifdef USE_OLED
+      updateDisplayCounter();
+#endif
+#ifdef USE_OLED_ASCII
+      updateDisplayCounter();
+#endif
     }
     lastState = HIGH;
-#if defined(USE_OLED) || defined(USE_OLED_ASCII)
-    updateDisplayCounter();
-#endif
     while (motion.checkMotion() != LOW)
     {
 #ifdef MY_DEBUG
@@ -281,7 +294,7 @@ void updateDisplayCounter()
   oled.clear();
   oled.setCursor(5, 0);
   oled.setTextSize(2, 1);
-  oled.print("Counter: ");
+  oled.print("Inside: ");
   oled.println(peopleCount);
 #endif
 
@@ -289,7 +302,7 @@ void updateDisplayCounter()
   oled.clear();
   oled.setCursor(5, 0);
   oled.set2X();
-  oled.print("Counter: ");
+  oled.print("Inside: ");
   oled.println(peopleCount);
 #endif
 }
@@ -329,9 +342,9 @@ void callback(char *topic, byte *payload, unsigned int length)
   String messageReceived = "";
 
   // Affiche le topic entrant - display incoming Topic
-  Serial.print("Message arrived [");
+  Serial.print(F("Message arrived ["));
   Serial.print(topic);
-  Serial.print("] ");
+  Serial.print(F("] "));
 
   // decode payload message
   for (unsigned int i = 0; i < length; i++)
@@ -383,7 +396,7 @@ void receive(const MyMessage &message)
   int result = transmitter.receive(message);
   if (result == -1)
   {
-    Serial.println("Sensor calibration");
+    Serial.println(F("Sensor calibration"));
     sensorCalibration();
   }
   else

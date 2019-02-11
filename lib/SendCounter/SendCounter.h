@@ -42,10 +42,10 @@ void sendCounter(int inout, T transmitter)
   oled.clear();
   oled.setCursor(5, 0);
   oled.set2X();
-  oled.print("Counter: ");
+  oled.print("Inside: ");
   oled.println(peopleCount);
 #endif
-    Serial.print("PeopleCounter: ");
+    Serial.print(F("PeopleCounter: "));
     Serial.println(peopleCount);
 }
 

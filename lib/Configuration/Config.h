@@ -124,7 +124,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define HIGH_SPEED 0    // 1.2m accuracy +- 5%
 #define LONG_RANGE 1    //supports ranged up to 2m
 #define HIGH_ACCURACY 2 // 1.2m accuracy < +-3%
-#define MODE HIGH_SPEED;
+#define SENSOR_MODE HIGH_SPEED
 
 /* 
 ###### OLED Definition ###### 
