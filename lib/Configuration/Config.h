@@ -63,19 +63,35 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 
 #ifdef USE_MQTT
 // Setup MQTT IDX for Domoticz
-#define ROOM_MQTT "256"
-#define CORRIDOR_MQTT "257"
-#define ROOM_SWITCH "258"
-#define INFO "259"
-#define PEOPLECOUNTER "260"
-#define THRESHOLD "261"
+enum MQTT_IDX
+{
+  ROOM_MQTT = "256",
+  CORRIDOR_MQTT = "257",
+  ROOM_SWITCH = "258",
+  INFO = "259",
+  PEOPLECOUNTER = "260",
+  THRESHOLD = "261"
+};
+// #define ROOM_MQTT "256"
+// #define CORRIDOR_MQTT "257"
+// #define ROOM_SWITCH "258"
+// #define INFO "259"
+// #define PEOPLECOUNTER "260"
+// #define THRESHOLD "261"
 #endif
 #ifdef USE_MYSENSORS
 // MySensors ID Setup
-#define CHILD_ID_ROOM_SWITCH 0
-#define CHILD_ID_PEOPLECOUNTER 1
-#define CHILD_ID_THRESHOLD 3
-#define CHILD_ID_INFO 4
+// #define CHILD_ID_ROOM_SWITCH 0
+// #define CHILD_ID_PEOPLECOUNTER 1
+// #define CHILD_ID_THRESHOLD 3
+// #define CHILD_ID_INFO 4
+enum MysensorsId
+{
+  CHILD_ID_ROOM_SWITCH = 0,
+  CHILD_ID_PEOPLECOUNTER = 1,
+  CHILD_ID_THRESHOLD = 3,
+  CHILD_ID_INFO = 4
+};
 #endif
 
 /*
@@ -109,10 +125,9 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #endif                      //USE_MYSENSORS
-#define LTIME 8000          // loop time (should not be lower than 8 seconds)
-#define MTIME 800           // measuring/person
-#define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
-#define THRESHOLD_X 300     // x is the value added to the calibrated value
+#define LTIME 1000          // loop time - should not be lower than 7s. Recommended is 10s
+#define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
+#define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
 
 /*
  Feature switches:
@@ -121,9 +136,13 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  * If you are still receiving an unreliable reading/error code turn on LONG_RANGE mode which
    is working for up to 2m with the VL53L0X or 4m with the VL53L1X.
 */
-#define HIGH_SPEED 0    // 1.2m accuracy +- 5%
-#define LONG_RANGE 1    //supports ranged up to 2m
-#define HIGH_ACCURACY 2 // 1.2m accuracy < +-3%
+enum SensorProfiles
+{
+  HIGH_SPEED = 0,   // 1.2m accuracy +- 5%
+  LONG_RANGE = 1,   //supports ranged up to 2m/4m
+  HIGH_ACCURACY = 2 // 1.2m accuracy < +-3%
+};
+
 #define SENSOR_MODE HIGH_SPEED
 
 /* 
