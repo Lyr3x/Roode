@@ -45,9 +45,9 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 // #define USE_ENEGERY_SAVING
-// #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
-#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
-#define USE_OLED_ASCII
+ #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
+//#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
+//#define USE_OLED_ASCII
 /*
 ###### MySensors configuration ######
 */

@@ -6,17 +6,17 @@ License: GPLv3
 #include <Config.h>
 #include <Wire.h>
 #ifdef USE_MQTT
-#include <ESP8266WiFi.h>
+#include "ESP8266WiFi.h"
 #include <MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
-#ifdef USE_MYSENSORS
-#include <MySensors.h> // include the MySensors library
-#include <MySensorsTransmitter.h>
-MySensorsTransmitter transmitter;
-#endif
+// #ifdef USE_MYSENSORS
+// #include <MySensors.h> // include the MySensors library
+// #include <MySensorsTransmitter.h>
+// MySensorsTransmitter transmitter;
+// #endif
 
 #include <OptionChecker.h>
 #include <MotionSensor.h> //MotionSensorLib
@@ -52,18 +52,18 @@ void setup()
   WiFi.begin(transmitter.ssid, transmitter.password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
-    Serial.println(F("Connection to the main WiFi Failed!"));
+    Serial.println("Connection to the main WiFi Failed!");
     delay(2000);
     if (transmitter.WiFi_AP == 1)
     {
       transmitter.WiFi_AP = 2;
-      Serial.println(F("Trying to connect to the alternate WiFi..."));
+      Serial.println("Trying to connect to the alternate WiFi...");
       WiFi.begin(transmitter.ssid2, transmitter.password2);
     }
     else
     {
       transmitter.WiFi_AP = 1;
-      Serial.println(F("Trying to connect to the main WiFi..."));
+      Serial.println("Trying to connect to the main WiFi...");
       WiFi.begin(transmitter.ssid, transmitter.password);
     }
   }
@@ -74,14 +74,14 @@ void setup()
   client.setCallback(callback);
 
   // say we are now ready and give configuration items
-  Serial.println(F("Ready"));
-  Serial.print(F("Connected to "));
+  Serial.println("Ready");
+  Serial.print("Connected to ");
   if (transmitter.WiFi_AP == 1)
-    Serial.println(F(transmitter.ssid));
+    Serial.println(transmitter.ssid);
   else
-    Serial.println(F(transmitter.ssid2));
-  Serial.print(F("IP address: "));
-  Serial.println(F(WiFi.localIP()));
+    Serial.println(transmitter.ssid2);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
   if (!client.connected())
   { // MQTT connection
     transmitter.reconnect();
@@ -123,7 +123,7 @@ void setup()
   delay(2000);
 #endif
 
-  Serial.println(F("##### RooDe Presence Detection System #####"));
+  Serial.println("##### RooDe Presence Detection System #####");
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
@@ -143,12 +143,12 @@ void setup()
   motion.Setup(MOTION_INIT_TIME);
   // Serial.println("#### motion sensor initialized ####");
 
-  Serial.println(F("#### calibrate the ir sensors ####"));
+  Serial.println("#### calibrate the ir sensors ####");
 
   sensorCalibration();
 #endif
 
-  Serial.println(F("#### Setting the PresenceCounter and Status to OUT (0) ####"));
+  Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
 #ifdef USE_MQTT
   if (!client.connected())
   { // MQTT connection
@@ -299,13 +299,13 @@ inline void manageTimeout()
   oled.print("Timeout occured!");
 #endif
   // reportToController(65535);
-  Serial.println(F("Timeout occured. Restart the System"));
+  Serial.println("Timeout occured. Restart the System");
   sensorCalibration();
 }
 
 inline void sensorCalibration()
 {
-  Serial.println(F("#### calibrate the ir sensors ####"));
+  Serial.println("#### calibrate the ir sensors ####");
 
   char buf[40];
 
@@ -317,6 +317,7 @@ inline void sensorCalibration()
 }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
+
 void callback(char *topic, byte *payload, unsigned int length)
 { // ****************
 
@@ -324,9 +325,9 @@ void callback(char *topic, byte *payload, unsigned int length)
   String messageReceived = "";
 
   // Affiche le topic entrant - display incoming Topic
-  Serial.print(F("Message arrived ["));
-  Serial.print(F(topic));
-  Serial.print(F("] "));
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
 
   // decode payload message
   for (int i = 0; i < length; i++)
@@ -334,7 +335,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     messageReceived += ((char)payload[i]);
   }
   // display incoming message
-  Serial.print(F(messageReceived));
+  Serial.print(messageReceived);
 
   // if domoticz message
   if (strcmp(topic, topic_Domoticz_OUT) == 0)
@@ -342,6 +343,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     //JsonObject& root = jsonBuffer.parseObject(messageReceived);
     DeserializationError error = deserializeJson(root, messageReceived);
     if (error)
+
       return;
 
     const char *idxChar = root["idx"];
@@ -377,7 +379,7 @@ void receive(const MyMessage &message)
   int result = transmitter.receive(message);
   if (result == -1)
   {
-    Serial.println(F("Sensor calibration"));
+    Serial.println("Sensor calibration");
     sensorCalibration();
   }
   else
