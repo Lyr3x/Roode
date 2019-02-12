@@ -98,8 +98,6 @@ void setup()
   oled.setFont(Adafruit5x7);
   oled.clear();
   oled.setContrast(BRIGHTNESS);
-  oled.setCursor(0, 25);
-  oled.println("RooDe");
   oled.setCursor(10, 0);
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);

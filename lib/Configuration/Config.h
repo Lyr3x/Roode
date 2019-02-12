@@ -44,7 +44,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
-// #define USE_ENEGERY_SAVING
+// #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
 // #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
 #define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
 
@@ -126,7 +126,7 @@ enum MysensorsId
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #endif                      //USE_MYSENSORS
-#define LTIME 1000          // loop time - should not be lower than 7s. Recommended is 10s
+#define LTIME 10000          // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 100 //read X values (X from each sensor) and calculate the max value and standard deviation
 
