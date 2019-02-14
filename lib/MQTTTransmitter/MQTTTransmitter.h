@@ -11,8 +11,10 @@
 
 /************************* WiFi Access Point *********************************/
 
-#define WLAN_SSID "TP-LINK_851F"
-#define WLAN_PASS "kdsjifeunrnughdngjdwgbjsbdvfmhtrew21asxdfdswe467h9"
+#define WLAN_SSID "<SSID>" //your AP SSID
+#define WLAN_PASS "<password>" //your AP password 
+#define WLAN_SSID2 "<SSID>" //your AP SSID
+#define WLAN_PASS2 "<password>" //your AP password 
 extern const char *topic_Domoticz_IN;  //$$
 extern const char *topic_Domoticz_OUT; //$$
 class MQTTTransmitter : public Transmitter
@@ -27,10 +29,10 @@ public:
   void init();
   // WiFi parameters
   byte WiFi_AP = 1;                                                             // The WiFi Access Point we are connected to : 1 = main one or 2 = alternate one
-  const char *ssid = "TP-LINK_851F";                                            //$$
-  const char *password = "kdsjifeunrnughdngjdwgbjsbdvfmhtrew21asxdfdswe467h9";  //$$
-  const char *ssid2 = "FRITZ!Box 6490 Cable";                                   //$$
-  const char *password2 = "kdsjifeunrnughdngjdwgbjsbdvfmhtrew21asxdfdswe467h9"; //$$
+  const char *ssid = WLAN_SSID;                                            //$$
+  const char *password = WLAN_PASS;  //$$
+  const char *ssid2 = WLAN_SSID2;                                   //$$
+  const char *password2 = WLAN_PASS2; //$$
 
   // MQTT parameters
   byte willQoS = 0;
