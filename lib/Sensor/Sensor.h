@@ -8,7 +8,7 @@ class Sensor
 public:
   virtual ~Sensor() {}
   virtual void init() = 0;
-  virtual int readData() = 0;
+  virtual uint16_t readData() = 0;
   virtual int calibration() = 0;
 };
 #endif

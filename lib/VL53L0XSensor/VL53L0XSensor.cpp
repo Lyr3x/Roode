@@ -42,7 +42,7 @@ void VL53L0XSensor::setMode(int mode)
         _Sensor.setMeasurementTimingBudget(200000);
     }
 }
-int VL53L0XSensor::readData()
+uint16_t VL53L0XSensor::readData()
 {
     return readRangeContinuousMillimeters();
 }
@@ -98,7 +98,7 @@ int VL53L0XSensor::calibration()
     return this->threshold;
 }
 
-int VL53L0XSensor::getThreshold()
+uint16_t VL53L0XSensor::getThreshold()
 {
     return this->threshold;
 }

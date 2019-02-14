@@ -14,7 +14,7 @@ public:
   VL53L0XSensor(int XSHUT, int I2C_ADDRESS);
   ~VL53L0XSensor(){};
   void init();
-  int readData();
+  uint16_t readData();
   int calibration();
   void setMode(int mode);
   void startContinuous(uint32_t period_ms = 0);
@@ -24,7 +24,7 @@ public:
   void setTimeout(uint16_t timeout);
   uint16_t getTimeout(void);
   bool timeoutOccurred(void);
-  int getThreshold();
+  uint16_t getThreshold();
   
 
 private:

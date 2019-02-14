@@ -235,6 +235,7 @@ void loop()
   {
     if (lastState == LOW)
     {
+      updateDisplayCounter();
 #ifdef USE_ENEGERY_SAVING
 #ifdef MY_DEBUG
       Serial.println("5. Starting continuous mode again");
