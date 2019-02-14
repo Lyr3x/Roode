@@ -192,7 +192,9 @@ void loop()
 #ifdef MY_DEBUG
     Serial.println("1. Motion sensor is off");
 #endif
-
+#ifdef USE_OLED
+    oled.clear();
+#endif
 #ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
@@ -209,11 +211,9 @@ void loop()
       ROOM_SENSOR.stopContinuous();
       CORRIDOR_SENSOR.stopContinuous();
     }
-#endif
-#ifdef USE_OLED
-    oled.clear();
-#endif
+#else
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+#endif
 #ifdef USE_BATTERY
     smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
     peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
@@ -235,7 +235,9 @@ void loop()
   {
     if (lastState == LOW)
     {
+#ifdef USE_OLED
       updateDisplayCounter();
+#endif
 #ifdef USE_ENEGERY_SAVING
 #ifdef MY_DEBUG
       Serial.println("5. Starting continuous mode again");
