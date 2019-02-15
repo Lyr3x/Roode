@@ -90,11 +90,14 @@ enum MysensorsId
 #include <VL53L0X.h>
 #include <Wire.h>
 #endif //USE_VL53L0X
+
+/**
+ * Dont actiavte the VL53L1X Sensor yet.
+ * Because of the single sensor setup there is a huge amount
+ * of logic change necessary
+ **/
 #ifdef USE_VL53L1X
-#include <Wire.h>
-#include "vl53l1_api.h"
-
-
+// #include <VL53L1XSensor.h>
 #endif //USE_VL53L1X
 
 #define CORRIDOR_SENSOR_newAddress 42
@@ -120,14 +123,32 @@ enum MysensorsId
  * If you are still receiving an unreliable reading/error code turn on LONG_RANGE mode which
    is working for up to 2m with the VL53L0X or 4m with the VL53L1X.
 */
-enum SensorProfiles
+#ifdef USE_VL53L0X
+enum SensorModes
 {
   HIGH_SPEED = 0,   // 1.2m accuracy +- 5%
-  LONG_RANGE = 1,   //supports ranged up to 2m/4m
+  LONG_RANGE = 1,   //supports ranged up to 2m
   HIGH_ACCURACY = 2 // 1.2m accuracy < +-3%
 };
-
 #define SENSOR_MODE HIGH_SPEED
+#elif defined USE_VL53L1X
+
+enum SensorRangeModes
+{
+  SHORT_RANGE = 0,
+  MEDIUM_RANGE = 1,
+  LONG_RANGE = 2,
+};
+
+enum SensorPresetModes˝
+{
+  LITE_RANING = 0,
+  AUTONOMOUS = 1,
+  LOW_POWER_AUTONOMOUS = 2
+};
+#define SENSOR_RANGE_MODE MEDIUM_RANGE
+#define SENSOR_PRESET_MODE AUTONOMOUS
+#endif
 
 /* 
 ###### OLED Definition ###### 
