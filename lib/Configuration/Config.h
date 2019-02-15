@@ -45,8 +45,6 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_MOTION
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
-// #define USE_MQTT // If one is using an ESP8266 uncomment this to use MQTT
-#define USE_MYSENSORS // If one is using an Arduino with NRF24L01+ uncomment this to use MySensors
 
 /*
 ###### MySensors configuration ######
@@ -75,10 +73,10 @@ enum MQTT_IDX
 */
 #define ROOM_MQTT "256"
 #define CORRIDOR_MQTT "257"
-#define ROOM_SWITCH "258"
-#define INFO "259"
-#define PEOPLECOUNTER "260"
-#define THRESHOLD "261"
+#define ROOM_SWITCH_MQTT "258"
+#define INFO_MQTT "259"
+#define PEOPLECOUNTER_MQTT "260"
+#define THRESHOLD_MQTT "261"
 #endif
 #ifdef USE_MYSENSORS
 // MySensors ID Setup
