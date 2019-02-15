@@ -60,7 +60,7 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + val + "\"}";
     }
-    else if (idx == ROOM_SWITCH)
+    else if (idx == ROOM_SWITCH_MQTT)
     {
         if (val == 1)
         {
@@ -71,15 +71,15 @@ int MQTTTransmitter::transmit(String idx, int val, String text)
             string = "{\"command\" : \"switchlight\", \"idx\" : " + idx + ", \"switchcmd\": \"" + "Off" + "\"}";
         }
     }
-    else if (idx == INFO)
+    else if (idx == INFO_MQTT)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + text + "\"}";
     }
-    else if (idx == PEOPLECOUNTER)
+    else if (idx == PEOPLECOUNTER_MQTT)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"svalue\": \"" + val + "\"}";
     }
-    else if (idx == THRESHOLD)
+    else if (idx == THRESHOLD_MQTT)
     {
         string = "{\"command\" : \"udevice\", \"idx\" : " + idx + ", \"nvalue\": " + 0 + ", \"svalue\": \"" + text + "\"}";
     }

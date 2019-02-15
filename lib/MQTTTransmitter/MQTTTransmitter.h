@@ -46,12 +46,12 @@ public:
 
   struct Devices
   {
-    String room_sensor_value = "256";
-    String corridor_sensor_value = "257";
-    String room_switch = "258";
-    String info = "259";
-    String peoplecounter = "260";
-    String threshold = "261";
+    String room_sensor_value = ROOM_MQTT;
+    String corridor_sensor_value = CORRIDOR_MQTT;
+    String room_switch = ROOM_SWITCH_MQTT;
+    String info = INFO_MQTT;
+    String peoplecounter = PEOPLECOUNTER_MQTT;
+    String threshold = THRESHOLD_MQTT;
   };
   Devices devices;
 };
