@@ -43,7 +43,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
-#define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
+#define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
 
 /*
@@ -60,17 +60,6 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 
 #ifdef USE_MQTT
 // Setup MQTT IDX for Domoticz
-/*
-enum MQTT_IDX
-{
-  ROOM_MQTT = "256",
-  CORRIDOR_MQTT = "257",
-  ROOM_SWITCH = "258",
-  INFO = "259",
-  PEOPLECOUNTER = "260",
-  THRESHOLD = "261"
-};
-*/
 #define ROOM_MQTT "256"
 #define CORRIDOR_MQTT "257"
 #define ROOM_SWITCH_MQTT "258"
@@ -79,11 +68,6 @@ enum MQTT_IDX
 #define THRESHOLD_MQTT "261"
 #endif
 #ifdef USE_MYSENSORS
-// MySensors ID Setup
-// #define CHILD_ID_ROOM_SWITCH 0
-// #define CHILD_ID_PEOPLECOUNTER 1
-// #define CHILD_ID_THRESHOLD 3
-// #define CHILD_ID_INFO 4
 enum MysensorsId
 {
   CHILD_ID_ROOM_SWITCH = 0,
@@ -107,9 +91,10 @@ enum MysensorsId
 #include <Wire.h>
 #endif //USE_VL53L0X
 #ifdef USE_VL53L1X
-#include <VL53L1X.h>
 #include <Wire.h>
-#include <VL53L1XWrap.h>
+#include "vl53l1_api.h"
+
+
 #endif //USE_VL53L1X
 
 #define CORRIDOR_SENSOR_newAddress 42
@@ -124,7 +109,7 @@ enum MysensorsId
 #define CORRIDOR_XSHUT 8 //XSHUT Pin
 
 #endif                      //USE_MYSENSORS
-#define LTIME 10000          // loop time - should not be lower than 7s. Recommended is 10s
+#define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
 
