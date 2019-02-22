@@ -123,9 +123,9 @@ void setup()
   ROOM_SENSOR.init();
   delay(10);
   CORRIDOR_SENSOR.init();
-  // Set the Profile for both sensors
-  ROOM_SENSOR.setMode(SENSOR_MODE);
-  CORRIDOR_SENSOR.setMode(SENSOR_MODE);
+
+  ROOM_SENSOR.startContinuous();
+  CORRIDOR_SENSOR.startContinuous();
 
 #ifdef CALIBRATION
 

@@ -5,6 +5,24 @@ VL53L0XSensor::VL53L0XSensor(int XSHUT, int I2C_ADDRESS)
     _I2C_ADDRESS = I2C_ADDRESS;
 }
 
+#if ((F_CPU == 8000000L) && defined(ARDUINO_AVR_PRO)) || defined(ARDUINO_ARCH_ESP8266)
+#define USING_XSHUT_HIGH
+void VL53L0XSensor::init()
+{
+    Serial.println(F("Init VL53L0X Sensor"));
+    // Reset Sensor
+    pinMode(_XSHUT, OUTPUT);
+    digitalWrite(_XSHUT, LOW);
+    delay(10);
+    //Power up Sensor
+    digitalWrite(_XSHUT, HIGH);
+    delay(10);
+    _Sensor.setAddress(_I2C_ADDRESS);
+    _Sensor.init();
+    _Sensor.setTimeout(500);
+    setMode(SENSOR_MODE);
+}
+#elif (F_CPU == 16000000L) && defined(ARDUINO_AVR_PRO)
 void VL53L0XSensor::init()
 {
     Serial.println(F("Init VL53L0X Sensor"));
@@ -18,8 +36,10 @@ void VL53L0XSensor::init()
     _Sensor.setAddress(_I2C_ADDRESS);
     _Sensor.init();
     _Sensor.setTimeout(500);
-    _Sensor.startContinuous();
+    setMode(SENSOR_MODE);
 }
+
+#endif
 
 void VL53L0XSensor::setMode(int mode)
 {
@@ -50,7 +70,7 @@ uint16_t VL53L0XSensor::readData()
 int VL53L0XSensor::calibration()
 {
     int irValues[30] = {};
-/*#ifdef USE_OLED
+    /*#ifdef USE_OLED
     oled.clear();
     oled.setCursor(0, 5);
     oled.println("### Calibrate IR ###");

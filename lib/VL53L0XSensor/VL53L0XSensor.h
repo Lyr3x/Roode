@@ -19,6 +19,7 @@ public:
   void setMode(int mode);
   void startContinuous(uint32_t period_ms = 0);
   void stopContinuous();
+  int restart();
   uint16_t readRangeContinuousMillimeters(void);
   uint16_t readRangeSingleMillimeters(void);
   void setTimeout(uint16_t timeout);
