@@ -22,7 +22,7 @@ void VL53L0XSensor::init()
     _Sensor.setTimeout(500);
     setMode(SENSOR_MODE);
 }
-#elif (F_CPU == 16000000L) && defined(ARDUINO_AVR_PRO)
+#elif (F_CPU == 16000000L) && defined(ARDUINO_AVR_PRO) || defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_DUEMILANOVE)
 void VL53L0XSensor::init()
 {
     Serial.println(F("Init VL53L0X Sensor"));
