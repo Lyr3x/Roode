@@ -3,9 +3,9 @@
 
 #include "Arduino.h"
 #include <VL53L0X.h>
-#include <../Sensor/Sensor.h>
-#include <../Calibration/Calibration.h>
-#include <../Configuration/Config.h>
+#include <Sensor.h>
+#include <Calibration.h>
+#include <Config.h>
 #include <Wire.h>
 
 class VL53L0XSensor : public Sensor

@@ -16,7 +16,6 @@ const char *topic_Domoticz_OUT = "domoticz/out";
 
 #include <OptionChecker.h>
 #include <../lib/MotionSensor/MotionSensor.h> //MotionSensorLib
-#include <../lib/VL53L0XSensor/VL53L0XSensor.h>
 #include <../lib/PeopleCounter/PeopleCounter.h>
 
 // battery setup
@@ -26,8 +25,15 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
+#ifdef USE_VL53L0X
 VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
 VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+#endif
+
+#ifdef USE_VL53L1X
+VL53L1XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
+VL53L1XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+#endif
 
 void manageTimeout();        //move to sensor
 void updateDisplayCounter(); //move to display module
@@ -175,10 +181,13 @@ void loop()
   }
 #endif
 
+  // timeoutOccured is not implemented for VL53L1X yet
+  #ifdef USE_VL53L0X
   if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
   {
     manageTimeout();
   }
+  #endif
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)

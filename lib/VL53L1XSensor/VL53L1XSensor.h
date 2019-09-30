@@ -3,7 +3,7 @@
 
 #include <Config.h>
 #include "Arduino.h"
-#include "vl53l1_api.h"
+#include <vl53l1x-st-api/vl53l1_api.h>
 #include <Sensor.h>
 #include <Calibration.h>
 #include <Wire.h>
@@ -21,8 +21,9 @@ public:
   void setPresetMode(int mode);
   void startContinuous();
   void stopContinuous();
+  void timeoutOccured();
   uint16_t getThreshold();
-  void VL53L1XSensor::checkDev(VL53L1_DEV Dev);
+  void checkDev(VL53L1_DEV Dev);
 
 private:
   int threshold;

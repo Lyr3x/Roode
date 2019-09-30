@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include <../Configuration/Config.h>
-#include <../Transmitter/Transmitter.h>
-#include <../SendCounter/SendCounter.h>
+#include <Config.h>
+#include <Transmitter.h>
+#include <SendCounter.h>
 int room_sensor_value;     //analog value store for the room sensor
 int corridor_sensor_value; //analog value store for the corridor sensor
 

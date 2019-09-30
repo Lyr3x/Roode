@@ -38,8 +38,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 /*
 ###### FEATURE SELECTION ######
 */
-#define USE_VL53L0X
-// #define USE_VL53L1X
+// #define USE_VL53L0X
+#define USE_VL53L1X
 #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
@@ -69,6 +69,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #ifdef USE_VL53L0X
 #include <VL53L0X.h>
 #include <Wire.h>
+#include <../lib/VL53L0XSensor/VL53L0XSensor.h>
 #endif //USE_VL53L0X
 
 /**
@@ -77,7 +78,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  * of logic change necessary
  **/
 #ifdef USE_VL53L1X
-// #include <VL53L1XSensor.h>
+#include <VL53L1XSensor.h>
+#include <VL53L1XWrap.h>
 #endif //USE_VL53L1X
 
 #define CORRIDOR_SENSOR_newAddress 42

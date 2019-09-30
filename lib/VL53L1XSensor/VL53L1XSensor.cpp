@@ -88,6 +88,22 @@ void VL53L1XSensor::setRangeMode(int mode)
  *                                          not in the supported list
  */
 
+void readRangeContinuoisMillimeters(){
+    // Demo draft!
+    // status = VL53L1_WaitMeasurementDataReady(Dev);
+    // if (!status) status = VL53L1_GetRangingMeasurementData(Dev, &RangingData);	//4mS
+    // VL53L1_clear_interrupt_and_enable_next_range(Dev, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
+    // if (status == 0) distance[0] = RangingData.RangeMilliMeter;
+
+    // status = VL53L1_SetUserROI(Dev, &roiConfig2);
+
+    // //while (digitalRead(INT));	// slightly faster
+    // status = VL53L1_WaitMeasurementDataReady(Dev);
+    // if (!status) status = VL53L1_GetRangingMeasurementData(Dev, &RangingData);	//4mS
+    // VL53L1_clear_interrupt_and_enable_next_range(Dev, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
+    // if (status == 0) distance[1] = RangingData.RangeMilliMeter;
+}
+
 void VL53L1XSensor::setPresetMode(int mode)
 {
     status += VL53L1_SetPresetMode(_Sensor, VL53L1_PRESETMODE_LITE_RANGING);
