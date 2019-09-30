@@ -47,6 +47,7 @@ void MQTTTransmitter::init()
 int MQTTTransmitter::receive()
 {
     //needs to be implemented
+    return 0;
 }
 // int MQTTTransmitter::send()
 // {
