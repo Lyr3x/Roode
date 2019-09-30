@@ -23,10 +23,6 @@ Here is a list of features which are working or in _work_
 * Power Supply
 * Encolsure (see .stl files
 
-## Additional Configuration Info
-Everything the user needs to do is walking through the Config.h and setup all the features which should be used. There you can also see which pins are pre defined for all the devices and you can easily change them to different free pins. 
-It is crucial that you turned off `#define MY_DEBUG`! Otherwise Roode will crash while performing certain tasks like receiving messages due to high frequent serial output. The Debug mode is just for developing purposes. 
-
 ## Changelog
 ### Changelog v1.0
 #### Additions and Breaking Changes
