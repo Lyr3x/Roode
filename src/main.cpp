@@ -247,7 +247,6 @@ void loop()
 #endif
       ROOM_SENSOR.startContinuous();
       CORRIDOR_SENSOR.startContinuous();
-      delay(10);
 #endif
     }
     lastState = HIGH;
@@ -292,11 +291,9 @@ inline void manageTimeout()
 inline void sensorCalibration()
 {
   Serial.println("#### calibrate the ir sensors ####");
-
-  char buf[40];
-
   int room_threhsold = ROOM_SENSOR.calibration();
   int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+  char buf[40];
   sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
 
   transmitter.transmit(transmitter.devices.threshold, 0, buf);
