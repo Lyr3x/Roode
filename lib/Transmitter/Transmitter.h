@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Arduino.h"
-#include <Config.h>
+#include <../Configuration/Config.h>
 
 class Transmitter
 {

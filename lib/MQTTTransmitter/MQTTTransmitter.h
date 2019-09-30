@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
-#include <Transmitter.h>
+#include <../Transmitter/Transmitter.h>
 
 /************************* WiFi Access Point *********************************/
 

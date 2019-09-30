@@ -45,18 +45,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_MOTION
 #define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
-
-/*
-###### MySensors configuration ######
-*/
-#ifdef USE_MYSENSORS
-#define MY_RADIO_RF24                 //Define for using NRF24L01+ radio
-#define MY_RF24_PA_LEVEL RF24_PA_HIGH //Options are: RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH or RF24_PA_MAX. MAX will use more power but will transmit the furthest
-// #define MY_RADIO_RFM69                 // Define for using RFM69 radio
-// #define MY_RFM69_FREQUENCY RF69_433MHZ // Define for frequency setting. Needed if you're radio module isn't 868Mhz (868Mhz is default in lib)
-// #define MY_IS_RFM69HW                  // Mandatory if you radio module is the high power version (RFM69HW and RFM69HCW), Comment it if it's not the case
-#define MY_NODE_ID 100 // Set a static Node ID if needed
-#endif
+#define USE_MQTT
 
 #ifdef USE_MQTT
 // Setup MQTT IDX for Domoticz
@@ -66,15 +55,6 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define INFO_MQTT "259"
 #define PEOPLECOUNTER_MQTT "260"
 #define THRESHOLD_MQTT "261"
-#endif
-#ifdef USE_MYSENSORS
-enum MysensorsId
-{
-  CHILD_ID_ROOM_SWITCH = 0,
-  CHILD_ID_PEOPLECOUNTER = 1,
-  CHILD_ID_THRESHOLD = 3,
-  CHILD_ID_INFO = 4
-};
 #endif
 
 /*
@@ -140,12 +120,13 @@ enum SensorRangeModes
   LONG_RANGE = 2,
 };
 
-enum SensorPresetModes˝
+enum SensorPresetModes
 {
   LITE_RANING = 0,
   AUTONOMOUS = 1,
   LOW_POWER_AUTONOMOUS = 2
 };
+
 #define SENSOR_RANGE_MODE MEDIUM_RANGE
 #define SENSOR_PRESET_MODE AUTONOMOUS
 #endif
@@ -172,7 +153,7 @@ static SSD1306AsciiWire oled;
 ###### Motion Sensor setup ###### 
 */
 #ifdef USE_MOTION
-#include <MotionSensor.h>
+#include <../MotionSensor/MotionSensor.h>
 
 #ifdef USE_MYSENSORS
 #define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)

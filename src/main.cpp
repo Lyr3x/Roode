@@ -2,28 +2,22 @@
 Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
-#include <Config.h>
+#include <../lib/Configuration/Config.h>
 #include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 
 #include <Wire.h>
 
 #ifdef USE_MQTT
-#include <MQTTTransmitter.h>
+#include <../lib/MQTTTransmitter/MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
 
-#ifdef USE_MYSENSORS
-#include <MySensors.h> // include the MySensors library
-#include <MySensorsTransmitter.h>
-MySensorsTransmitter transmitter;
-#endif
-
 #include <OptionChecker.h>
-#include <MotionSensor.h> //MotionSensorLib
-#include <VL53L0XSensor.h>
-#include <PeopleCounter.h>
+#include <../lib/MotionSensor/MotionSensor.h> //MotionSensorLib
+#include <../lib/VL53L0XSensor/VL53L0XSensor.h>
+#include <../lib/PeopleCounter/PeopleCounter.h>
 
 // battery setup
 #ifdef USE_BATTERY

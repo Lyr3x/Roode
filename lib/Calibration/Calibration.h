@@ -1,7 +1,7 @@
 #ifndef CALIBRATION_HPP
 #define CALIBRATION_HPP
-#include <Config.h>
-#include <Sensor.h>
+#include <../Configuration/Config.h>
+#include <../Sensor/Sensor.h>
 #include <Math.h>
 
 int calculateStandardDeviation(int irValues[]);
