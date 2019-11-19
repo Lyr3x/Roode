@@ -24,21 +24,19 @@ void counting(VL53L1_DEV count_sensor){
 
   status = VL53L1_SetUserROI(count_sensor, &roiConfig1);
 
-  //while (digitalRead(INT));	// slightly faster
   status = VL53L1_WaitMeasurementDataReady(count_sensor);
-  if (!status) status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);	//4mS
-  VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
+  if (!status) status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);	
+  VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	
   if (status == 0) distance[0] = RangingData.RangeMilliMeter;
 
   status = VL53L1_SetUserROI(count_sensor, &roiConfig2);
 
-  //while (digitalRead(INT));	// slightly faster
   status = VL53L1_WaitMeasurementDataReady(count_sensor);
-  if (!status) status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);	//4mS
-  VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
+  if (!status) status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);	
+  VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	
   if (status == 0) distance[1] = RangingData.RangeMilliMeter;
 
-  gesture_code = tof_gestures_detectDIRSWIPE_1(distance[0], distance[1], &gestureDirSwipeData);	//0mS
+  gesture_code = tof_gestures_detectDIRSWIPE_1(distance[0], distance[1], &gestureDirSwipeData);	
   //Serial.printf("%d,%d,%d\n\r", distance[0], distance[1], cnt);
   switch (gesture_code)
   {
