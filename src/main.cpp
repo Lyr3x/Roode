@@ -3,9 +3,12 @@ Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 #include <../lib/Configuration/Config.h>
-#include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 
-#include <Wire.h>
+#include "../lib/vl53l1_api/vl53l1_api.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures.h>
+#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
 
 #ifdef USE_MQTT
 #include <../lib/MQTTTransmitter/MQTTTransmitter.h>
@@ -14,9 +17,9 @@ const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
 #endif
 
-#include <OptionChecker.h>
+// #include <OptionChecker.h>
 #include <../lib/MotionSensor/MotionSensor.h> //MotionSensorLib
-#include <../lib/PeopleCounter/PeopleCounter.h>
+#include <../lib/Counter/Counter.h>
 
 // battery setup
 #ifdef USE_BATTERY
@@ -31,8 +34,17 @@ VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
 #endif
 
 #ifdef USE_VL53L1X
-VL53L1XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-VL53L1XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+// VL53L1XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
+// VL53L1XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+// ###### configure VL53L1X ######
+VL53L1_Dev_t sensor;
+VL53L1_DEV count_sensor = &sensor;
+
+void checkDev(VL53L1_DEV Dev) {
+  uint16_t wordData;
+  VL53L1_RdWord(Dev, 0x010F, &wordData);
+  Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
+}
 #endif
 
 void manageTimeout();        //move to sensor
@@ -41,14 +53,37 @@ void sensorCalibration();    //move to Calibration module
 void setup()
 {
 #ifdef USE_MQTT
-  Wire.begin(D6, D5);
+  Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setClock(400000);
   Serial.begin(115200);
   // Connect to WiFi access point.
   Serial.println();
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(transmitter.ssid);
+#ifdef USE_VL53L1X
+  pinMode(XSHUT_PIN, OUTPUT);
+  delay(100);
+  dev1_sel
+      count_sensor->I2cDevAddr = 0x52;
+  Serial.printf("\n\rDevice data  ");
+  checkDev(count_sensor);
+  delay(1000);
+  tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
+  //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
 
+  status += VL53L1_WaitDeviceBooted(count_sensor);
+  status += VL53L1_DataInit(count_sensor);
+  status += VL53L1_StaticInit(count_sensor);
+  status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
+  status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
+  status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
+  if (status)
+  {
+    Serial.printf("StartMeasurement failed status: %d\n\r", status);
+  }
+
+#endif
   // connect to WiFi Access Point
   // ESP.wdtDisable(); //Disable soft watch dog
   WiFi.mode(WIFI_STA);
@@ -90,9 +125,7 @@ void setup()
     transmitter.reconnect();
   }
 #endif
-#ifdef USE_MYSENSORS
-  Wire.begin();
-#endif
+
 #ifdef USE_OLED
   oled.begin(&Adafruit128x32, OLED_I2C);
   oled.setFont(Adafruit5x7);
@@ -102,10 +135,6 @@ void setup()
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);
   oled.print("\n");
-#ifdef USE_MYSENSORS
-  oled.print("MySensors: ");
-  oled.println(MYSENSORS_LIBRARY_VERSION);
-#endif
 #ifdef USE_MQTT
   oled.println("PubSubClient: v2.7 ");
 
@@ -119,13 +148,13 @@ void setup()
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 
-  // Initialize VL53LXX sensors
-  ROOM_SENSOR.init();
-  delay(10);
-  CORRIDOR_SENSOR.init();
+  // Initialize VL53L1X sensors
+  // ROOM_SENSOR.init();
+  // delay(10);
+  // CORRIDOR_SENSOR.init();
 
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
+  // ROOM_SENSOR.startContinuous();
+  // CORRIDOR_SENSOR.startContinuous();
 
 #ifdef CALIBRATION
 
@@ -164,12 +193,6 @@ void setup()
   //   updateDisplayCounter();
   // #endif
 } // end of setup()
-#ifdef USE_MYSENSORS
-void presentation()
-{
-  transmitter.presentation();
-}
-#endif
 
 int lastState = LOW;
 void loop()
@@ -180,14 +203,6 @@ void loop()
     transmitter.reconnect();
   }
 #endif
-
-  // timeoutOccured is not implemented for VL53L1X yet
-  #ifdef USE_VL53L0X
-  if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
-  {
-    manageTimeout();
-  }
-  #endif
 
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
@@ -205,33 +220,17 @@ void loop()
 #ifdef MY_DEBUG
       Serial.println("2. Motion sensor is off. Last readloop");
 #endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+      counting(count_sensor);
 
 #ifdef MY_DEBUG
       Serial.println("3. Shutting down sensors");
 #endif
       lastState = LOW;
-      ROOM_SENSOR.stopContinuous();
-      CORRIDOR_SENSOR.stopContinuous();
+      VL53L1_StopMeasurement(count_sensor);
+      
     }
 #else
-    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#endif
-#ifdef USE_BATTERY
-    smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
-    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#if defined(USE_OLED) || defined(USE_OLED)
-    updateDisplayCounter();
-#endif
-
-    while (motion.checkMotion() != LOW)
-    {
-      yield();
-#ifdef MY_DEBUG
-      Serial.println("4. Motion sensor is on. Start counting");
-#endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-    }
+    counting(count_sensor);
 #endif
   }
   else //Motion HIGH
@@ -248,8 +247,7 @@ void loop()
 #ifdef MY_DEBUG
       Serial.println("6. Start Sensors");
 #endif
-      ROOM_SENSOR.startContinuous();
-      CORRIDOR_SENSOR.startContinuous();
+      VL53L1_StartMeasurement(count_sensor);
 #endif
     }
     lastState = HIGH;
@@ -258,7 +256,7 @@ void loop()
 #ifdef MY_DEBUG
       Serial.println("7. Motion sensor is on. Start counting");
 #endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+      counting(count_sensor);
     }
   }
   delay(10);
@@ -288,19 +286,19 @@ inline void manageTimeout()
 #endif
   // reportToController(65535);
   Serial.println("Timeout occured. Restart the System");
-  sensorCalibration();
+  // sensorCalibration();
 }
 
-inline void sensorCalibration()
-{
-  Serial.println("#### calibrate the ir sensors ####");
-  int room_threhsold = ROOM_SENSOR.calibration();
-  int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-  char buf[40];
-  sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
+// inline void sensorCalibration()
+// {
+//   Serial.println("#### calibrate the ir sensors ####");
+//   int room_threhsold = ROOM_SENSOR.calibration();
+//   int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+//   char buf[40];
+//   sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
 
-  transmitter.transmit(transmitter.devices.threshold, 0, buf);
-}
+//   transmitter.transmit(transmitter.devices.threshold, 0, buf);
+// }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
 
