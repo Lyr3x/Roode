@@ -63,10 +63,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define SDA_PIN D6
 #define SCL_PIN D5
 
-/*
-###### VL53L0X/VL53L1X Definition ######
-
 /**
+###### VL53L0X/VL53L1X Definition ######
  * Dont actiavte the VL53L1X Sensor yet.
  * Because of the single sensor setup there is a huge amount
  * of logic change necessary
