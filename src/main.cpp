@@ -3,20 +3,28 @@ Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 #include <../lib/Configuration/Config.h>
-#include <Arduino.h> //need to be included, cause the file is moved to a .cpp file
 
-#include <Wire.h>
+#include "../lib/vl53l1_api/vl53l1_api.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures.h>
+#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
 
 #ifdef USE_MQTT
 #include <../lib/MQTTTransmitter/MQTTTransmitter.h>
 MQTTTransmitter transmitter;
 const char *topic_Domoticz_IN = "domoticz/in";
 const char *topic_Domoticz_OUT = "domoticz/out";
+// Set web server port number to 80
+WiFiServer server(80);
+
+// Variable to store the HTTP request
+String header;
 #endif
 
-#include <OptionChecker.h>
+// #include <OptionChecker.h>
 #include <../lib/MotionSensor/MotionSensor.h> //MotionSensorLib
-#include <../lib/PeopleCounter/PeopleCounter.h>
+#include <../lib/Counter/Counter.h>
 
 // battery setup
 #ifdef USE_BATTERY
@@ -25,23 +33,33 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-#ifdef USE_VL53L0X
-VL53L0XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-VL53L0XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
-#endif
+
 
 #ifdef USE_VL53L1X
-VL53L1XSensor ROOM_SENSOR(ROOM_XSHUT, ROOM_SENSOR_newAddress);
-VL53L1XSensor CORRIDOR_SENSOR(CORRIDOR_XSHUT, CORRIDOR_SENSOR_newAddress);
+// #include <../lib/VL53L1XSensor/VL53L1XSensor.h>
+// VL53L1XSensor count_senosr;
+// ###### configure VL53L1X ######
+VL53L1_Dev_t sensor;
+VL53L1_DEV count_sensor = &sensor;
+
+void checkDev(VL53L1_DEV Dev)
+{
+  uint16_t wordData;
+  VL53L1_RdWord(Dev, 0x010F, &wordData);
+  Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
+}
 #endif
 
 void manageTimeout();        //move to sensor
 void updateDisplayCounter(); //move to display module
 void sensorCalibration();    //move to Calibration module
+void handle_client();
+
 void setup()
 {
 #ifdef USE_MQTT
-  Wire.begin(D6, D5);
+  Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setClock(400000);
   Serial.begin(115200);
   // Connect to WiFi access point.
   Serial.println();
@@ -49,26 +67,38 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(transmitter.ssid);
 
-  // connect to WiFi Access Point
-  // ESP.wdtDisable(); //Disable soft watch dog
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(transmitter.ssid, transmitter.password);
-  while (WiFi.waitForConnectResult() != WL_CONNECTED)
+#ifdef USE_VL53L1X
+  pinMode(XSHUT_PIN, OUTPUT);
+  delay(100);
+  dev1_sel
+      count_sensor->I2cDevAddr = 0x52;
+  Serial.printf("\n\rDevice data  ");
+  checkDev(count_sensor);
+  delay(1000);
+  tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
+  //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
+
+  status += VL53L1_WaitDeviceBooted(count_sensor);
+  status += VL53L1_DataInit(count_sensor);
+  status += VL53L1_StaticInit(count_sensor);
+  status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
+  status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
+  status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
+  if (status)
   {
-    Serial.println("Connection to the main WiFi Failed!");
-    delay(2000);
-    if (transmitter.WiFi_AP == 1)
-    {
-      transmitter.WiFi_AP = 2;
-      Serial.println("Trying to connect to the alternate WiFi...");
-      WiFi.begin(transmitter.ssid2, transmitter.password2);
-    }
-    else
-    {
-      transmitter.WiFi_AP = 1;
-      Serial.println("Trying to connect to the main WiFi...");
-      WiFi.begin(transmitter.ssid, transmitter.password);
-    }
+    Serial.printf("StartMeasurement failed status: %d\n\r", status);
+  }
+
+#endif
+
+  WiFiManager wifiManager;
+  wifiManager.setTimeout(180);
+  if (!wifiManager.autoConnect(WLAN_SSID, WLAN_PASS))
+  {
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    ESP.reset();
+    delay(5000);
   }
 
   //MQTT
@@ -85,14 +115,13 @@ void setup()
     Serial.println(transmitter.ssid2);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  server.begin(); // start webserver
   if (!client.connected())
   { // MQTT connection
     transmitter.reconnect();
   }
 #endif
-#ifdef USE_MYSENSORS
-  Wire.begin();
-#endif
+
 #ifdef USE_OLED
   oled.begin(&Adafruit128x32, OLED_I2C);
   oled.setFont(Adafruit5x7);
@@ -102,10 +131,6 @@ void setup()
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);
   oled.print("\n");
-#ifdef USE_MYSENSORS
-  oled.print("MySensors: ");
-  oled.println(MYSENSORS_LIBRARY_VERSION);
-#endif
 #ifdef USE_MQTT
   oled.println("PubSubClient: v2.7 ");
 
@@ -119,13 +144,13 @@ void setup()
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
 
-  // Initialize VL53LXX sensors
-  ROOM_SENSOR.init();
-  delay(10);
-  CORRIDOR_SENSOR.init();
+  // Initialize VL53L1X sensors
+  // ROOM_SENSOR.init();
+  // delay(10);
+  // CORRIDOR_SENSOR.init();
 
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
+  // ROOM_SENSOR.startContinuous();
+  // CORRIDOR_SENSOR.startContinuous();
 
 #ifdef CALIBRATION
 
@@ -164,12 +189,6 @@ void setup()
   //   updateDisplayCounter();
   // #endif
 } // end of setup()
-#ifdef USE_MYSENSORS
-void presentation()
-{
-  transmitter.presentation();
-}
-#endif
 
 int lastState = LOW;
 void loop()
@@ -181,87 +200,65 @@ void loop()
   }
 #endif
 
-  // timeoutOccured is not implemented for VL53L1X yet
-  #ifdef USE_VL53L0X
-  if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
-  {
-    manageTimeout();
-  }
-  #endif
-
   //   // Sleep until interrupt comes in on motion sensor. Send never an update
-  if (motion.checkMotion() == LOW)
-  {
-#ifdef MY_DEBUG
-    Serial.println("1. Motion sensor is off");
-#endif
-#ifdef USE_OLED
-    oled.clear();
-#endif
-#ifdef USE_ENEGERY_SAVING
-    if (lastState == HIGH)
-    {
+  //   if (motion.checkMotion() == LOW)
+  //   {
+  // #ifdef MY_DEBUG
+  //     Serial.println("1. Motion sensor is off");
+  // #endif
+  // #ifdef USE_OLED
+  //     oled.clear();
+  // #endif
+  // #ifdef USE_ENEGERY_SAVING
+  //     if (lastState == HIGH)
+  //     {
 
-#ifdef MY_DEBUG
-      Serial.println("2. Motion sensor is off. Last readloop");
-#endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
+  // #ifdef MY_DEBUG
+  //       Serial.println("2. Motion sensor is off. Last readloop");
+  // #endif
+  //       counting(count_sensor);
 
-#ifdef MY_DEBUG
-      Serial.println("3. Shutting down sensors");
-#endif
-      lastState = LOW;
-      ROOM_SENSOR.stopContinuous();
-      CORRIDOR_SENSOR.stopContinuous();
-    }
-#else
-    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#endif
-#ifdef USE_BATTERY
-    smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
-    peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-#if defined(USE_OLED) || defined(USE_OLED)
-    updateDisplayCounter();
-#endif
+  // #ifdef MY_DEBUG
+  //       Serial.println("3. Shutting down sensors");
+  // #endif
+  //       lastState = LOW;
+  //       VL53L1_StopMeasurement(count_sensor);
 
-    while (motion.checkMotion() != LOW)
-    {
-      yield();
-#ifdef MY_DEBUG
-      Serial.println("4. Motion sensor is on. Start counting");
-#endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-    }
-#endif
-  }
-  else //Motion HIGH
-  {
-    if (lastState == LOW)
-    {
-#ifdef USE_OLED
-      updateDisplayCounter();
-#endif
-#ifdef USE_ENEGERY_SAVING
-#ifdef MY_DEBUG
-      Serial.println("5. Starting continuous mode again");
-#endif
-#ifdef MY_DEBUG
-      Serial.println("6. Start Sensors");
-#endif
-      ROOM_SENSOR.startContinuous();
-      CORRIDOR_SENSOR.startContinuous();
-#endif
-    }
-    lastState = HIGH;
-    while (motion.checkMotion() != LOW)
-    {
-#ifdef MY_DEBUG
-      Serial.println("7. Motion sensor is on. Start counting");
-#endif
-      peoplecounting(ROOM_SENSOR, CORRIDOR_SENSOR, transmitter);
-    }
-  }
+  //     }
+  // #else
+  //     counting(count_sensor);
+  // #endif
+  //   }  // if (motion.checkMotion() == LOW)
+  //   else //Motion HIGH
+  //   {
+  //     if (lastState == LOW)
+  //     {
+  // #ifdef USE_OLED
+  //       updateDisplayCounter();
+  // #endif
+  // #ifdef USE_ENEGERY_SAVING
+  // #ifdef MY_DEBUG
+  //       Serial.println("5. Starting continuous mode again");
+  // #endif
+  // #ifdef MY_DEBUG
+  //       Serial.println("6. Start Sensors");
+  // #endif
+  //       VL53L1_StartMeasurement(count_sensor);
+  // #endif
+  //     }
+  //     lastState = HIGH;
+  //     while (motion.checkMotion() != LOW)
+  //     {
+  // #ifdef MY_DEBUG
+  //       Serial.println("7. Motion sensor is on. Start counting");
+  // #endif
+  //       counting(count_sensor);
+  //     }
+  //   } // else //Motion HIGH
+  // handle_client();
+  counting(count_sensor);
   delay(10);
+
 #ifdef USE_MQTT
   client.loop();
 #endif
@@ -288,19 +285,19 @@ inline void manageTimeout()
 #endif
   // reportToController(65535);
   Serial.println("Timeout occured. Restart the System");
-  sensorCalibration();
+  // sensorCalibration();
 }
 
-inline void sensorCalibration()
-{
-  Serial.println("#### calibrate the ir sensors ####");
-  int room_threhsold = ROOM_SENSOR.calibration();
-  int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-  char buf[40];
-  sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
+// inline void sensorCalibration()
+// {
+//   Serial.println("#### calibrate the ir sensors ####");
+//   int room_threhsold = ROOM_SENSOR.calibration();
+//   int corridor_threhsold = CORRIDOR_SENSOR.calibration();
+//   char buf[40];
+//   sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
 
-  transmitter.transmit(transmitter.devices.threshold, 0, buf);
-}
+//   transmitter.transmit(transmitter.devices.threshold, 0, buf);
+// }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
 
@@ -358,20 +355,116 @@ void callback(char *topic, byte *payload, unsigned int length)
 
 #endif
 
-#ifdef USE_MYSENSORS
-// MySensors receive function
-void receive(const MyMessage &message)
+void handle_client()
 {
-  int result = transmitter.receive(message);
-  if (result == -1)
-  {
-    Serial.println(F("Sensor calibration"));
-    sensorCalibration();
-  }
-  else
-  {
-    peopleCount = result;
+  // Auxiliar variables to store the current output state
+  String output5State = "off";
+  String output4State = "off";
+
+  // Assign output variables to GPIO pins
+  const int output5 = 5;
+  const int output4 = 4;
+  WiFiClient client = server.available(); // Listen for incoming clients
+
+  if (client)
+  {                                // If a new client connects,
+    Serial.println("New Client."); // print a message out in the serial port
+    String currentLine = "";       // make a String to hold incoming data from the client
+    while (client.connected())
+    { // loop while the client's connected
+      if (client.available())
+      {                         // if there's bytes to read from the client,
+        char c = client.read(); // read a byte, then
+        Serial.write(c);        // print it out the serial monitor
+        header += c;
+        if (c == '\n')
+        { // if the byte is a newline character
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0)
+          {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println();
+
+            // turns the GPIOs on and off
+            if (header.indexOf("GET /5/on") >= 0)
+            {
+              Serial.println("GPIO 5 on");
+              output5State = "on";
+              digitalWrite(output5, HIGH);
+            }
+            else if (header.indexOf("GET /5/off") >= 0)
+            {
+              Serial.println("GPIO 5 off");
+              output5State = "off";
+              digitalWrite(output5, LOW);
+            }
+
+            // Display the HTML web page
+            client.println("<!-- HTTP_PORTAL_OPTIONS --> <form action=\"/wifi\" method=\"get\"><button>Configure WiFi</button></form><br/><form action=\"/0wifi\" method=\"get\"><button>Configure WiFi (No Scan)</button></form><br/><form action=\"/i\" method=\"get\"><button>Info</button></form><br/><form action=\"/r\" method=\"post\"><button>Reset</button></form>	<!-- /HTTP_PORTAL_OPTIONS -->");
+            client.println("<!DOCTYPE html><html>");
+            client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+            client.println("<link rel=\"icon\" href=\"data:,\">");
+            // CSS to style the on/off buttons
+            // Feel free to change the background-color and font-size attributes to fit your preferences
+            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+            client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
+            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".button2 {background-color: #77878A;}</style></head>");
+
+            // Web Page Heading
+            client.println("<body><h1>ESP8266 Web Server</h1>");
+
+            // Display current state, and ON/OFF buttons for GPIO 5
+            client.println("<p>GPIO 5 - State " + output5State + "</p>");
+            // If the output5State is off, it displays the ON button
+            if (output5State == "off")
+            {
+              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
+            }
+            else
+            {
+              client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
+            }
+
+            // Display current state, and ON/OFF buttons for GPIO 4
+            client.println("<p>GPIO 4 - State " + output4State + "</p>");
+            // If the output4State is off, it displays the ON button
+            if (output4State == "off")
+            {
+              client.println("<p><a href=\"/4/on\"><button class=\"button\">ON</button></a></p>");
+            }
+            else
+            {
+              client.println("<p><a href=\"/4/off\"><button class=\"button button2\">OFF</button></a></p>");
+            }
+            client.println("</body></html>");
+
+            // The HTTP response ends with another blank line
+            client.println();
+            // Break out of the while loop
+            break;
+          }
+          else
+          { // if you got a newline, then clear currentLine
+            currentLine = "";
+          }
+        }
+        else if (c != '\r')
+        {                   // if you got anything else but a carriage return character,
+          currentLine += c; // add it to the end of the currentLine
+        }
+      }
+    }
+    // Clear the header variable
+    header = "";
+    // Close the connection
+    client.stop();
+    Serial.println("Client disconnected.");
+    Serial.println("");
   }
 }
-
-#endif

@@ -4,7 +4,7 @@ License: GPLv3
 */
 #ifndef CONFIG_H
 #define CONFIG_H
-
+#include <Wire.h>
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
 Be carfeul with reconfiguring! Some options shouldnt be changed!
@@ -43,7 +43,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define USE_MOTION
-#define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
+// #define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
 #define USE_MQTT
 
@@ -53,7 +53,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define CORRIDOR_MQTT "257"
 #define ROOM_SWITCH_MQTT "258"
 #define INFO_MQTT "259"
-#define PEOPLECOUNTER_MQTT "260"
+#define PEOPLECOUNTER_MQTT "324"
 #define THRESHOLD_MQTT "261"
 #endif
 
@@ -63,37 +63,21 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define SDA_PIN D6
 #define SCL_PIN D5
 
-/*
-###### VL53L0X/VL53L1X Definition ######
-*/
-#ifdef USE_VL53L0X
-#include <VL53L0X.h>
-#include <Wire.h>
-#include <../lib/VL53L0XSensor/VL53L0XSensor.h>
-#endif //USE_VL53L0X
-
 /**
+###### VL53L0X/VL53L1X Definition ######
  * Dont actiavte the VL53L1X Sensor yet.
  * Because of the single sensor setup there is a huge amount
  * of logic change necessary
  **/
 #ifdef USE_VL53L1X
-#include <VL53L1XSensor.h>
-#include <VL53L1XWrap.h>
+#define XSHUT_PIN D3 
+//#define INT			D7 not used right now
+#define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
+#define dev1_desel digitalWrite(XSHUT_PIN, LOW);
+// #include <VL53L1XSensor.h>
+// #include <VL53L1XWrap.h>
 #endif //USE_VL53L1X
 
-#define CORRIDOR_SENSOR_newAddress 42
-#define ROOM_SENSOR_newAddress 43
-#ifdef USE_MQTT
-#define ROOM_XSHUT D3     //XSHUT Pin
-#define CORRIDOR_XSHUT D4 //XSHUT Pin
-#endif                    //USE_MYSENSORS
-
-#ifdef USE_MYSENSORS
-#define ROOM_XSHUT 7     //XSHUT Pin
-#define CORRIDOR_XSHUT 8 //XSHUT Pin
-
-#endif                      //USE_MYSENSORS
 #define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
@@ -132,6 +116,15 @@ enum SensorPresetModes
 #define SENSOR_RANGE_MODE MEDIUM_RANGE
 #define SENSOR_PRESET_MODE AUTONOMOUS
 #endif
+
+/************************* WiFi Access Point *********************************/
+
+#define WLAN_SSID "Shieldnet"      //your AP SSID
+#define WLAN_PASS "nsknkby4vtPf"  //your AP password
+#define WLAN_SSID2 "<SSID>"     //your AP SSID
+#define WLAN_PASS2 "<password>" //your AP password
+#define MQTT_IP "192.168.2.90"
+
 
 /* 
 ###### OLED Definition ###### 
