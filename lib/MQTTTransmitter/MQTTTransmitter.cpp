@@ -44,10 +44,8 @@ void MQTTTransmitter::init()
     // Serial.print("IP address: ");
     // Serial.println(WiFi.localIP());
 }
-int MQTTTransmitter::receive()
-{
-    //needs to be implemented
-    return 0;
+void MQTTTransmitter::callback(char* topic, byte* payload, unsigned int length) {
+    // message received
 }
 // int MQTTTransmitter::send()
 // {

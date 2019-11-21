@@ -2,19 +2,23 @@
 #define MQTTTransmitter_H
 
 #include <Config.h>
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <PubSubClient.h>
+// #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <Transmitter.h>
 
-/************************* WiFi Access Point *********************************/
+// MQTT
+#include <PubSubClient.h>
 
-#define WLAN_SSID "<SSID>"      //your AP SSID
-#define WLAN_PASS "<password>"  //your AP password
-#define WLAN_SSID2 "<SSID>"     //your AP SSID
-#define WLAN_PASS2 "<password>" //your AP password
-#define MQTT_IP "<IP>"
+// For storing configurations
+#include "FS.h"
+#include <ArduinoJson.h>
+
+// WiFiManager Libraries
+#include <DNSServer.h>            //Local DNS Server used for redirecting all rs to the configuration portal
+#include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
+
+
 extern const char *topic_Domoticz_IN;
 extern const char *topic_Domoticz_OUT;
 class MQTTTransmitter : public Transmitter
@@ -23,7 +27,7 @@ class MQTTTransmitter : public Transmitter
 public:
   // ~MQTTTransmitter() {}
   int transmit(String idx, int val = 0, String text = "");
-  int receive();
+  void callback(char* topic, byte* payload, unsigned int length);
   void reconnect();
   void test();
   void init();

@@ -53,7 +53,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define CORRIDOR_MQTT "257"
 #define ROOM_SWITCH_MQTT "258"
 #define INFO_MQTT "259"
-#define PEOPLECOUNTER_MQTT "260"
+#define PEOPLECOUNTER_MQTT "324"
 #define THRESHOLD_MQTT "261"
 #endif
 
@@ -70,10 +70,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  * of logic change necessary
  **/
 #ifdef USE_VL53L1X
-#define SDA_PIN D6   // D4
-#define SCL_PIN D5   // D1
-#define XSHUT_PIN D3 // D5
-//#define INT			D7
+#define XSHUT_PIN D3 
+//#define INT			D7 not used right now
 #define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
 // #include <VL53L1XSensor.h>
@@ -118,6 +116,15 @@ enum SensorPresetModes
 #define SENSOR_RANGE_MODE MEDIUM_RANGE
 #define SENSOR_PRESET_MODE AUTONOMOUS
 #endif
+
+/************************* WiFi Access Point *********************************/
+
+#define WLAN_SSID "Shieldnet"      //your AP SSID
+#define WLAN_PASS "nsknkby4vtPf"  //your AP password
+#define WLAN_SSID2 "<SSID>"     //your AP SSID
+#define WLAN_PASS2 "<password>" //your AP password
+#define MQTT_IP "192.168.2.90"
+
 
 /* 
 ###### OLED Definition ###### 

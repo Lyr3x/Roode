@@ -13,15 +13,15 @@ void VL53L1XSensor::init()
     digitalWrite(_XSHUT, LOW);
     delay(10);
     digitalWrite(_XSHUT, HIGH);
-    _Sensor->I2cDevAddr = _I2C_ADDRESS;
-    checkDev(_Sensor);
-    status += VL53L1_WaitDeviceBooted(_Sensor);
-    status += VL53L1_DataInit(_Sensor);
-    status += VL53L1_StaticInit(_Sensor);
+    Sensor->I2cDevAddr = _I2C_ADDRESS;
+    checkDev(Sensor);
+    status += VL53L1_WaitDeviceBooted(Sensor);
+    status += VL53L1_DataInit(Sensor);
+    status += VL53L1_StaticInit(Sensor);
     setRangeMode(SENSOR_RANGE_MODE);
     setPresetMode(SENSOR_PRESET_MODE);
-    status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(_Sensor, 10000);
-    status += VL53L1_SetInterMeasurementPeriodMilliSeconds(_Sensor, 15);
+    status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(Sensor, 10000);
+    status += VL53L1_SetInterMeasurementPeriodMilliSeconds(Sensor, 15);
 }
 
 /**
@@ -50,15 +50,15 @@ void VL53L1XSensor::setRangeMode(int mode)
 {
     if (mode == LONG_RANGE)
     {
-        status += VL53L1_SetDistanceMode(_Sensor, VL53L1_DISTANCEMODE_LONG);
+        status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_LONG);
     }
     else if (mode == MEDIUM_RANGE)
     {
-        status += VL53L1_SetDistanceMode(_Sensor, VL53L1_DISTANCEMODE_MEDIUM);
+        status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_MEDIUM);
     }
     else if (mode == SHORT_RANGE)
     {
-        status += VL53L1_SetDistanceMode(_Sensor, VL53L1_DISTANCEMODE_SHORT);
+        status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_SHORT);
     }
 }
 
@@ -88,84 +88,34 @@ void VL53L1XSensor::setRangeMode(int mode)
  *                                          not in the supported list
  */
 
-void readRangeContinuoisMillimeters(){
-    // Demo draft!
-    // status = VL53L1_WaitMeasurementDataReady(Dev);
-    // if (!status) status = VL53L1_GetRangingMeasurementData(Dev, &RangingData);	//4mS
-    // VL53L1_clear_interrupt_and_enable_next_range(Dev, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
-    // if (status == 0) distance[0] = RangingData.RangeMilliMeter;
+int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig){
+    status = VL53L1_SetUserROI(Sensor, &roiConfig);
 
-    // status = VL53L1_SetUserROI(Dev, &roiConfig2);
-
-    // //while (digitalRead(INT));	// slightly faster
-    // status = VL53L1_WaitMeasurementDataReady(Dev);
-    // if (!status) status = VL53L1_GetRangingMeasurementData(Dev, &RangingData);	//4mS
-    // VL53L1_clear_interrupt_and_enable_next_range(Dev, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);	//2mS
-    // if (status == 0) distance[1] = RangingData.RangeMilliMeter;
+    status = VL53L1_WaitMeasurementDataReady(Sensor);
+    if (!status)
+        status = VL53L1_GetRangingMeasurementData(Sensor, &RangingData);
+    VL53L1_clear_interrupt_and_enable_next_range(Sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
+    if (status == 0)
+        return RangingData.RangeMilliMeter;
+    else{
+        return -1;
+    }
 }
 
 void VL53L1XSensor::setPresetMode(int mode)
 {
-    status += VL53L1_SetPresetMode(_Sensor, VL53L1_PRESETMODE_LITE_RANGING);
+    status += VL53L1_SetPresetMode(Sensor, VL53L1_PRESETMODE_LITE_RANGING);
 }
 
-uint16_t VL53L1XSensor::readData()
+void VL53L1XSensor::startMeasurement()
 {
-    return readRangeContinuousMillimeters();
+    VL53L1_StartMeasurement(Sensor);
 }
-void VL53L1XSensor::startContinuous()
+void VL53L1XSensor::stopMeasurement()
 {
-    VL53L1_StartMeasurement(_Sensor);
-}
-void VL53L1XSensor::stopContinuous()
-{
-    VL53L1_StopMeasurement(_Sensor);
+    VL53L1_StopMeasurement(Sensor);
 }
 
-int VL53L1XSensor::calibration()
-{
-    int irValues[30] = {};
-    uint16_t min = 0;
-
-    auto n = 0;
-    for (int m = 0; m < CALIBRATION_VAL; m++)
-    {
-        delay(10);
-        auto sensor_value = _Sensor.readRangeContinuousMillimeters();
-
-        // #ifdef MY_DEBUG
-        Serial.println(sensor_value);
-        // #endif
-        //calculate the max without jumps for the room sensor
-        if ((sensor_value < min) || ((sensor_value - min) == sensor_value))
-        {
-            Serial.println(sensor_value);
-            min = sensor_value;
-            if (n < 30)
-            {
-                irValues[n] = min;
-                n++;
-            }
-        }
-    }
-    auto sd = 0;
-
-    sd = calculateStandardDeviation(irValues);
-    this->threshold = min - sd;
-
-    // Serial.print("standard deviation: " + threshold);
-    // threshold = max + THRESHOLD_X;#
-
-    Serial.print(F("standard deviation: "));
-    Serial.println(sd);
-    Serial.print(F("New threshold is: "));
-    Serial.println(this->threshold);
-    Serial.println(F("#### calibration done ####"));
-
-    //send(thrMsg.set(threshold)); //REWORK
-
-    return this->threshold;
-}
 
 uint16_t VL53L1XSensor::getThreshold()
 {
