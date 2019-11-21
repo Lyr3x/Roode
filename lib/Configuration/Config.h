@@ -4,6 +4,7 @@ License: GPLv3
 */
 #ifndef CONFIG_H
 #define CONFIG_H
+#pragma once
 #include <Wire.h>
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
@@ -70,10 +71,15 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  * of logic change necessary
  **/
 #ifdef USE_VL53L1X
+#include "../vl53l1_api/vl53l1_api.h"
+
+#define SENSOR_I2C 0x52
 #define XSHUT_PIN D3 
 //#define INT			D7 not used right now
 #define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
+static VL53L1_UserRoi_t leftRoiConfig = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
+static VL53L1_UserRoi_t rightRoiConfig = {0, 15, 5, 0};  //TopLeftX, TopLeftY, BotRightX, BotRightY
 // #include <VL53L1XSensor.h>
 // #include <VL53L1XWrap.h>
 #endif //USE_VL53L1X

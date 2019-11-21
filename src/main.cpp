@@ -33,21 +33,19 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-
-
 #ifdef USE_VL53L1X
-// #include <../lib/VL53L1XSensor/VL53L1XSensor.h>
-// VL53L1XSensor count_senosr;
+#include <../lib/VL53L1XSensor/VL53L1XSensor.h>
+VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
 // ###### configure VL53L1X ######
-VL53L1_Dev_t sensor;
-VL53L1_DEV count_sensor = &sensor;
+// VL53L1_Dev_t sensor;
+// VL53L1_DEV count_sensor = &sensor;
 
-void checkDev(VL53L1_DEV Dev)
-{
-  uint16_t wordData;
-  VL53L1_RdWord(Dev, 0x010F, &wordData);
-  Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
-}
+// void checkDev(VL53L1_DEV Dev)
+// {
+//   uint16_t wordData;
+//   VL53L1_RdWord(Dev, 0x010F, &wordData);
+//   Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
+// }
 #endif
 
 void manageTimeout();        //move to sensor
@@ -68,26 +66,27 @@ void setup()
   Serial.println(transmitter.ssid);
 
 #ifdef USE_VL53L1X
-  pinMode(XSHUT_PIN, OUTPUT);
-  delay(100);
-  dev1_sel
-      count_sensor->I2cDevAddr = 0x52;
-  Serial.printf("\n\rDevice data  ");
-  checkDev(count_sensor);
-  delay(1000);
-  tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
-  //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
+  count_sensor.init();
+  // pinMode(XSHUT_PIN, OUTPUT);
+  // delay(100);
+  // dev1_sel
+  //     count_sensor->I2cDevAddr = 0x52;
+  // Serial.printf("\n\rDevice data  ");
+  // checkDev(count_sensor);
+  // delay(1000);
+  // tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
+  // //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
 
-  status += VL53L1_WaitDeviceBooted(count_sensor);
-  status += VL53L1_DataInit(count_sensor);
-  status += VL53L1_StaticInit(count_sensor);
-  status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
-  status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
-  status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
-  if (status)
-  {
-    Serial.printf("StartMeasurement failed status: %d\n\r", status);
-  }
+  // status += VL53L1_WaitDeviceBooted(count_sensor);
+  // status += VL53L1_DataInit(count_sensor);
+  // status += VL53L1_StaticInit(count_sensor);
+  // status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
+  // status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
+  // status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
+  // if (status)
+  // {
+  //   Serial.printf("StartMeasurement failed status: %d\n\r", status);
+  // }
 
 #endif
 
@@ -256,7 +255,8 @@ void loop()
   //     }
   //   } // else //Motion HIGH
   // handle_client();
-  counting(count_sensor);
+  // counting(count_sensor);
+  Serial.println(count_sensor.readRangeContinuoisMillimeters(leftRoiConfig));
   delay(10);
 
 #ifdef USE_MQTT

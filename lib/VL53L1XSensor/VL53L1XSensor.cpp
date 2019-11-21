@@ -7,21 +7,26 @@ VL53L1XSensor::VL53L1XSensor(int XSHUT, int I2C_ADDRESS)
 
 void VL53L1XSensor::init()
 {
-    Serial.println(F("Init VL53L0X Sensor"));
-    // Reset Sensor
-    pinMode(_XSHUT, OUTPUT);
-    digitalWrite(_XSHUT, LOW);
-    delay(10);
-    digitalWrite(_XSHUT, HIGH);
-    Sensor->I2cDevAddr = _I2C_ADDRESS;
-    checkDev(Sensor);
+    pinMode(XSHUT_PIN, OUTPUT);
+    delay(100);
+    dev1_sel
+        Sensor->I2cDevAddr = _I2C_ADDRESS;
+    Serial.printf("\n\rDevice data  ");
+    checkDev();
+    delay(1000);
+    // tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
+    //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
+
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);
     status += VL53L1_StaticInit(Sensor);
-    setRangeMode(SENSOR_RANGE_MODE);
-    setPresetMode(SENSOR_PRESET_MODE);
-    status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(Sensor, 10000);
+    status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_LONG);
+    status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(Sensor, 10000); // 73Hz
     status += VL53L1_SetInterMeasurementPeriodMilliSeconds(Sensor, 15);
+    if (status)
+    {
+        Serial.printf("StartMeasurement failed status: %d\n\r", status);
+    }
 }
 
 /**
@@ -88,7 +93,9 @@ void VL53L1XSensor::setRangeMode(int mode)
  *                                          not in the supported list
  */
 
-int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig){
+int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig)
+{
+    static VL53L1_RangingMeasurementData_t RangingData;
     status = VL53L1_SetUserROI(Sensor, &roiConfig);
 
     status = VL53L1_WaitMeasurementDataReady(Sensor);
@@ -97,7 +104,8 @@ int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig){
     VL53L1_clear_interrupt_and_enable_next_range(Sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
     if (status == 0)
         return RangingData.RangeMilliMeter;
-    else{
+    else
+    {
         return -1;
     }
 }
@@ -116,15 +124,14 @@ void VL53L1XSensor::stopMeasurement()
     VL53L1_StopMeasurement(Sensor);
 }
 
-
 uint16_t VL53L1XSensor::getThreshold()
 {
     return this->threshold;
 }
 
-void VL53L1XSensor::checkDev(VL53L1_DEV Dev)
+void VL53L1XSensor::checkDev()
 {
     uint16_t wordData;
-    VL53L1_RdWord(Dev, 0x010F, &wordData);
-    Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
+    VL53L1_RdWord(Sensor, 0x010F, &wordData);
+    Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Sensor->I2cDevAddr, wordData);
 }
