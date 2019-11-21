@@ -5,8 +5,7 @@
 #include <Config.h>
 #include <Transmitter.h>
 #include <SendCounter.h>
-VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
-VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
+
 Gesture_DIRSWIPE_1_Data_t gestureDirSwipeData;
 int status, i, distance[2] = {0, 0};
 int left = 0, right = 0;
@@ -19,31 +18,17 @@ inline void dispUpdate()
     if (right)
         Serial.println("<---");
 }
-int counting(VL53L1_DEV count_sensor)
+int counting(VL53L1XSensor count_sensor)
 {
-    static VL53L1_RangingMeasurementData_t RangingData;
+    
     int gesture_code;
 
-    status = VL53L1_SetUserROI(count_sensor, &roiConfig1);
-
-    status = VL53L1_WaitMeasurementDataReady(count_sensor);
-    if (!status)
-        status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);
-    VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
-    if (status == 0)
-        distance[0] = RangingData.RangeMilliMeter;
-
-    status = VL53L1_SetUserROI(count_sensor, &roiConfig2);
-
-    status = VL53L1_WaitMeasurementDataReady(count_sensor);
-    if (!status)
-        status = VL53L1_GetRangingMeasurementData(count_sensor, &RangingData);
-    VL53L1_clear_interrupt_and_enable_next_range(count_sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
-    if (status == 0)
-        distance[1] = RangingData.RangeMilliMeter;
+    distance[0] = count_sensor.readRangeContinuoisMillimeters(leftRoiConfig);
+    distance[1] = count_sensor.readRangeContinuoisMillimeters(rightRoiConfig);
 
     gesture_code = tof_gestures_detectDIRSWIPE_1(distance[0], distance[1], &gestureDirSwipeData);
-    //Serial.printf("%d,%d,%d\n\r", distance[0], distance[1], cnt);
+    Serial.printf("%d,%d\n\r", distance[0], distance[1]);
+    Serial.println(gesture_code);
     switch (gesture_code)
     {
     case GESTURES_SWIPE_LEFT_RIGHT:

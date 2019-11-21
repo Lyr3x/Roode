@@ -26,3 +26,44 @@ int calculateStandardDeviation(int irValues[])
 
     return standardDeviation;
 }
+
+void calibration(VL53L1XSensor Sensor)
+{
+    int irValues[30] = {};
+    uint16_t min = 0;
+    auto n = 0;
+    Sensor.readRangeContinuoisMillimeters(leftRoiConfig, 100);
+    for (int m = 0; m < CALIBRATION_VAL; m++)
+    {
+        auto sensor_value = Sensor.readRangeContinuoisMillimeters(leftRoiConfig);
+
+        // #ifdef MY_DEBUG
+        Serial.println(sensor_value);
+        // #endif
+        //calculate the max without jumps for the room sensor
+        if ((sensor_value < min) || ((sensor_value - min) == sensor_value))
+        {
+            Serial.println(sensor_value);
+            min = sensor_value;
+            if (n < 30)
+            {
+                irValues[n] = min;
+                n++;
+            }
+        }
+    }
+    auto sd = 0;
+
+    sd = calculateStandardDeviation(irValues);
+
+    // Serial.print("standard deviation: " + threshold);
+    // threshold = max + THRESHOLD_X;#
+    threshold = min - sd;
+    Serial.print(F("standard deviation: "));
+    Serial.println(sd);
+    Serial.print(F("New threshold is: "));
+    Serial.println(threshold);
+    Serial.println(F("#### calibration done ####"));
+
+    //send(thrMsg.set(threshold)); //REWORK
+}

@@ -3,12 +3,11 @@ Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 #include <../lib/Configuration/Config.h>
-
-#include "../lib/vl53l1_api/vl53l1_api.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures.h>
-#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
+#include <Calibration.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
 
 #ifdef USE_MQTT
 #include <../lib/MQTTTransmitter/MQTTTransmitter.h>
@@ -33,26 +32,15 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-
-
 #ifdef USE_VL53L1X
-// #include <../lib/VL53L1XSensor/VL53L1XSensor.h>
-// VL53L1XSensor count_senosr;
 // ###### configure VL53L1X ######
-VL53L1_Dev_t sensor;
-VL53L1_DEV count_sensor = &sensor;
-
-void checkDev(VL53L1_DEV Dev)
-{
-  uint16_t wordData;
-  VL53L1_RdWord(Dev, 0x010F, &wordData);
-  Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
-}
+uint16_t threshold = 0;
+#include <../lib/VL53L1XSensor/VL53L1XSensor.h>
+VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
 #endif
 
 void manageTimeout();        //move to sensor
 void updateDisplayCounter(); //move to display module
-void sensorCalibration();    //move to Calibration module
 void handle_client();
 
 void setup()
@@ -68,27 +56,9 @@ void setup()
   Serial.println(transmitter.ssid);
 
 #ifdef USE_VL53L1X
-  pinMode(XSHUT_PIN, OUTPUT);
-  delay(100);
-  dev1_sel
-      count_sensor->I2cDevAddr = 0x52;
-  Serial.printf("\n\rDevice data  ");
-  checkDev(count_sensor);
-  delay(1000);
-  tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
-  //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
-
-  status += VL53L1_WaitDeviceBooted(count_sensor);
-  status += VL53L1_DataInit(count_sensor);
-  status += VL53L1_StaticInit(count_sensor);
-  status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
-  status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
-  status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
-  if (status)
-  {
-    Serial.printf("StartMeasurement failed status: %d\n\r", status);
-  }
-
+  count_sensor.init();
+  calibration(count_sensor);
+  tof_gestures_initDIRSWIPE_1(threshold, 0, 1000, false, &gestureDirSwipeData);
 #endif
 
   WiFiManager wifiManager;
@@ -140,17 +110,10 @@ void setup()
 #endif
 
   Serial.println(F("##### RooDe Presence Detection System #####"));
-
+#ifdef USE_MOTION
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
-
-  // Initialize VL53L1X sensors
-  // ROOM_SENSOR.init();
-  // delay(10);
-  // CORRIDOR_SENSOR.init();
-
-  // ROOM_SENSOR.startContinuous();
-  // CORRIDOR_SENSOR.startContinuous();
+#endif
 
 #ifdef CALIBRATION
 
@@ -199,65 +162,65 @@ void loop()
     transmitter.reconnect();
   }
 #endif
+#ifdef USE_MOTION
+  // Sleep until interrupt comes in on motion sensor. Send never an update
+  if (motion.checkMotion() == LOW)
+  {
+#ifdef MY_DEBUG
+    Serial.println("1. Motion sensor is off");
+#endif
+#ifdef USE_OLED
+    oled.clear();
+#endif
+#ifdef USE_ENEGERY_SAVING
+    if (lastState == HIGH)
+    {
 
-  //   // Sleep until interrupt comes in on motion sensor. Send never an update
-  //   if (motion.checkMotion() == LOW)
-  //   {
-  // #ifdef MY_DEBUG
-  //     Serial.println("1. Motion sensor is off");
-  // #endif
-  // #ifdef USE_OLED
-  //     oled.clear();
-  // #endif
-  // #ifdef USE_ENEGERY_SAVING
-  //     if (lastState == HIGH)
-  //     {
+#ifdef MY_DEBUG
+      Serial.println("2. Motion sensor is off. Last readloop");
+#endif
+      counting(count_sensor);
 
-  // #ifdef MY_DEBUG
-  //       Serial.println("2. Motion sensor is off. Last readloop");
-  // #endif
-  //       counting(count_sensor);
-
-  // #ifdef MY_DEBUG
-  //       Serial.println("3. Shutting down sensors");
-  // #endif
-  //       lastState = LOW;
-  //       VL53L1_StopMeasurement(count_sensor);
-
-  //     }
-  // #else
-  //     counting(count_sensor);
-  // #endif
-  //   }  // if (motion.checkMotion() == LOW)
-  //   else //Motion HIGH
-  //   {
-  //     if (lastState == LOW)
-  //     {
-  // #ifdef USE_OLED
-  //       updateDisplayCounter();
-  // #endif
-  // #ifdef USE_ENEGERY_SAVING
-  // #ifdef MY_DEBUG
-  //       Serial.println("5. Starting continuous mode again");
-  // #endif
-  // #ifdef MY_DEBUG
-  //       Serial.println("6. Start Sensors");
-  // #endif
-  //       VL53L1_StartMeasurement(count_sensor);
-  // #endif
-  //     }
-  //     lastState = HIGH;
-  //     while (motion.checkMotion() != LOW)
-  //     {
-  // #ifdef MY_DEBUG
-  //       Serial.println("7. Motion sensor is on. Start counting");
-  // #endif
-  //       counting(count_sensor);
-  //     }
-  //   } // else //Motion HIGH
+#ifdef MY_DEBUG
+      Serial.println("3. Shutting down sensors");
+#endif
+      lastState = LOW;
+      VL53L1_StopMeasurement(count_sensor);
+    }
+#else
+    counting(count_sensor);
+#endif
+  }    // if (motion.checkMotion() == LOW)
+  else //Motion HIGH
+  {
+    if (lastState == LOW)
+    {
+#ifdef USE_OLED
+      updateDisplayCounter();
+#endif
+#ifdef USE_ENEGERY_SAVING
+#ifdef MY_DEBUG
+      Serial.println("5. Starting continuous mode again");
+#endif
+#ifdef MY_DEBUG
+      Serial.println("6. Start Sensors");
+#endif
+      VL53L1_StartMeasurement(count_sensor);
+#endif
+    }
+    lastState = HIGH;
+    while (motion.checkMotion() != LOW)
+    {
+#ifdef MY_DEBUG
+      Serial.println("7. Motion sensor is on. Start counting");
+#endif
+      counting(count_sensor);
+    }
+  } // else //Motion HIGH
+#else
   // handle_client();
   counting(count_sensor);
-  delay(10);
+#endif
 
 #ifdef USE_MQTT
   client.loop();
@@ -283,21 +246,9 @@ inline void manageTimeout()
   oled.set2X();
   oled.print("Timeout occured!");
 #endif
-  // reportToController(65535);
   Serial.println("Timeout occured. Restart the System");
-  // sensorCalibration();
 }
 
-// inline void sensorCalibration()
-// {
-//   Serial.println("#### calibrate the ir sensors ####");
-//   int room_threhsold = ROOM_SENSOR.calibration();
-//   int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-//   char buf[40];
-//   sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
-
-//   transmitter.transmit(transmitter.devices.threshold, 0, buf);
-// }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
 

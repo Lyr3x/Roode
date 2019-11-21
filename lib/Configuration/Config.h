@@ -4,6 +4,7 @@ License: GPLv3
 */
 #ifndef CONFIG_H
 #define CONFIG_H
+#pragma once
 #include <Wire.h>
 /* RooDe Configuration file
 The predefined config enables most of the features and uses the NRF24L01+ Radio module
@@ -42,7 +43,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_VL53L1X
 #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
-#define USE_MOTION
+// #define USE_MOTION
 // #define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
 #define USE_MQTT
@@ -70,10 +71,15 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  * of logic change necessary
  **/
 #ifdef USE_VL53L1X
+#include "../vl53l1_api/vl53l1_api.h"
+#define SENSOR_I2C 0x52
 #define XSHUT_PIN D3 
 //#define INT			D7 not used right now
 #define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
+static VL53L1_UserRoi_t leftRoiConfig = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
+static VL53L1_UserRoi_t rightRoiConfig = {0, 15, 5, 0};  //TopLeftX, TopLeftY, BotRightX, BotRightY
+
 // #include <VL53L1XSensor.h>
 // #include <VL53L1XWrap.h>
 #endif //USE_VL53L1X
@@ -81,7 +87,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
-
+extern uint16_t threshold;
 /*
  Feature switches:
  * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
@@ -119,8 +125,8 @@ enum SensorPresetModes
 
 /************************* WiFi Access Point *********************************/
 
-#define WLAN_SSID "Shieldnet"      //your AP SSID
-#define WLAN_PASS "nsknkby4vtPf"  //your AP password
+#define WLAN_SSID "<SSID>"      //your AP SSID
+#define WLAN_PASS "<password>"  //your AP password
 #define WLAN_SSID2 "<SSID>"     //your AP SSID
 #define WLAN_PASS2 "<password>" //your AP password
 #define MQTT_IP "192.168.2.90"
