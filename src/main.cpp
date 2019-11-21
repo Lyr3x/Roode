@@ -85,6 +85,8 @@ void setup()
     Serial.println(transmitter.ssid2);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  Serial.println("MAC address:");
+  Serial.println(WiFi.macAddress());
   server.begin(); // start webserver
   if (!client.connected())
   { // MQTT connection
