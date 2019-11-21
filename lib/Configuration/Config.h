@@ -43,7 +43,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define USE_VL53L1X
 #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
-#define USE_MOTION
+// #define USE_MOTION
 // #define CALIBRATION        //enables calibration of the distance sensors and motion sensor initializing
 #define USE_ENEGERY_SAVING //v1.0-alpha note: needs more testing
 #define USE_MQTT
@@ -125,8 +125,8 @@ enum SensorPresetModes
 
 /************************* WiFi Access Point *********************************/
 
-#define WLAN_SSID "Shieldnet"      //your AP SSID
-#define WLAN_PASS "nsknkby4vtPf"  //your AP password
+#define WLAN_SSID "<SSID>"      //your AP SSID
+#define WLAN_PASS "<password>"  //your AP password
 #define WLAN_SSID2 "<SSID>"     //your AP SSID
 #define WLAN_PASS2 "<password>" //your AP password
 #define MQTT_IP "192.168.2.90"

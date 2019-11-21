@@ -14,8 +14,6 @@ void VL53L1XSensor::init()
     Serial.printf("\n\rDevice data  ");
     checkDev();
     delay(1000);
-    // tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
-    //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
 
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);

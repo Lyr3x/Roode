@@ -33,20 +33,10 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 #endif
 
 #ifdef USE_VL53L1X
+// ###### configure VL53L1X ######
 uint16_t threshold = 0;
 #include <../lib/VL53L1XSensor/VL53L1XSensor.h>
 VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
-
-// ###### configure VL53L1X ######
-// VL53L1_Dev_t sensor;
-// VL53L1_DEV count_sensor = &sensor;
-
-// void checkDev(VL53L1_DEV Dev)
-// {
-//   uint16_t wordData;
-//   VL53L1_RdWord(Dev, 0x010F, &wordData);
-//   Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Dev->I2cDevAddr, wordData);
-// }
 #endif
 
 void manageTimeout();        //move to sensor
@@ -120,9 +110,10 @@ void setup()
 #endif
 
   Serial.println(F("##### RooDe Presence Detection System #####"));
-
+#ifdef USE_MOTION
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
+#endif
 
 #ifdef CALIBRATION
 
@@ -171,65 +162,65 @@ void loop()
     transmitter.reconnect();
   }
 #endif
+#ifdef USE_MOTION
+  // Sleep until interrupt comes in on motion sensor. Send never an update
+  if (motion.checkMotion() == LOW)
+  {
+#ifdef MY_DEBUG
+    Serial.println("1. Motion sensor is off");
+#endif
+#ifdef USE_OLED
+    oled.clear();
+#endif
+#ifdef USE_ENEGERY_SAVING
+    if (lastState == HIGH)
+    {
 
-  //   // Sleep until interrupt comes in on motion sensor. Send never an update
-  //   if (motion.checkMotion() == LOW)
-  //   {
-  // #ifdef MY_DEBUG
-  //     Serial.println("1. Motion sensor is off");
-  // #endif
-  // #ifdef USE_OLED
-  //     oled.clear();
-  // #endif
-  // #ifdef USE_ENEGERY_SAVING
-  //     if (lastState == HIGH)
-  //     {
+#ifdef MY_DEBUG
+      Serial.println("2. Motion sensor is off. Last readloop");
+#endif
+      counting(count_sensor);
 
-  // #ifdef MY_DEBUG
-  //       Serial.println("2. Motion sensor is off. Last readloop");
-  // #endif
-  //       counting(count_sensor);
-
-  // #ifdef MY_DEBUG
-  //       Serial.println("3. Shutting down sensors");
-  // #endif
-  //       lastState = LOW;
-  //       VL53L1_StopMeasurement(count_sensor);
-
-  //     }
-  // #else
-  //     counting(count_sensor);
-  // #endif
-  //   }  // if (motion.checkMotion() == LOW)
-  //   else //Motion HIGH
-  //   {
-  //     if (lastState == LOW)
-  //     {
-  // #ifdef USE_OLED
-  //       updateDisplayCounter();
-  // #endif
-  // #ifdef USE_ENEGERY_SAVING
-  // #ifdef MY_DEBUG
-  //       Serial.println("5. Starting continuous mode again");
-  // #endif
-  // #ifdef MY_DEBUG
-  //       Serial.println("6. Start Sensors");
-  // #endif
-  //       VL53L1_StartMeasurement(count_sensor);
-  // #endif
-  //     }
-  //     lastState = HIGH;
-  //     while (motion.checkMotion() != LOW)
-  //     {
-  // #ifdef MY_DEBUG
-  //       Serial.println("7. Motion sensor is on. Start counting");
-  // #endif
-  //       counting(count_sensor);
-  //     }
-  //   } // else //Motion HIGH
+#ifdef MY_DEBUG
+      Serial.println("3. Shutting down sensors");
+#endif
+      lastState = LOW;
+      VL53L1_StopMeasurement(count_sensor);
+    }
+#else
+    counting(count_sensor);
+#endif
+  }    // if (motion.checkMotion() == LOW)
+  else //Motion HIGH
+  {
+    if (lastState == LOW)
+    {
+#ifdef USE_OLED
+      updateDisplayCounter();
+#endif
+#ifdef USE_ENEGERY_SAVING
+#ifdef MY_DEBUG
+      Serial.println("5. Starting continuous mode again");
+#endif
+#ifdef MY_DEBUG
+      Serial.println("6. Start Sensors");
+#endif
+      VL53L1_StartMeasurement(count_sensor);
+#endif
+    }
+    lastState = HIGH;
+    while (motion.checkMotion() != LOW)
+    {
+#ifdef MY_DEBUG
+      Serial.println("7. Motion sensor is on. Start counting");
+#endif
+      counting(count_sensor);
+    }
+  } // else //Motion HIGH
+#else
   // handle_client();
   counting(count_sensor);
-  delay(10);
+#endif
 
 #ifdef USE_MQTT
   client.loop();
@@ -255,21 +246,9 @@ inline void manageTimeout()
   oled.set2X();
   oled.print("Timeout occured!");
 #endif
-  // reportToController(65535);
   Serial.println("Timeout occured. Restart the System");
-  // sensorCalibration();
 }
 
-// inline void sensorCalibration()
-// {
-//   Serial.println("#### calibrate the ir sensors ####");
-//   int room_threhsold = ROOM_SENSOR.calibration();
-//   int corridor_threhsold = CORRIDOR_SENSOR.calibration();
-//   char buf[40];
-//   sprintf(buf, "Room: %d, Corridor: %d", room_threhsold, corridor_threhsold);
-
-//   transmitter.transmit(transmitter.devices.threshold, 0, buf);
-// }
 #ifdef USE_MQTT
 // !! Needs to be implemented !!
 
