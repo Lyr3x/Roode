@@ -3,12 +3,11 @@ Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
 #include <../lib/Configuration/Config.h>
-
-#include "../lib/vl53l1_api/vl53l1_api.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures.h>
-#include <../lib/STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
+#include <Calibration.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
 
 #ifdef USE_MQTT
 #include <../lib/MQTTTransmitter/MQTTTransmitter.h>
@@ -34,8 +33,10 @@ MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage 
 #endif
 
 #ifdef USE_VL53L1X
+uint16_t threshold = 0;
 #include <../lib/VL53L1XSensor/VL53L1XSensor.h>
 VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
+
 // ###### configure VL53L1X ######
 // VL53L1_Dev_t sensor;
 // VL53L1_DEV count_sensor = &sensor;
@@ -50,7 +51,6 @@ VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
 
 void manageTimeout();        //move to sensor
 void updateDisplayCounter(); //move to display module
-void sensorCalibration();    //move to Calibration module
 void handle_client();
 
 void setup()
@@ -67,27 +67,8 @@ void setup()
 
 #ifdef USE_VL53L1X
   count_sensor.init();
-  // pinMode(XSHUT_PIN, OUTPUT);
-  // delay(100);
-  // dev1_sel
-  //     count_sensor->I2cDevAddr = 0x52;
-  // Serial.printf("\n\rDevice data  ");
-  // checkDev(count_sensor);
-  // delay(1000);
-  // tof_gestures_initDIRSWIPE_1(1000, 0, 1000, false, &gestureDirSwipeData);
-  // //	tof_gestures_initDIRSWIPE_1(800, 0, 1000, &gestureDirSwipeData);
-
-  // status += VL53L1_WaitDeviceBooted(count_sensor);
-  // status += VL53L1_DataInit(count_sensor);
-  // status += VL53L1_StaticInit(count_sensor);
-  // status += VL53L1_SetDistanceMode(count_sensor, VL53L1_DISTANCEMODE_LONG);
-  // status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(count_sensor, 10000); // 73Hz
-  // status += VL53L1_SetInterMeasurementPeriodMilliSeconds(count_sensor, 15);
-  // if (status)
-  // {
-  //   Serial.printf("StartMeasurement failed status: %d\n\r", status);
-  // }
-
+  calibration(count_sensor);
+  tof_gestures_initDIRSWIPE_1(threshold, 0, 1000, false, &gestureDirSwipeData);
 #endif
 
   WiFiManager wifiManager;
@@ -142,14 +123,6 @@ void setup()
 
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
-
-  // Initialize VL53L1X sensors
-  // ROOM_SENSOR.init();
-  // delay(10);
-  // CORRIDOR_SENSOR.init();
-
-  // ROOM_SENSOR.startContinuous();
-  // CORRIDOR_SENSOR.startContinuous();
 
 #ifdef CALIBRATION
 
@@ -255,8 +228,7 @@ void loop()
   //     }
   //   } // else //Motion HIGH
   // handle_client();
-  // counting(count_sensor);
-  Serial.println(count_sensor.readRangeContinuoisMillimeters(leftRoiConfig));
+  counting(count_sensor);
   delay(10);
 
 #ifdef USE_MQTT

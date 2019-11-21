@@ -93,12 +93,14 @@ void VL53L1XSensor::setRangeMode(int mode)
  *                                          not in the supported list
  */
 
-int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig)
+int VL53L1XSensor::readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig, int delay_ms)
 {
-    static VL53L1_RangingMeasurementData_t RangingData;
     status = VL53L1_SetUserROI(Sensor, &roiConfig);
-
     status = VL53L1_WaitMeasurementDataReady(Sensor);
+    if (delay != 0)
+    {
+        delay(delay_ms);
+    }
     if (!status)
         status = VL53L1_GetRangingMeasurementData(Sensor, &RangingData);
     VL53L1_clear_interrupt_and_enable_next_range(Sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
@@ -126,7 +128,12 @@ void VL53L1XSensor::stopMeasurement()
 
 uint16_t VL53L1XSensor::getThreshold()
 {
-    return this->threshold;
+    return threshold;
+}
+
+void VL53L1XSensor::setThreshold(uint16_t newThreshold)
+{
+    return threshold = newThreshold;
 }
 
 void VL53L1XSensor::checkDev()

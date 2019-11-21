@@ -11,17 +11,18 @@ public:
   VL53L1XSensor(int XSHUT, int I2C_ADDRESS);
   ~VL53L1XSensor(){};
   void init();
-  int readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig);
+  int readRangeContinuoisMillimeters(VL53L1_UserRoi_t roiConfig,int delay_ms=0);
   void setRangeMode(int mode);
   void setPresetMode(int mode);
   void startMeasurement();
   void stopMeasurement();
   void timeoutOccured();
   uint16_t getThreshold();
+  void setThreshold(uint16_t newThreshold);
   void checkDev();
-  int threshold;
   
 private:
+  VL53L1_RangingMeasurementData_t RangingData;
   VL53L1_Dev_t sensor;
   VL53L1_DEV Sensor = &sensor;
   int _XSHUT;

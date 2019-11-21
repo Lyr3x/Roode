@@ -72,7 +72,6 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
  **/
 #ifdef USE_VL53L1X
 #include "../vl53l1_api/vl53l1_api.h"
-
 #define SENSOR_I2C 0x52
 #define XSHUT_PIN D3 
 //#define INT			D7 not used right now
@@ -80,6 +79,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
 static VL53L1_UserRoi_t leftRoiConfig = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
 static VL53L1_UserRoi_t rightRoiConfig = {0, 15, 5, 0};  //TopLeftX, TopLeftY, BotRightX, BotRightY
+
 // #include <VL53L1XSensor.h>
 // #include <VL53L1XWrap.h>
 #endif //USE_VL53L1X
@@ -87,7 +87,7 @@ static VL53L1_UserRoi_t rightRoiConfig = {0, 15, 5, 0};  //TopLeftX, TopLeftY, B
 #define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
-
+extern uint16_t threshold;
 /*
  Feature switches:
  * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
