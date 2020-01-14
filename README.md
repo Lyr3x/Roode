@@ -9,7 +9,7 @@ Here is a list of features which are working or in _work_
 * Receiving commands from the controller e.g. recalibration or manual counter setting
 * OLED support
 * Sleep mode with Motion Sensor support
-* Domoticz Events provided (Roode is useable with every MySensors Controller)
+* Domoticz Events provided (Roode is useable with every MQTT Controller)
 * _Introduction of the new Sensor - VL53L1X_
 * _Completely configurable over WebUI_
 * _Firmware upgrades over WebUI_
