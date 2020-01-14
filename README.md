@@ -1,7 +1,7 @@
 # RooDe
-People counter working with any smart home sysme which supports MQTT
-Repository initialized with version 0.9.4 and MySensors 2.3.0-alpha
-**Version 1.0 will break the support for all hardware configurations working right now**
+People counter working with any smart home system which supports MQTT
+Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
+**Version 1.0 will break the support for all old hardware configurations working right now (IR-Sensors and VL53L0X)**
 ## Version 1.0 - Featurelist
 Here is a list of features which are working or in _work_
 * Counting people entering and leaving a room
@@ -16,6 +16,7 @@ Here is a list of features which are working or in _work_
 * _Automatically creates Domoticz devices_
 
 ## Hardware
+There will be a specific Hardware setup (recommended brands etc.) soon!
 * ESP8266 or ESP32
 * 1x VL53L1X
 * Optional HC-SR501
@@ -30,11 +31,12 @@ Here is a list of features which are working or in _work_
 * Removes legacy support which includes
    * Arduino plattform
    * MySensors plattform
-   * **Non** VL53LXX-Sensors
+   * **Non** VL53L1X-Sensors
 * MQTT support
-* Automatic device creation
+* Automatic device creation in Domoticz
 * Configuration WebUI (may be moved to a later version)
    * Removal of Config.h
+* OTA support
    
 ### Changelog v0.9.6
 #### Additions
