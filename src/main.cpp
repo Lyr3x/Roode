@@ -2,15 +2,28 @@
 Author: Kai Bepperling, kai.bepperling@gmail.com
 License: GPLv3
 */
-
-#include <Configuration.h>
-#include <OptionChecker.h>
-#include <MySensors.h>    // include the MySensors library
-#include <Arduino.h>      //need to be included, cause the file is moved to a .cpp file
-#include <MotionSensor.h> //MotionSensorLib
-#include <SensorReader.h>
-#include <Communication.h>
+#include <../lib/Configuration/Config.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <Calibration.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures.h>
+#include <../STM32duino_Proximity_Gesture/src/tof_gestures_DIRSWIPE_1.h>
+
+#ifdef USE_MQTT
+#include <../lib/MQTTTransmitter/MQTTTransmitter.h>
+MQTTTransmitter transmitter;
+const char *topic_Domoticz_IN = "domoticz/in";
+const char *topic_Domoticz_OUT = "domoticz/out";
+// Set web server port number to 80
+WiFiServer server(80);
+
+// Variable to store the HTTP request
+String header;
+#endif
+
+// #include <OptionChecker.h>
+#include <../lib/MotionSensor/MotionSensor.h> //MotionSensorLib
+#include <../lib/Counter/Counter.h>
 
 // battery setup
 #ifdef USE_BATTERY
@@ -19,383 +32,392 @@ BatteryMeter battery(BATTERY_METER_PIN);            //BatteryMeter instance
 MyMessage voltage_msg(CHILD_ID_BATTERY, V_VOLTAGE); //MySensors battery voltage message instance
 #endif
 
-extern uint8_t peopleCount;
-#ifdef USE_VL53L0X
-VL53L0X CORRIDOR_SENSOR;
-VL53L0X ROOM_SENSOR;
-
-#elif defined USE_VL53L1X
-VL53L1X CORRIDOR_SENSOR_pololu;
-VL53L1X ROOM_SENSOR_pololu;
-VL53L1XWrap ROOM_SENSOR(ROOM_SENSOR_pololu);
-VL53L1XWrap CORRIDOR_SENSOR(CORRIDOR_SENSOR_pololu);
-#endif
-void readCounterButtons();
-void VL53LXX_init()
-{
-  // Wire.end();
-  pinMode(ROOM_XSHUT, OUTPUT);
-  pinMode(CORRIDOR_XSHUT, OUTPUT);
-  wait(10);
-  digitalWrite(ROOM_XSHUT, LOW);
-  digitalWrite(CORRIDOR_XSHUT, LOW);
-  wait(10);
-
-  pinMode(ROOM_XSHUT, INPUT);
-  wait(10);
-  ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  pinMode(CORRIDOR_XSHUT, INPUT);
-  wait(10);
-  CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  ROOM_SENSOR.init();
-  CORRIDOR_SENSOR.init();
-  ROOM_SENSOR.setTimeout(500);
-  CORRIDOR_SENSOR.setTimeout(500);
-
-#if defined(USE_VL53L0X)
-#if defined LONG_RANGE
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  ROOM_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-
-  // lower the return signal rate limit (default is 0.25 MCPS)
-  CORRIDOR_SENSOR.setSignalRateLimit(0.1);
-  // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-  CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+#ifdef USE_VL53L1X
+// ###### configure VL53L1X ######
+uint16_t threshold = 0;
+#include <../lib/VL53L1XSensor/VL53L1XSensor.h>
+VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
 #endif
 
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  ROOM_SENSOR.setMeasurementTimingBudget(20000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  ROOM_SENSOR.setMeasurementTimingBudget(200000);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
-#endif
-#endif //endif USE_VL53L0X
+void manageTimeout();        //move to sensor
+void updateDisplayCounter(); //move to display module
+void handle_client();
 
-#if defined(USE_VL53L1X)
-#if defined LONG_RANGE
-  // Short, Medium, Long, Unkown as ranges are possible
-  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
-  ROOM_SENSOR.setMeasurementTimingBudget(33000);
-  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
-#endif
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
-#endif
-#endif
-
-  ROOM_SENSOR.startContinuous();
-  CORRIDOR_SENSOR.startContinuous();
-}
 void setup()
 {
+#ifdef USE_MQTT
+  Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setClock(400000);
+  Serial.begin(115200);
+  // Connect to WiFi access point.
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(transmitter.ssid);
+
+#ifdef USE_VL53L1X
+  count_sensor.init();
+  calibration(count_sensor);
+  tof_gestures_initDIRSWIPE_1(threshold, 0, 1000, false, &gestureDirSwipeData);
+#endif
+
+  WiFiManager wifiManager;
+  wifiManager.setTimeout(180);
+  if (!wifiManager.autoConnect(WLAN_SSID, WLAN_PASS))
+  {
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    ESP.reset();
+    delay(5000);
+  }
+
+  //MQTT
+  void callback(char *topic, byte *payload, unsigned int length);
+  client.setServer(transmitter.mqtt_server, 1883);
+  client.setCallback(callback);
+
+  // say we are now ready and give configuration items
+  Serial.println("Ready");
+  Serial.print("Connected to ");
+  if (transmitter.WiFi_AP == 1)
+    Serial.println(transmitter.ssid);
+  else
+    Serial.println(transmitter.ssid2);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println("MAC address:");
+  Serial.println(WiFi.macAddress());
+  server.begin(); // start webserver
+  if (!client.connected())
+  { // MQTT connection
+    transmitter.reconnect();
+  }
+#endif
+
 #ifdef USE_OLED
-  oled.init();
-  oled.sendCommand(BRIGHTNESS_CTRL);
-  oled.sendCommand(BRIGHTNESS);
+  oled.begin(&Adafruit128x32, OLED_I2C);
+  oled.setFont(Adafruit5x7);
   oled.clear();
-  oled.setTextSize(1);
-  oled.setCursor(0, 25);
-  oled.println("### Roode ###");
+  oled.setContrast(BRIGHTNESS);
   oled.setCursor(10, 0);
   oled.print("RooDe: ");
   oled.print(ROODE_VERSION);
   oled.print("\n");
-  oled.print("MySensors: ");
-  oled.println(MYSENSORS_LIBRARY_VERSION);
-  wait(2000);
+#ifdef USE_MQTT
+  oled.println("PubSubClient: v2.7 ");
+
+#endif
+  delay(2000);
+  oled.clear();
 #endif
 
-  Serial.println("##### RooDe Presence Detection System #####");
-
+  Serial.println(F("##### RooDe Presence Detection System #####"));
+#ifdef USE_MOTION
   //Motion Sensor
   pinMode(DIGITAL_INPUT_SENSOR, INPUT); // declare motionsensor as input
-#if defined(USE_SHARP_IR) && !defined(USE_VL53L0X)
-  //Corridor Sensor Enable PIN
-  pinMode(CORRIDOR_ENABLE, OUTPUT);
-
-  //Room Sensor Voltage Enable PIN
-  pinMode(ROOM_ENABLE, OUTPUT);
-#endif
-#if !defined(USE_SHARP_IR) && defined(USE_VL53L0X)
-  Wire.begin();
-  VL53LXX_init();
-
-  // pinMode(ROOM_XSHUT, OUTPUT);
-  // pinMode(CORRIDOR_XSHUT, OUTPUT);
-  // Wire.begin();
-
-  // pinMode(ROOM_XSHUT, INPUT);
-  // wait(10);
-  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  // pinMode(CORRIDOR_XSHUT, INPUT);
-  // wait(10);
-  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-  // ROOM_SENSOR.init();
-  // CORRIDOR_SENSOR.init();
-  // ROOM_SENSOR.setTimeout(500);
-  // CORRIDOR_SENSOR.setTimeout(500);
-// #if defined LONG_RANGE
-//   // lower the return signal rate limit (default is 0.25 MCPS)
-//   ROOM_SENSOR.setSignalRateLimit(0.1);
-//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-//   ROOM_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-
-//   // lower the return signal rate limit (default is 0.25 MCPS)
-//   CORRIDOR_SENSOR.setSignalRateLimit(0.1);
-//   // increase laser pulse periods (defaults are 14 and 10 PCLKs)
-//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
-//   CORRIDOR_SENSOR.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-// #endif
-
-// #if defined HIGH_SPEED
-//   // reduce timing budget to 20 ms (default is about 33 ms)
-//   ROOM_SENSOR.setMeasurementTimingBudget(20000);
-//   CORRIDOR_SENSOR.setMeasurementTimingBudget(20000);
-// #elif defined HIGH_ACCURACY
-//   // increase timing budget to 200 ms
-//   ROOM_SENSOR.setMeasurementTimingBudget(200000);
-//   CORRIDOR_SENSOR.setMeasurementTimingBudget(200000);
-// #endif
-//   ROOM_SENSOR.startContinuous();
-//   CORRIDOR_SENSOR.startContinuous();
-#endif
-
-#if defined(USE_VL53L1X)
-  VL53LXX_init();
-  // pinMode(ROOM_XSHUT, OUTPUT);
-  // pinMode(CORRIDOR_XSHUT, OUTPUT);
-  // Wire.begin();
-
-  // pinMode(ROOM_XSHUT, INPUT);
-  // delay(10);
-  // ROOM_SENSOR.setAddress(ROOM_SENSOR_newAddress);
-  // pinMode(CORRIDOR_XSHUT, INPUT);
-  // delay(10);
-  // CORRIDOR_SENSOR.setAddress(CORRIDOR_SENSOR_newAddress);
-
-  // ROOM_SENSOR.init();
-  // CORRIDOR_SENSOR.init();
-  // ROOM_SENSOR.setTimeout(500);
-  // CORRIDOR_SENSOR.setTimeout(500);
-  // ROOM_SENSOR.startContinuous(33);
-  // CORRIDOR_SENSOR.startContinuous(33);
-
-#if defined LONG_RANGE
-  // Short, Medium, Long, Unkown as ranges are possible
-  ROOM_SENSOR.setDistanceMode(VL53L1X::Long);
-  ROOM_SENSOR.setMeasurementTimingBudget(33000);
-  CORRIDOR_SENSOR.setDistanceMode(VL53L1X::Long);
-  CORRIDOR_SENSOR.setMeasurementTimingBudget(33000);
-#endif
-
-#if defined HIGH_SPEED
-  // reduce timing budget to 20 ms (default is about 33 ms)
-  sensor.setMeasurementTimingBudget(20000);
-#elif defined HIGH_ACCURACY
-  // increase timing budget to 200 ms
-  sensor.setMeasurementTimingBudget(200000);
-#endif
 #endif
 
 #ifdef CALIBRATION
-#ifdef USE_OLED
-  oled.clear();
-  oled.setCursor(0, 0);
-  oled.setTextSize(1, 1);
-  oled.println("# Calibrate Motion #");
-#endif
+
   motion.Setup(MOTION_INIT_TIME);
   // Serial.println("#### motion sensor initialized ####");
 
-  Serial.println("#### calibrate the ir sensors ####");
-
-  calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-#endif
-
-  Serial.println("#### Setting the PresenceCounter and Status to OUT (0) ####");
-  send(msg.set(0));   //Setting presence status to 0
-  send(pcMsg.set(0)); //Setting the people counter to 0
+  Serial.println(F("#### Sensor calibration starting ####"));
 #ifdef USE_OLED
   oled.clear();
-  oled.setCursor(10, 0);
-  oled.println("Setting Counter to 0");
-  wait(1000);
+  oled.println("Sensor calibration");
+#endif
+  sensorCalibration();
+#if defined(USE_OLED)
+  oled.clear();
+  oled.print("Right: ");
+  oled.println(ROOM_SENSOR.getThreshold());
+  oled.print("Left: ");
+  oled.println(CORRIDOR_SENSOR.getThreshold());
+  delay(1500);
+#endif
 #endif
 
-#ifdef USE_COUNTER_BUTTONS
-  pinMode(INCREASE_BUTTON, INPUT); // declare the counter increase button as input
-  pinMode(DECREASE_BUTTON, INPUT); // declare the counter decrease button as input
-#endif
-}
-
-void presentation()
-{
-  sendSketchInfo("RooDe", ROODE_VERSION);
-  present(CHILD_ID_R, S_BINARY);
-  present(CHILD_ID_PC, S_INFO);
-#ifdef USE_BATTERY
-  present(CHILD_ID_BATTERY, S_CUSTOM);
-#endif
-  present(CHILD_ID_THR, S_INFO);
-}
-
-void receive(const MyMessage &message)
-{
-  if (message.type == V_TEXT)
-  {
-    Serial.println("V_TEXT update");
-    Serial.print("MySensor message received:");
-    Serial.println(message.sensor);
-    Serial.println(message.type);
-    Serial.println(message.sender);
-    Serial.println(message.getString());
-    String newThreshold = message.getString();
-    if (message.sensor == 3 && newThreshold.substring(0, 11) == "recalibrate")
-    {
-      // ROOM_SENSOR.stopContinuous();
-      // CORRIDOR_SENSOR.stopContinuous();
-      // VL53LXX_init();
-
-      calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
-    }
-
-    if (message.sensor == CHILD_ID_PC)
-    {
-      wait(30);
-      Serial.println(message.getInt());
-      peopleCount = message.getInt();
-      // send(pcMsg.set(peopleCount));
-    }
+  Serial.println(F("#### Setting the PresenceCounter and Status to OUT (0) ####"));
+#ifdef USE_MQTT
+  if (!client.connected())
+  { // MQTT connection
+    transmitter.reconnect();
   }
-}
-int lastState = LOW;
-int newState = LOW;
+#endif
+  transmitter.transmit(transmitter.devices.room_switch, 0, "Off");
+  delay(10);
+  transmitter.transmit(transmitter.devices.peoplecounter, 0);
+  peopleCount = 0;
+  // #if defined(USE_OLED)
+  //   peopleCount = 0;
+  //   updateDisplayCounter();
+  // #endif
+} // end of setup()
 
+int lastState = LOW;
 void loop()
 {
-  if (ROOM_SENSOR.timeoutOccurred() || CORRIDOR_SENSOR.timeoutOccurred())
-  {
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Timeout occured!");
-#endif
-    reportToController(65535);
-    Serial.println("Timeout occured. Restart the System");
-
-    calibration(ROOM_SENSOR, CORRIDOR_SENSOR);
+#ifdef USE_MQTT
+  if (!client.connected())
+  { // MQTT connection
+    transmitter.reconnect();
   }
-
-  //   // Sleep until interrupt comes in on motion sensor. Send never an update
+#endif
+#ifdef USE_MOTION
+  // Sleep until interrupt comes in on motion sensor. Send never an update
   if (motion.checkMotion() == LOW)
   {
+#ifdef MY_DEBUG
+    Serial.println("1. Motion sensor is off");
+#endif
 #ifdef USE_OLED
     oled.clear();
 #endif
 #ifdef USE_ENEGERY_SAVING
     if (lastState == HIGH)
     {
-      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
-#if defined USE_SHARP_IR
-      digitalWrite(ROOM_ENABLE, LOW);
-      wait(1);
-      digitalWrite(CORRIDOR_ENABLE, LOW);
-#elif defined USE_VL53L0X || defined USE_VL53L1X
+
 #ifdef MY_DEBUG
-      Serial.println("Shutting down sensors");
+      Serial.println("2. Motion sensor is off. Last readloop");
 #endif
-      ROOM_SENSOR.stopContinuous();
-      CORRIDOR_SENSOR.stopContinuous();
+      counting(count_sensor);
+
+#ifdef MY_DEBUG
+      Serial.println("3. Shutting down sensors");
 #endif
-      // wait(30);
-      // request(CHILD_ID_THR, V_TEXT, 0);
-      // wait(30);
-      // request(CHILD_ID_PC, V_TEXT, 0);
       lastState = LOW;
-#ifdef USE_COUNTER_BUTTONS
-      readCounterButtons(); //We need two more interrupt pins to get this working!
-#endif
+      VL53L1_StopMeasurement(count_sensor);
     }
 #else
-#ifdef USE_COUNTER_BUTTONS
-    readCounterButtons(); //We need two more interrupt pins to get this working!
+    counting(count_sensor);
 #endif
-    // request(CHILD_ID_THR, V_TEXT, 0);
-    // wait(30);
-    // request(CHILD_ID_PC, V_TEXT, 0);
-    readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
-#endif
-#ifdef USE_BATTERY
-    smartSleep(digitalPinToInterrupt(DIGITAL_INPUT_SENSOR), RISING, SLEEP_TIME); //sleep function only in battery mode needed
-    readSensorData();
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
-#endif
-
-    while (motion.checkMotion() != LOW)
-    {
-
-      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
-    }
-#endif
-  }
-  else
+  }    // if (motion.checkMotion() == LOW)
+  else //Motion HIGH
   {
     if (lastState == LOW)
     {
+#ifdef USE_OLED
+      updateDisplayCounter();
+#endif
 #ifdef USE_ENEGERY_SAVING
 #ifdef MY_DEBUG
-      Serial.println("Starting continuous mode again");
+      Serial.println("5. Starting continuous mode again");
 #endif
-      ROOM_SENSOR.startContinuous();
-      CORRIDOR_SENSOR.startContinuous();
-      wait(10);
+#ifdef MY_DEBUG
+      Serial.println("6. Start Sensors");
+#endif
+      VL53L1_StartMeasurement(count_sensor);
 #endif
     }
     lastState = HIGH;
-#ifdef USE_OLED
-    oled.clear();
-    oled.setCursor(5, 0);
-    oled.setTextSize(2, 1);
-    oled.print("Counter: ");
-    oled.println(peopleCount);
-#endif
     while (motion.checkMotion() != LOW)
     {
-      readSensorData(ROOM_SENSOR, CORRIDOR_SENSOR);
+#ifdef MY_DEBUG
+      Serial.println("7. Motion sensor is on. Start counting");
+#endif
+      counting(count_sensor);
     }
-  }
+  } // else //Motion HIGH
+#else
+  // handle_client();
+  counting(count_sensor);
+#endif
+
+#ifdef USE_MQTT
+  client.loop();
+#endif
 }
 
-#ifdef USE_COUNTER_BUTTONS
-void readCounterButtons()
+inline void updateDisplayCounter()
 {
-  if (digitalRead(INCREASE_BUTTON) == HIGH)
+#ifdef USE_OLED
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.set2X();
+  oled.print("Inside: ");
+  oled.println(peopleCount);
+#endif
+}
+
+inline void manageTimeout()
+{
+#ifdef USE_OLED
+  oled.clear();
+  oled.setCursor(5, 0);
+  oled.set2X();
+  oled.print("Timeout occured!");
+#endif
+  Serial.println("Timeout occured. Restart the System");
+}
+
+#ifdef USE_MQTT
+// !! Needs to be implemented !!
+
+void callback(char *topic, byte *payload, unsigned int length)
+{ // ****************
+
+  DynamicJsonDocument root(MQTT_MAX_PACKET_SIZE);
+  String messageReceived = "";
+
+  // Affiche le topic entrant - display incoming Topic
+  Serial.print(F("Message arrived ["));
+  Serial.print(topic);
+  Serial.print(F("] "));
+
+  // decode payload message
+  for (unsigned int i = 0; i < length; i++)
   {
-    sendCounter(1);
+    messageReceived += ((char)payload[i]);
   }
-  else if (digitalRead(DECREASE_BUTTON) == HIGH)
+  // display incoming message
+  Serial.print(messageReceived);
+
+  // if domoticz message
+  if (strcmp(topic, topic_Domoticz_OUT) == 0)
   {
-    sendCounter(0);
+    //JsonObject& root = jsonBuffer.parseObject(messageReceived);
+    DeserializationError error = deserializeJson(root, messageReceived);
+    if (error)
+
+      return;
+
+    const char *idxChar = root["idx"];
+    String idx = String(idxChar);
+    /*
+        if ( idx == LIGHT_SWITCH_IDX[0] ) {      
+           const char* cmde = root["nvalue"];
+           if( strcmp(cmde, "0") == 0 ) {  // 0 means we have to switch OFF the lamps
+                if( LIGHT_ACTIVE[0] == "On" ) { digitalWrite(Relay1, LOW); LIGHT_ACTIVE[0] = "Off"; } 
+           } else if( LIGHT_ACTIVE[0] == "Off" ) { digitalWrite(Relay1, HIGH); LIGHT_ACTIVE[0] = "On"; }           
+           Serial.print("Lighting "); Serial.print(LIGHTING[0]); Serial.print(" is now : "); Serial.println(LIGHT_ACTIVE[0]);
+        }  // if ( idx == LIGHT_SWITCH_IDX[0] ) {
+
+        if ( idx == LIGHT_SWITCH_IDX[1] ) {      
+           const char* cmde = root["nvalue"];
+           if( strcmp(cmde, "0") == 0 ) { 
+                if( LIGHT_ACTIVE[1] == "On" ) { digitalWrite(Relay2, LOW); LIGHT_ACTIVE[1] = "Off"; } 
+           } else if( LIGHT_ACTIVE[1] == "Off" ) { digitalWrite(Relay2, HIGH); LIGHT_ACTIVE[1] = "On"; }    
+           Serial.print("Lighting "); Serial.print(LIGHTING[1]); Serial.print(" is now : "); Serial.println(LIGHT_ACTIVE[1]);
+        }  // if ( idx == LIGHT_SWITCH_IDX[0] ) {
+            */
+  } // if domoticz message
+
+  delay(15);
+} // void callback(char* to   ****************
+
+#endif
+
+void handle_client()
+{
+  // Auxiliar variables to store the current output state
+  String output5State = "off";
+  String output4State = "off";
+
+  // Assign output variables to GPIO pins
+  const int output5 = 5;
+  const int output4 = 4;
+  WiFiClient client = server.available(); // Listen for incoming clients
+
+  if (client)
+  {                                // If a new client connects,
+    Serial.println("New Client."); // print a message out in the serial port
+    String currentLine = "";       // make a String to hold incoming data from the client
+    while (client.connected())
+    { // loop while the client's connected
+      if (client.available())
+      {                         // if there's bytes to read from the client,
+        char c = client.read(); // read a byte, then
+        Serial.write(c);        // print it out the serial monitor
+        header += c;
+        if (c == '\n')
+        { // if the byte is a newline character
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0)
+          {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println();
+
+            // turns the GPIOs on and off
+            if (header.indexOf("GET /5/on") >= 0)
+            {
+              Serial.println("GPIO 5 on");
+              output5State = "on";
+              digitalWrite(output5, HIGH);
+            }
+            else if (header.indexOf("GET /5/off") >= 0)
+            {
+              Serial.println("GPIO 5 off");
+              output5State = "off";
+              digitalWrite(output5, LOW);
+            }
+
+            // Display the HTML web page
+            client.println("<!-- HTTP_PORTAL_OPTIONS --> <form action=\"/wifi\" method=\"get\"><button>Configure WiFi</button></form><br/><form action=\"/0wifi\" method=\"get\"><button>Configure WiFi (No Scan)</button></form><br/><form action=\"/i\" method=\"get\"><button>Info</button></form><br/><form action=\"/r\" method=\"post\"><button>Reset</button></form>	<!-- /HTTP_PORTAL_OPTIONS -->");
+            client.println("<!DOCTYPE html><html>");
+            client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+            client.println("<link rel=\"icon\" href=\"data:,\">");
+            // CSS to style the on/off buttons
+            // Feel free to change the background-color and font-size attributes to fit your preferences
+            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+            client.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;");
+            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".button2 {background-color: #77878A;}</style></head>");
+
+            // Web Page Heading
+            client.println("<body><h1>ESP8266 Web Server</h1>");
+
+            // Display current state, and ON/OFF buttons for GPIO 5
+            client.println("<p>GPIO 5 - State " + output5State + "</p>");
+            // If the output5State is off, it displays the ON button
+            if (output5State == "off")
+            {
+              client.println("<p><a href=\"/5/on\"><button class=\"button\">ON</button></a></p>");
+            }
+            else
+            {
+              client.println("<p><a href=\"/5/off\"><button class=\"button button2\">OFF</button></a></p>");
+            }
+
+            // Display current state, and ON/OFF buttons for GPIO 4
+            client.println("<p>GPIO 4 - State " + output4State + "</p>");
+            // If the output4State is off, it displays the ON button
+            if (output4State == "off")
+            {
+              client.println("<p><a href=\"/4/on\"><button class=\"button\">ON</button></a></p>");
+            }
+            else
+            {
+              client.println("<p><a href=\"/4/off\"><button class=\"button button2\">OFF</button></a></p>");
+            }
+            client.println("</body></html>");
+
+            // The HTTP response ends with another blank line
+            client.println();
+            // Break out of the while loop
+            break;
+          }
+          else
+          { // if you got a newline, then clear currentLine
+            currentLine = "";
+          }
+        }
+        else if (c != '\r')
+        {                   // if you got anything else but a carriage return character,
+          currentLine += c; // add it to the end of the currentLine
+        }
+      }
+    }
+    // Clear the header variable
+    header = "";
+    // Close the connection
+    client.stop();
+    Serial.println("Client disconnected.");
+    Serial.println("");
   }
 }
-#endif

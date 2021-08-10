@@ -1,33 +1,43 @@
 # RooDe
-People counter working with MySensors
-Repository initialized with version 0.9.4 and MySensors 2.3.0-alpha
-## Featurelist
+People counter working with any smart home system which supports MQTT
+Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
+**Version 1.0 will break the support for all old hardware configurations working right now (IR-Sensors and VL53L0X)**
+## Version 1.0 - Featurelist
+Here is a list of features which are working or in _work_
 * Counting people entering and leaving a room
 * Sensor threhsold calibration with standard deviation
 * Receiving commands from the controller e.g. recalibration or manual counter setting
 * OLED support
-* Domoticz Events provided (Roode is useable with every MySensors Controller)
+* Sleep mode with Motion Sensor support
+* Domoticz Events provided (Roode is useable with every MQTT Controller)
+* _Introduction of the new Sensor - VL53L1X_
+* _Completely configurable over WebUI_
+* _Firmware upgrades over WebUI_
+* _Automatically creates Domoticz devices_
 
 ## Hardware
-* Arduino Pro Mini 5V 
-* 2x VL53L0X/VL53L1X or ~~SHARP gp2y0a02yk0f 20-150cm.~~(dont buy them anymore!)
-    * The VL53XXX are using I²C and are much more reliable up to 2m
-    * The Sharp Sensors are analog sensors
-* 1x HC-SR501 
-    * For waking up RooDe. No unnecessary measurements if nobodoy is in range.
-* 1x NRF24L01+ incl. Power Adapter
-  * Alternative: RFM69 or ESP8266 (not implemented yet)
-* 1x CP2101 Micro USB TTL Adapter
-    * Power Supply and Programming Interface
-* 1x 128x32 OLED Display (Optional)
-* 2x Push-Buttons (Optional)
-* Case (see .stl files
-
-## Additional Configuration Info
-Everything the user needs to do is walking through the Configuration.h and setup all the features which should be used. There you can also see which pins are pre defined for all the devices and you can easily change them to different free pins. 
-It is crucial that you turned off `#define MY_DEBUG`! Otherwise Roode will crash while performing certain tasks like receiving messages due to high frequent serial output. The Debug mode is just for developing purposes. 
+There will be a specific Hardware setup (recommended brands etc.) soon!
+* ESP8266 or ESP32
+* 1x VL53L1X
+* Optional HC-SR501
+* Optional 128x32 OLED
+* Power Supply
+* Encolsure (see .stl files
 
 ## Changelog
+### Changelog v1.0
+#### Additions and Breaking Changes
+* Add full VL53L1X support
+* Removes legacy support which includes
+   * Arduino plattform
+   * MySensors plattform
+   * **Non** VL53L1X-Sensors
+* MQTT support
+* Automatic device creation in Domoticz
+* Configuration WebUI (may be moved to a later version)
+   * Removal of Config.h
+* OTA support
+   
 ### Changelog v0.9.6
 #### Additions
 * added full VL53L0X support
