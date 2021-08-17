@@ -17,8 +17,7 @@ public:
   void startMeasurement();
   void stopMeasurement();
   void timeoutOccured();
-  uint16_t getThreshold();
-  void setThreshold(uint16_t newThreshold);
+  void setIntermeasurementPeriod(int period);
   void checkDev();
   
 private:

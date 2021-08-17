@@ -4,6 +4,7 @@
 #include <Config.h>
 #include <VL53L1XSensor.h>
 #include <Counter.h>
+#include <EEPROM.h>
 #include <Calibration.h>
 
 #define USE_VL53L1X
@@ -21,6 +22,7 @@ int left = 0, right = 0, cnt = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 static int resetCounter = 0;
 boolean lastTrippedState = 0;
+
 
 //static int num_timeouts = 0;
 double people, distance_avg;
@@ -42,9 +44,13 @@ public:
 #ifdef CALIBRATION
     calibration(count_sensor);
 #endif
+#ifdef CALIBRATIONV2
+    calibration_boot(count_sensor);
+#endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
     count_sensor.startMeasurement();
   }
+
 
   void loop() override
   {
@@ -63,11 +69,11 @@ public:
     }
     else
     {
-      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig1);
+      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig2);
     }
 
-  
-    if (distance < id(DIST_THRESHOLD_MAX_G))
+    // if (distance < id(DIST_THRESHOLD_MAX_G))
+    if (distance < DIST_THRESHOLD_MAX[Zone] && distance > MIN_DISTANCE[Zone])
     {
       // Someone is in !
       CurrentZoneStatus = SOMEONE;

@@ -8,11 +8,11 @@ esphome:
   board: nodemcuv2
   includes:
     - src/app.h
+    - lib/VL53L1XSensor/
     - lib/Calibration/Calibration.h
 
   libraries:
     - file://../lib/Configuration/
-    - file://../lib/VL53L1XSensor/
     - file://../lib/vl53l1_api/
     - file://../lib/Counter/
 

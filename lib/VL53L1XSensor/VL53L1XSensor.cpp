@@ -18,13 +18,11 @@ void VL53L1XSensor::init()
     // ESP_LOGD("VL53L1X custom sensor", "Getting Device data");
     uint16_t wordData;
     VL53L1_RdWord(Sensor, 0x010F, &wordData);
-    // ESP_LOGD("VL53L1X custom sensor", "DevAddr: 0x%X VL53L1X: 0x%X", Dev->I2cDevAddr, wordData);
 
     delay(1000);
     VL53L1_software_reset(Sensor);
 
     // ESP_LOGD("VL53L1X custom sensor", "Autonomous Ranging Test");
-    Serial.printf("Autonomous Raning Test");
 
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);
@@ -34,8 +32,7 @@ void VL53L1XSensor::init()
     status += VL53L1_SetInterMeasurementPeriodMilliSeconds(Sensor, 15);
     if (status)
     {
-        // Serial.printf("StartMeasurement failed status: %d\n\r", status);
-        // ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", VL53L1_status);
+        // ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", status);
     }
 }
 
@@ -136,16 +133,6 @@ void VL53L1XSensor::stopMeasurement()
     VL53L1_StopMeasurement(Sensor);
 }
 
-uint16_t VL53L1XSensor::getThreshold()
-{
-    return DIST_THRESHOLD_MAX;
-}
-
-void VL53L1XSensor::setThreshold(uint16_t newThreshold)
-{
-    #define DIST_THRESHOLD_MAX newThreshold;
-}
-
 void VL53L1XSensor::checkDev()
 {
     uint16_t wordData;
@@ -153,3 +140,7 @@ void VL53L1XSensor::checkDev()
     Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Sensor->I2cDevAddr, wordData);
 }
 
+void VL53L1XSensor::setIntermeasurementPeriod(int period)
+{
+    VL53L1_SetInterMeasurementPeriodMilliSeconds(Sensor, 15);
+}
