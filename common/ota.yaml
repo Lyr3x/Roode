@@ -1,0 +1,2 @@
+ota:
+  password: !secret ota_password

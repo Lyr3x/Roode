@@ -1,8 +1,9 @@
 #ifndef VL53L1XSensor_H
 #define VL53L1XSensor_H
+#pragma once
 
+#include <vl53l1_api.h>
 #include <Config.h>
-#include "Arduino.h"
 #include <Wire.h>
 
 class VL53L1XSensor
@@ -17,6 +18,10 @@ public:
   void startMeasurement();
   void stopMeasurement();
   void timeoutOccured();
+  VL53L1_Error setUserROI(VL53L1_UserRoi_t *pUserRoi);
+  VL53L1_Error waitMeasurementDataReady();
+  VL53L1_Error getRangingMeasurementData(VL53L1_RangingMeasurementData_t *pRangingMeasurementData);
+  VL53L1_Error clearInterruptAndEnableNextRange(uint8_t measurement_mode);
   uint16_t getThreshold();
   void setThreshold(uint16_t newThreshold);
   void checkDev();
