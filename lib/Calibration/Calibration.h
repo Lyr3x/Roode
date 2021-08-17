@@ -42,12 +42,12 @@ void calibration(VL53L1XSensor Sensor)
         auto sensor_value = Sensor.readRangeContinuoisMillimeters(roiConfig1);
 
         // #ifdef MY_DEBUG
-        Serial.println(sensor_value);
+        ESP_LOGD("VL53L1X custom sensor", "sensor_value: %d", sensor_value);
         // #endif
         //calculate the max without jumps for the room sensor
         if ((sensor_value < min) || ((sensor_value - min) == sensor_value))
         {
-            Serial.println(sensor_value);
+            ESP_LOGD("VL53L1X custom sensor", "sensor_value: %d", sensor_value);
             min = sensor_value;
             if (n < 30)
             {
@@ -63,9 +63,9 @@ void calibration(VL53L1XSensor Sensor)
 // Serial.print("standard deviation: " + threshold);
 // threshold = max + THRESHOLD_X;#
 #undef DIST_THRESHOLD_MAX
-#define DIST_THRESHOLD_MAX min - sd;
-    Serial.print(F("standard deviation: "));
-    Serial.println(sd);
-    Serial.println(F("#### calibration done ####"));
+#define DIST_THRESHOLD_MAX min - sd
+    ESP_LOGI("VL53L1X custom sensor", "standard deviation: %d", sd);
+    ESP_LOGI("VL53L1X custom sensor", "new threshold: %d", DIST_THRESHOLD_MAX);
+    ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
 }
 #endif

@@ -1,6 +1,4 @@
 #include <VL53L1XSensor.h>
-#include <vl53l1_api.h>
-#include <Config.h>
 
 VL53L1XSensor::VL53L1XSensor(int XSHUT, int I2C_ADDRESS)
 {

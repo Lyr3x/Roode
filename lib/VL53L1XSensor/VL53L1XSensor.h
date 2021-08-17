@@ -1,6 +1,5 @@
 #ifndef VL53L1XSensor_H
 #define VL53L1XSensor_H
-#pragma once
 
 #include <vl53l1_api.h>
 #include <Config.h>
