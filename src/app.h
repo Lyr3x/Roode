@@ -16,13 +16,11 @@ int gesture_code;
 #define RIGHT 1
 
 static const char *TAG = "main";
-
 int distance = 0;
 int left = 0, right = 0, cnt = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 static int resetCounter = 0;
 boolean lastTrippedState = 0;
-
 
 //static int num_timeouts = 0;
 double people, distance_avg;
@@ -45,12 +43,11 @@ public:
     calibration(count_sensor);
 #endif
 #ifdef CALIBRATIONV2
-    calibration_boot(count_sensor);
+  calibration_boot(count_sensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
     count_sensor.startMeasurement();
   }
-
 
   void loop() override
   {
