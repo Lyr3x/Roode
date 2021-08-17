@@ -79,7 +79,7 @@ inline void dispUpdate(Sensor people_sensor, Sensor distance_sensor)
 }
 int counting(VL53L1XSensor count_sensor, Sensor people_sensor, Sensor distance_sensor)
 {
-
+    ESP_LOGE("custom", "ERROR");
     if (zone == LEFT)
     {
         VL53L1_status = count_sensor.setUserROI(&roiConfig1);
@@ -90,21 +90,19 @@ int counting(VL53L1XSensor count_sensor, Sensor people_sensor, Sensor distance_s
     }
     VL53L1_status = count_sensor.waitMeasurementDataReady();
     if (!VL53L1_status)
-        VL53L1_status = count_sensor.getRangingMeasurementData(&RangingData);                        //4mS
+        VL53L1_status = count_sensor.getRangingMeasurementData(&RangingData); //4mS
     count_sensor.clearInterruptAndEnableNextRange(VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT); //2mS
     if (VL53L1_status == 0)
     {
         distance = RangingData.RangeMilliMeter;
+        ESP_LOGD("VL53L1X custom sensor",  "distance: %d", distance);
     }
 
-    // 1780
-    // 300 mm -> kammer
-    //if (distance < DIST_THRESHOLD_MAX_G) {
     if (distance < id(DIST_THRESHOLD_MAX_G))
     {
         // Someone is in !
         CurrentZoneStatus = SOMEONE;
-        //ESP_LOGE(TAG, "Global value is: %d", id(DIST_THRESHOLD_MAX_G));
+        ESP_LOGE(TAG, "Global value is: %d", id(DIST_THRESHOLD_MAX_G));
     }
 
     // left zone

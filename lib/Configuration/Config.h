@@ -45,9 +45,9 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 /*
 ###### I2C Pin Definition ######
 */
-#define SDA_PIN D6
-#define SCL_PIN D5
-
+#define SDA_PIN D2
+#define SCL_PIN D1
+#define XSHUT_PIN 14
 /**
 ###### VL53L1X Definition ######
 **/
@@ -59,14 +59,14 @@ static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotR
 static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
 
 #define SENSOR_I2C 0x52
-#define XSHUT_PIN D3
+
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
 
 #define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
-#define DIST_THRESHOLD_MAX 1780;
+#define DIST_THRESHOLD_MAX 1780
 /*
  Feature switches:
  * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine

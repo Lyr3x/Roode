@@ -1,6 +1,7 @@
 #include <VL53L1XSensor.h>
 #include <vl53l1_api.h>
 #include <Config.h>
+#include "esphome/core/log.h"
 
 VL53L1XSensor::VL53L1XSensor(int XSHUT, int I2C_ADDRESS)
 {
@@ -17,15 +18,15 @@ void VL53L1XSensor::init()
     checkDev();
     delay(1000);
 
-    // ESP_LOGD("VL53L1X custom sensor", "Getting Device data");
+    ESP_LOGD("VL53L1X custom sensor", "Getting Device data");
     uint16_t wordData;
     VL53L1_RdWord(Sensor, 0x010F, &wordData);
-    // ESP_LOGD("VL53L1X custom sensor", "DevAddr: 0x%X VL53L1X: 0x%X", Dev->I2cDevAddr, wordData);
+    ESP_LOGD("VL53L1X custom sensor", "DevAddr: 0x%X VL53L1X: 0x%X", Dev->I2cDevAddr, wordData);
 
     delay(1000);
     VL53L1_software_reset(Sensor);
 
-    // ESP_LOGD("VL53L1X custom sensor", "Autonomous Ranging Test");
+    ESP_LOGD("VL53L1X custom sensor", "Autonomous Ranging Test");
 
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);
@@ -36,7 +37,7 @@ void VL53L1XSensor::init()
     if (status)
     {
         // Serial.printf("StartMeasurement failed status: %d\n\r", status);
-        // ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", VL53L1_status);
+        ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", VL53L1_status);
     }
 }
 

@@ -21,10 +21,9 @@ public:
   void setup() override
   {
     // This will be called by App.setup()
-    Wire.begin(SDA_PIN, SCL_PIN);
+    Wire.begin();
     Wire.setClock(400000);
-    //Serial.begin(115200);
-
+    
     count_sensor.init();
     calibration(count_sensor);
 
