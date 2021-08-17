@@ -1,5 +1,8 @@
+#ifndef CALIBRATION_H
+#define CALIBRATION_H
 #include <Config.h>
 #include <Math.h>
+#include "esphome/core/log.h"
 
 int calculateStandardDeviation(int irValues[])
 {
@@ -57,11 +60,12 @@ void calibration(VL53L1XSensor Sensor)
 
     sd = calculateStandardDeviation(irValues);
 
-    // Serial.print("standard deviation: " + threshold);
-    // threshold = max + THRESHOLD_X;#
-    #undef DIST_THRESHOLD_MAX
-    #define DIST_THRESHOLD_MAX  min - sd;
+// Serial.print("standard deviation: " + threshold);
+// threshold = max + THRESHOLD_X;#
+#undef DIST_THRESHOLD_MAX
+#define DIST_THRESHOLD_MAX min - sd;
     Serial.print(F("standard deviation: "));
     Serial.println(sd);
     Serial.println(F("#### calibration done ####"));
 }
+#endif
