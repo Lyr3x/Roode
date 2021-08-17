@@ -1,7 +1,6 @@
 #include <VL53L1XSensor.h>
 #include <vl53l1_api.h>
 #include <Config.h>
-#include "esphome/core/log.h"
 
 VL53L1XSensor::VL53L1XSensor(int XSHUT, int I2C_ADDRESS)
 {
@@ -18,15 +17,16 @@ void VL53L1XSensor::init()
     checkDev();
     delay(1000);
 
-    ESP_LOGD("VL53L1X custom sensor", "Getting Device data");
+    // ESP_LOGD("VL53L1X custom sensor", "Getting Device data");
     uint16_t wordData;
     VL53L1_RdWord(Sensor, 0x010F, &wordData);
-    ESP_LOGD("VL53L1X custom sensor", "DevAddr: 0x%X VL53L1X: 0x%X", Dev->I2cDevAddr, wordData);
+    // ESP_LOGD("VL53L1X custom sensor", "DevAddr: 0x%X VL53L1X: 0x%X", Dev->I2cDevAddr, wordData);
 
     delay(1000);
     VL53L1_software_reset(Sensor);
 
-    ESP_LOGD("VL53L1X custom sensor", "Autonomous Ranging Test");
+    // ESP_LOGD("VL53L1X custom sensor", "Autonomous Ranging Test");
+    Serial.printf("Autonomous Raning Test");
 
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);
@@ -37,7 +37,7 @@ void VL53L1XSensor::init()
     if (status)
     {
         // Serial.printf("StartMeasurement failed status: %d\n\r", status);
-        ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", VL53L1_status);
+        // ESP_LOGE("VL53L1X custom sensor", "StartMeasurement failed status: %d", VL53L1_status);
     }
 }
 
@@ -155,20 +155,3 @@ void VL53L1XSensor::checkDev()
     Serial.printf("DevAddr: 0x%X VL53L1X: 0x%X\n\r", Sensor->I2cDevAddr, wordData);
 }
 
-VL53L1_Error VL53L1XSensor::setUserROI(VL53L1_UserRoi_t *pUserRoi)
-{
-    return VL53L1_SetUserROI(Sensor, pUserRoi);
-}
-
-VL53L1_Error VL53L1XSensor::waitMeasurementDataReady()
-{
-    return VL53L1_WaitMeasurementDataReady(Sensor);
-}
-VL53L1_Error VL53L1XSensor::getRangingMeasurementData(VL53L1_RangingMeasurementData_t *pRangingMeasurementData)
-{
-    return VL53L1_GetRangingMeasurementData(Sensor, pRangingMeasurementData);
-}
-VL53L1_Error VL53L1XSensor::clearInterruptAndEnableNextRange(uint8_t measurement_mode)
-{
-    return VL53L1_clear_interrupt_and_enable_next_range(Sensor, VL53L1_DEVICEMEASUREMENTMODE_SINGLESHOT);
-}
