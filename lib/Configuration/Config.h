@@ -39,9 +39,10 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 ###### FEATURE SELECTION ######
 */
 #define USE_VL53L1X
-#define USE_OLED // Activates OLED 128x32 support including brightness control.
+// #define USE_OLED // Activates OLED 128x32 support including brightness control.
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
+
 /*
 ###### I2C Pin Definition ######
 */
@@ -63,10 +64,12 @@ static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotR
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
 
+#ifdef CALIBRATION
 #define LTIME 10000         // loop time - should not be lower than 7s. Recommended is 10s
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define DIST_THRESHOLD_MAX 1780
+#endif
 /*
  Feature switches:
  * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
@@ -94,14 +97,6 @@ enum SensorPresetModes
 #define SENSOR_PRESET_MODE AUTONOMOUS
 #endif
 
-/************************* WiFi Access Point *********************************/
-
-#define WLAN_SSID "<SSID>"      //your AP SSID
-#define WLAN_PASS "<password>"  //your AP password
-#define WLAN_SSID2 "<SSID>"     //your AP SSID
-#define WLAN_PASS2 "<password>" //your AP password
-#define MQTT_IP "192.168.2.90"
-
 /* 
 ###### OLED Definition ###### 
   For now only the OLED 128x32 monochrom displays are supported without modification
@@ -119,33 +114,6 @@ enum SensorPresetModes
 // #define BRIGHTNESS 1 //Set the OLED brightness value to a val between 0 and 255
 // static SSD1306AsciiWire oled;
 // #endif
-
-/* 
-###### Motion Sensor setup ###### 
-*/
-#ifdef USE_MOTION
-#include <../MotionSensor/MotionSensor.h>
-
-#ifdef USE_MYSENSORS
-#define DIGITAL_INPUT_SENSOR 2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-#endif
-
-#ifdef USE_MQTT
-#define DIGITAL_INPUT_SENSOR D2 // motion sensor digital pin (2 or 3 because just those pins are interrupt pins)
-#endif
-
-#ifdef MY_DEBUG
-#define MOTION_INIT_TIME 1
-#else
-#define MOTION_INIT_TIME 1 //initialization time in seconds
-#endif
-
-#ifndef DIGITAL_INPUT_SENSOR
-#define DIGITAL_INPUT_SENSOR 2
-#endif
-/* Motion Sensor setup*/
-static MotionSensor motion(DIGITAL_INPUT_SENSOR);
-#endif
 
 /*
 ###### Battery Module ######

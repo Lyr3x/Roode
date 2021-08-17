@@ -33,6 +33,7 @@ int calculateStandardDeviation(int irValues[])
 
 void calibration(VL53L1XSensor Sensor)
 {
+    ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
     int irValues[30] = {};
     uint16_t min = 0;
     auto n = 0;

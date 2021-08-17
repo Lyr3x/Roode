@@ -66,9 +66,7 @@ public:
       distance = count_sensor.readRangeContinuoisMillimeters(roiConfig1);
     }
 
-    // 1780
-    // 300 mm -> kammer
-    //if (distance < DIST_THRESHOLD_MAX_G) {
+  
     if (distance < id(DIST_THRESHOLD_MAX_G))
     {
       // Someone is in !
@@ -92,7 +90,7 @@ public:
         // need to check right zone as well ...
         if (RightPreviousStatus == SOMEONE)
         {
-          // event in left zone has occured
+          // event in right zone has occured
           AllZonesCurrentStatus += 2;
         }
         // remember for next time
@@ -106,13 +104,13 @@ public:
       if (CurrentZoneStatus != RightPreviousStatus)
       {
 
-        // event in left zone has occured
+        // event in right zone has occured
         AnEventHasOccured = 1;
         if (CurrentZoneStatus == SOMEONE)
         {
           AllZonesCurrentStatus += 2;
         }
-        // need to left right zone as well ...
+        // need to check left zone as well ...
         if (LeftPreviousStatus == SOMEONE)
         {
           // event in left zone has occured
@@ -188,14 +186,14 @@ public:
   }
   inline void dispUpdate()
   { // 33mS
-    // left = rein
+    // left = in
     if (left)
     {
       // Serial.println("--->");
       ESP_LOGD("VL53L1X custom sensor", "--->");
       sendCounter(1);
     }
-    // right = raus
+    // right = out
     if (right)
     {
       // Serial.println("<---");
