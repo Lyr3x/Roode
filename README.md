@@ -1,19 +1,6 @@
 # RooDe
 People counter working with any smart home system which supports MQTT
 Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
-**Version 1.0 will break the support for all old hardware configurations working right now (IR-Sensors and VL53L0X)**
-## Version 1.0 - Featurelist
-Here is a list of features which are working or in _work_
-* Counting people entering and leaving a room
-* Sensor threhsold calibration with standard deviation
-* Receiving commands from the controller e.g. recalibration or manual counter setting
-* OLED support
-* Sleep mode with Motion Sensor support
-* Domoticz Events provided (Roode is useable with every MQTT Controller)
-* _Introduction of the new Sensor - VL53L1X_
-* _Completely configurable over WebUI_
-* _Firmware upgrades over WebUI_
-* _Automatically creates Domoticz devices_
 
 ## Hardware
 There will be a specific Hardware setup (recommended brands etc.) soon!
@@ -22,21 +9,24 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
 * Optional HC-SR501
 * Optional 128x32 OLED
 * Power Supply
-* Encolsure (see .stl files
+* Encolsure (see .stl files) - will be updated soon!
 
 ## Changelog
 ### Changelog v1.0
 #### Additions and Breaking Changes
-* Add full VL53L1X support
+* ESPHome
 * Removes legacy support which includes
    * Arduino plattform
    * MySensors plattform
    * **Non** VL53L1X-Sensors
-* MQTT support
-* Automatic device creation in Domoticz
-* Configuration WebUI (may be moved to a later version)
-   * Removal of Config.h
-* OTA support
+* VL531L1X TOF Sensor with configurable ROI zones for one-sensor-solution
+* Counting people entering and leaving a room with path tracking for improved accuracy
+* Sensor threhsold calibration for each zone
+* Receiving commands from the the controller e.g softreset
+* OLED support (coming in 1.1)
+* Sleep mode with Motion Sensor support (coming in 1.1)
+* Firmware upgrades over WebUI (esphome)
+
    
 ### Changelog v0.9.6
 #### Additions
