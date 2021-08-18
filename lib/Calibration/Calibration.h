@@ -1,7 +1,7 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
 #include <Config.h>
-#include <Math.h>
+#include <math.h>
 #include "esphome/core/log.h"
 
 /*

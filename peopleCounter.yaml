@@ -15,7 +15,6 @@ esphome:
     - file://../lib/Configuration/
     - file://../lib/vl53l1_api/
     - file://../lib/Counter/
-    - Math.h
 
 <<: !include common/common.yaml
 
