@@ -13,6 +13,6 @@ jobs:
       - name: Install Platform IO
         run: |
           python -m pip install --upgrade pip
-          pip install -U platformio
+          pip install -U esphome
       - name: Build
-        run: platformio run
+        run: esphome compile people_counter.yaml
