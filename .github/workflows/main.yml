@@ -15,4 +15,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U esphome
       - name: Build
-        run: esphome compile people_counter.yaml
+        run: esphome compile peopleCounter.yaml
