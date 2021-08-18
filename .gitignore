@@ -6,3 +6,5 @@
 .vscode/launch.json
 .vscode/
 lib/Configuration/Config.h
+people_counter/
+.esphome/

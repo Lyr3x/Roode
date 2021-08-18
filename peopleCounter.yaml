@@ -1,0 +1,125 @@
+substitutions:
+  devicename: people_counter
+  friendly_name: People Counter
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: nodemcuv2
+  includes:
+    - src/app.h
+    - lib/VL53L1XSensor/
+    - lib/Calibration/Calibration.h
+
+  libraries:
+    - file://../lib/Configuration/
+    - file://../lib/vl53l1_api/
+    - file://../lib/Counter/
+
+<<: !include common/common.yaml
+
+globals:
+  - id: DIST_THRESHOLD_MAX_G
+    type: int
+    restore_value: no
+    initial_value: "1780"
+  - id: cnt
+    type: int
+    restore_value: yes
+    initial_value: "0"
+
+# Enable logging
+logger:
+  level: DEBUG
+  esp8266_store_log_strings_in_flash: False
+
+#status_led:
+#  pin:
+#    number: D0
+#    inverted: True
+
+web_server:
+  port: 80
+  auth:
+    username: admin
+    password: "1248"
+
+i2c:
+
+switch:
+  - platform: restart
+    name: $friendly_name Restart
+
+binary_sensor:
+  - platform: status
+    name: $friendly_name Status
+
+  - platform: template
+    name: $friendly_name photo sensor
+    lambda: |-
+      if (id(tof_distance_avg).state < 1400) {
+        // someone in the door
+        return true;
+      } else {
+        // no one in the door
+        return false;
+      }
+    filters:
+      - delayed_off: 100ms
+
+sensor:
+  - platform: wifi_signal
+    name: $friendly_name RSSI
+    update_interval: 60s
+
+  - platform: uptime
+    name: $friendly_name Uptime
+
+  - platform: custom
+    lambda: |-
+      auto people_counter = new PeopleCountSensor();
+      App.register_component(people_counter);
+      return {people_counter->people_sensor};
+    sensors:
+      - name: $friendly_name People
+        id: people_count
+        icon: "mdi:counter"
+        accuracy_decimals: 0
+        unit_of_measurement: "people"
+
+  - platform: mqtt_subscribe
+    name: "People reset"
+    id: people_reset
+    topic: $devicename/sensor/people/reset
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            resetCounter = 1;
+
+  - platform: template
+    name: $friendly_name measured distance
+    id: tof_distance
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    update_interval: 1s
+    lambda: |-
+      return distance;
+    filters:
+      - delta: 100.0
+
+  - platform: template
+    name: tof distance avg
+    id: tof_distance_avg
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    internal: true
+    update_interval: 0.1s
+    lambda: |-
+      return distance;
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 10

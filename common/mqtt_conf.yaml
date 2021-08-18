@@ -1,0 +1,9 @@
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  port: !secret mqtt_port
+  discovery: True
+  discovery_retain: True
+  discovery_prefix: homeassistant
+  reboot_timeout: 20min

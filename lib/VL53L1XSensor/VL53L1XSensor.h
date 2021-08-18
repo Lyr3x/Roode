@@ -1,8 +1,8 @@
 #ifndef VL53L1XSensor_H
 #define VL53L1XSensor_H
 
+#include <vl53l1_api.h>
 #include <Config.h>
-#include "Arduino.h"
 #include <Wire.h>
 
 class VL53L1XSensor
@@ -17,8 +17,7 @@ public:
   void startMeasurement();
   void stopMeasurement();
   void timeoutOccured();
-  uint16_t getThreshold();
-  void setThreshold(uint16_t newThreshold);
+  void setIntermeasurementPeriod(int period);
   void checkDev();
   
 private:
