@@ -1,6 +1,7 @@
 # RooDe
-People counter working with any smart home system which supports MQTT
-Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
+People counter working with any smart home system which supports ESPHome and therefore Home Assistamt. All necessary entities are created automatically.
+
+
 
 ## Hardware
 There will be a specific Hardware setup (recommended brands etc.) soon!
@@ -10,6 +11,12 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
 * Optional 128x32 OLED
 * Power Supply
 * Encolsure (see .stl files) - will be updated soon!
+
+## Configuration
+Be sure to configure your wifi credentials and adapt the Config.h to set everyhting to your needs.
+The most important config part is the calibration mode. You have two different calibration modes available:
+Calibration v1 calibrates the distance for one zone and calculates the standard deviation and uses that value for both zones. 
+Calibration v2 calibrates both zones individually. 
 
 ## Changelog
 ### Changelog v1.0
