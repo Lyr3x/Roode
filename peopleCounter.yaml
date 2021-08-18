@@ -15,6 +15,7 @@ esphome:
     - file://../lib/Configuration/
     - file://../lib/vl53l1_api/
     - file://../lib/Counter/
+    - Math.h
 
 <<: !include common/common.yaml
 
@@ -23,6 +24,10 @@ globals:
     type: int
     restore_value: no
     initial_value: "1780"
+  - id: cnt
+    type: int
+    restore_value: yes
+    initial_value: "0"
 
 # Enable logging
 logger:
@@ -34,11 +39,11 @@ logger:
 #    number: D0
 #    inverted: True
 
-#web_server:
-#  port: 80
-#  auth:
-#    username: admin
-#    password: "1248"
+web_server:
+  port: 80
+  auth:
+    username: admin
+    password: "1248"
 
 i2c:
 

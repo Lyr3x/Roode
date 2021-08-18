@@ -17,7 +17,7 @@ int gesture_code;
 
 static const char *TAG = "main";
 int distance = 0;
-int left = 0, right = 0, cnt = 0, oldcnt;
+int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 static int resetCounter = 0;
 boolean lastTrippedState = 0;
@@ -145,8 +145,8 @@ public:
           {
             // This an exit
             //PeopleCount --;
-            if (cnt > 0)
-              cnt--;
+            if (id(cnt) > 0)
+              id(cnt)--;
             right = 1;
             dispUpdate();
             right = 0;
@@ -155,7 +155,7 @@ public:
           {
             // This an entry
             //PeopleCount ++;
-            cnt++;
+            id(cnt)++;
             left = 1;
             dispUpdate();
             left = 0;
@@ -203,8 +203,8 @@ public:
       ESP_LOGD("VL53L1X custom sensor", "<---");
       sendCounter(0);
     }
-    Serial.println(cnt);
-    ESP_LOGD("VL53L1X custom sensor", "Count: %d", cnt);
+    Serial.println(id(cnt));
+    ESP_LOGD("VL53L1X custom sensor", "Count: %d", id(cnt));
   }
   void sendCounter(int inout)
   {
