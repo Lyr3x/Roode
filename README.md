@@ -16,12 +16,12 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
 Be sure to configure your wifi credentials and adapt the Config.h to set everyhting to your needs.
 The most important config part is the calibration mode. You have two different calibration modes available:
 Calibration v1 calibrates the distance for one zone and calculates the standard deviation and uses that value for both zones. 
-Calibration v2 calibrates both zones individually. 
+Calibration v2 calibrates both zones individually (thanks to @andrea-fox). 
 
 ## Changelog
 ### Changelog v1.0
 #### Additions and Breaking Changes
-* ESPHome
+* ESPHome (thanks to @diplix)
 * Removes legacy support which includes
    * Arduino plattform
    * MySensors plattform
