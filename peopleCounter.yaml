@@ -57,7 +57,7 @@ binary_sensor:
   - platform: template
     name: $friendly_name photo sensor
     lambda: |-
-      if (id(tof_distance_avg).state < 1400) {
+      if (id(tof_distance_avg).state < 700) {
         // someone in the door
         return true;
       } else {
@@ -123,3 +123,12 @@ sensor:
       - sliding_window_moving_average:
           window_size: 10
           send_every: 10
+          
+text_sensor:
+  - platform: template
+    name: "$friendly_name Version"
+    icon: mdi:git
+    lambda: |-
+      std::string version = ROODE_VERSION;
+      return version;
+    update_interval: 60s
