@@ -58,7 +58,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
 static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
 static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
-
+// #define INIT_WITH_SHORT // Only activate if values are totally wrong! That wil initialize the sensor in the short mode not in the long mode (reported by a user)
 #define SENSOR_I2C 0x52
 
 //#define INT			D7 not used right now

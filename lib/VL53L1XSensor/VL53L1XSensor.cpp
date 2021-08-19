@@ -27,7 +27,11 @@ void VL53L1XSensor::init()
     status += VL53L1_WaitDeviceBooted(Sensor);
     status += VL53L1_DataInit(Sensor);
     status += VL53L1_StaticInit(Sensor);
+    #ifndef INIT_WITH_SHORT
     status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_LONG);
+    #else
+    status += VL53L1_SetDistanceMode(Sensor, VL53L1_DISTANCEMODE_SHORT);
+    #endif
     status += VL53L1_SetMeasurementTimingBudgetMicroSeconds(Sensor, 10000); // 73Hz
     status += VL53L1_SetInterMeasurementPeriodMilliSeconds(Sensor, 15);
     if (status)
