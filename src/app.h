@@ -50,7 +50,7 @@ public:
 
     if (countSensor.init() == false)
       Serial.println("Sensor online!");
-    countSensor.setIntermeasurementPeriod(50);
+    countSensor.setIntermeasurementPeriod(time_budget_in_ms_long);
     countSensor.setDistanceModeLong();
 #ifdef CALIBRATION
     calibration(countSensor);
@@ -99,7 +99,7 @@ public:
   }
   void getNewDistanceForZone()
   {
-    countSensor.setROI(ROI_height, ROI_width, center[Zone]); // first value: height of the zone, second value: width of the zone
+    countSensor.setROI(ROI_height, ROI_width, center[Zone]);
 
     if (DIST_THRESHOLD_MAX[0] < 1200 && DIST_THRESHOLD_MAX[1] < 1200)
     {
@@ -114,8 +114,8 @@ public:
       delay_between_measurements = delay_between_measurements_long;
     }
     delay(delay_between_measurements);
-    countSensor.startRanging();           //Write configuration bytes to initiate measurement
-    distance = countSensor.getDistance(); //Get the result of the measurement from the sensor
+    countSensor.startRanging();
+    distance = countSensor.getDistance();
     countSensor.stopRanging();
   }
   void getDirection(int16_t Distance, uint8_t zone)

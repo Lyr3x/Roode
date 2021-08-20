@@ -165,7 +165,8 @@ void calibration(SFEVL53L1X Sensor)
     // the value of the average distance is used for computing the optimal size of the ROI and the center of the two zones
     int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(average_zone_0, average_zone_1) / 1000)));
     delay(1000);
-    int ROI_size = min(8, max(4, function_of_the_distance));
+    // int ROI_size = min(8, max(4, function_of_the_distance));
+    int ROI_size = min(ROI_height, max(ROI_width, function_of_the_distance));
     ROI_width = ROI_size;
     ROI_height = ROI_size;
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
@@ -299,6 +300,7 @@ void calibration_boot(SFEVL53L1X Sensor)
         // if possible, we take the old values of the zones contained in the EEPROM memory
         if (EEPROM.read(0) == 1)
         {
+            ESP_LOGI("VL53L1X custom sensor", "#### Loading old calibration values ####");
             // EEPROM is not empty
             center[0] = EEPROM.read(1);
             center[1] = EEPROM.read(2);
@@ -322,17 +324,15 @@ void calibration_boot(SFEVL53L1X Sensor)
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
             }
+            ESP_LOGI("VL53L1X custom sensor", "#### Loading old calibration values done ####");
         }
         else
         {
             // EEPROM is empty
-            ESP_LOGI("VL53L1X custom sensor", "#### calibration on boot started ####");
             calibration(Sensor);
         }
     }
     else
-        ESP_LOGI("VL53L1X custom sensor", "#### calibration on boot started ####");
-    calibration(Sensor);
     ESP_LOGI("VL53L1X custom sensor", "#### calibration on boot done ####");
 }
 #endif //#ifdef CALIBRATIONV2
