@@ -1,26 +1,37 @@
 #include "esphome.h"
-
 #include <Wire.h>
 #include <Config.h>
-#include <VL53L1XSensor.h>
+#include "SparkFun_VL53L1X.h"
 #include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
 
-#define USE_VL53L1X
-VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
-int gesture_code;
+SFEVL53L1X countSensor(Wire);
 #define NOBODY 0
 #define SOMEONE 1
-#define LEFT 0
-#define RIGHT 1
+#ifdef INVERT_DIRECTION
+#define LEFT 1
+#define RIGHT 0
+#else
+#define LEFT 1
+#define RIGHT 0
+#endif
 
 static const char *TAG = "main";
 int distance = 0;
 int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
-static int resetCounter = 0;
 boolean lastTrippedState = 0;
+static int PathTrack[] = {0, 0, 0, 0};
+static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
+static int LeftPreviousStatus = NOBODY;
+static int RightPreviousStatus = NOBODY;
+static int zone = 0;
+
+// MQTT Commands
+static int resetCounter = 0;
+static int recalibrate = 0;
+static int forceSetValue = -1;
 
 //static int num_timeouts = 0;
 double people, distance_avg;
@@ -38,43 +49,74 @@ public:
     Wire.begin();
     Wire.setClock(400000);
 
-    count_sensor.init();
+    if (countSensor.init() == false)
+      Serial.println("Sensor online!");
+    countSensor.setIntermeasurementPeriod(50);
+    countSensor.setDistanceModeLong();
 #ifdef CALIBRATION
-    calibration(count_sensor);
+    calibration(countSensor);
 #endif
 #ifdef CALIBRATIONV2
-  calibration_boot(count_sensor);
+    calibration_boot(countSensor);
 #endif
-    ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    count_sensor.startMeasurement();
   }
 
+  void publishMQTT(int inout)
+  {
+    people_sensor->publish_state(inout);
+  }
   void loop() override
   {
-    static int PathTrack[] = {0, 0, 0, 0};
-    static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
-    static int LeftPreviousStatus = NOBODY;
-    static int RightPreviousStatus = NOBODY;
-    static int zone = 0;
+
+    getNewDistanceForZone();      // get the distance for the zone
+    getDirection(distance, Zone); // get the direction of the path
+
+    Zone++;
+    Zone = Zone % 2;
+
+    checkMQTTCommands();
+  }
+  void checkMQTTCommands()
+  {
+    if (resetCounter == 1)
+    {
+      ESP_LOGD("MQTTCommand", "Reset counter command received");
+      resetCounter = 0;
+      sendCounter(-1);
+    }
+    if (recalibrate == 1)
+    {
+      ESP_LOGD("MQTTCommand", "Recalibration command received");
+      calibration(countSensor);
+      recalibrate = 0;
+    }
+    if (forceSetValue != -1)
+    {
+      ESP_LOGD("MQTTCommand", "Force set value command received");
+      publishMQTT(id(cnt));
+      forceSetValue = -1;
+    }
+  }
+  void getNewDistanceForZone()
+  {
+    countSensor.setROI(ROI_height, ROI_width, center[Zone]); // first value: height of the zone, second value: width of the zone
+    delay(52);
+    countSensor.setTimingBudgetInMs(50);
+    countSensor.startRanging();           //Write configuration bytes to initiate measurement
+    distance = countSensor.getDistance(); //Get the result of the measurement from the sensor
+    countSensor.stopRanging();
+  }
+  void getDirection(int16_t Distance, uint8_t zone)
+  {
 
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
-    if (zone == LEFT)
-    {
-      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig1);
-    }
-    else
-    {
-      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig2);
-    }
 
-    // if (distance < id(DIST_THRESHOLD_MAX_G))
-    if (distance < DIST_THRESHOLD_MAX[Zone] && distance > MIN_DISTANCE[Zone])
+    if (Distance < DIST_THRESHOLD_MAX[Zone] && Distance > MIN_DISTANCE[Zone])
     {
       // Someone is in !
       CurrentZoneStatus = SOMEONE;
-      //ESP_LOGE(TAG, "Global value is: %d", id(DIST_THRESHOLD_MAX_G));
     }
 
     // left zone
@@ -107,13 +149,13 @@ public:
       if (CurrentZoneStatus != RightPreviousStatus)
       {
 
-        // event in right zone has occured
+        // event in left zone has occured
         AnEventHasOccured = 1;
         if (CurrentZoneStatus == SOMEONE)
         {
           AllZonesCurrentStatus += 2;
         }
-        // need to check left zone as well ...
+        // need to left zone as well ...
         if (LeftPreviousStatus == SOMEONE)
         {
           // event in left zone has occured
@@ -140,28 +182,27 @@ public:
         if (PathTrackFillingSize == 4)
         {
           // check exit or entry. no need to check PathTrack[0] == 0 , it is always the case
-
+          Serial.println();
           if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2))
           {
-            // This an exit
-            //PeopleCount --;
-            if (id(cnt) > 0)
-              id(cnt)--;
+            if (cnt > 0)
+              cnt--;
             right = 1;
             dispUpdate();
             right = 0;
           }
           else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
           {
-            // This an entry
-            //PeopleCount ++;
-            id(cnt)++;
+            cnt++;
             left = 1;
             dispUpdate();
             left = 0;
           }
         }
-
+        for (int i = 0; i < 4; i++)
+        {
+          PathTrack[i] = 0;
+        }
         PathTrackFillingSize = 1;
       }
       else
@@ -176,15 +217,6 @@ public:
         // 0 1 3 2 ==> if next is 0 : check if exit
         PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
       }
-    }
-
-    zone++;
-    zone = zone % 2;
-
-    if (resetCounter == 1)
-    {
-      resetCounter = 0;
-      sendCounter(-1);
     }
   }
   inline void dispUpdate()
@@ -203,8 +235,6 @@ public:
       ESP_LOGD("VL53L1X custom sensor", "<---");
       sendCounter(0);
     }
-    Serial.println(id(cnt));
-    ESP_LOGD("VL53L1X custom sensor", "Count: %d", id(cnt));
   }
   void sendCounter(int inout)
   {
