@@ -288,21 +288,7 @@ void calibration(SFEVL53L1X Sensor)
     EEPROM.write(6, hundred_threshold_zone_1);
     EEPROM.write(7, unit_threshold_zone_1);
     EEPROM.commit();
-    //TEST
 
-    // center[0] = EEPROM.read(1);
-    // center[1] = EEPROM.read(2);
-    // ROI_height = EEPROM.read(3);
-    // ROI_width = EEPROM.read(3);
-    // DIST_THRESHOLD_MAX[0] = EEPROM.read(4) * 100 + EEPROM.read(5);
-    // DIST_THRESHOLD_MAX[1] = EEPROM.read(6) * 100 + EEPROM.read(7);
-    // ESP_LOGD("VL53L1X custom sensor", "center[0]: %d", center[0]);
-    // ESP_LOGD("VL53L1X custom sensor", "center[1]: %d", center[1]);
-    // ESP_LOGD("VL53L1X custom sensor", "ROI_height: %d", ROI_height);
-    // ESP_LOGD("VL53L1X custom sensor", "ROI_width: %d", ROI_width);
-    // ESP_LOGD("VL53L1X custom sensor", "DIST_THRESHOLD_MAX[0]: %d", DIST_THRESHOLD_MAX[0]);
-    // ESP_LOGD("VL53L1X custom sensor", "DIST_THRESHOLD_MAX[1]: %d", DIST_THRESHOLD_MAX[1]);
-    //REMOVE
     ESP_LOGI("VL53L1X custom sensor", "#### calibration finished ####");
 }
 
