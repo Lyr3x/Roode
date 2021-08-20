@@ -100,8 +100,20 @@ public:
   void getNewDistanceForZone()
   {
     countSensor.setROI(ROI_height, ROI_width, center[Zone]); // first value: height of the zone, second value: width of the zone
-    delay(52);
-    countSensor.setTimingBudgetInMs(50);
+
+    if (DIST_THRESHOLD_MAX[0] < 1200 && DIST_THRESHOLD_MAX[1] < 1200)
+    {
+      countSensor.setDistanceModeShort();
+      countSensor.setTimingBudgetInMs(time_budget_in_ms_short);
+      delay_between_measurements = delay_between_measurements_short;
+    }
+    else
+    {
+      countSensor.setDistanceModeLong();
+      countSensor.setTimingBudgetInMs(time_budget_in_ms_long);
+      delay_between_measurements = delay_between_measurements_long;
+    }
+    delay(delay_between_measurements);
     countSensor.startRanging();           //Write configuration bytes to initiate measurement
     distance = countSensor.getDistance(); //Get the result of the measurement from the sensor
     countSensor.stopRanging();

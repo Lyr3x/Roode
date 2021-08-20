@@ -21,7 +21,7 @@ static bool save_calibration_result = true;
 
 // parameters which define the time between two different measurements in longRange mode
 static int delay_between_measurements_long = 55;
-static int time_budget_in_ms_long = 50;
+static int time_budget_in_ms_long = 33; // maybe 50
 
 // parameters which define the time between two different measurements in longRange mode
 static int time_budget_in_ms_short = 20;

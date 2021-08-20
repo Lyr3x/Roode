@@ -136,7 +136,7 @@ sensor:
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
     internal: true
-    update_interval: 0.1s
+    update_interval: 0.5s
     lambda: |-
       return distance;
     filters:
@@ -152,6 +152,8 @@ sensor:
     unit_of_measurement: "mm"
     lambda: |-
       return DIST_THRESHOLD_MAX[0];
+    filters:
+      - delta: 1
   - platform: template
     name: $friendly_name threshold zone 1
     id: threshold_zone1
@@ -161,6 +163,8 @@ sensor:
     update_interval: 60s
     lambda: |-
       return DIST_THRESHOLD_MAX[1];
+    filters:
+      - delta: 1
 
 text_sensor:
   - platform: template
