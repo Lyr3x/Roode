@@ -61,9 +61,10 @@ public:
 #endif
   }
 
-  void publishMQTT(int inout)
+  void publishMQTT(int val)
   {
-    people_sensor->publish_state(inout);
+    peopleCount = val;
+    people_sensor->publish_state(val);
   }
   void loop() override
   {
