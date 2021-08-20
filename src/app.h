@@ -30,7 +30,6 @@ static int zone = 0;
 
 // MQTT Commands
 static int resetCounter = 0;
-static int recalibrate = 0;
 static int forceSetValue = -1;
 
 //static int num_timeouts = 0;
@@ -85,7 +84,7 @@ public:
       resetCounter = 0;
       sendCounter(-1);
     }
-    if (recalibrate == 1)
+    if (id(recalibrate) == 1)
     {
       ESP_LOGD("MQTTCommand", "Recalibration command received");
       calibration(countSensor);

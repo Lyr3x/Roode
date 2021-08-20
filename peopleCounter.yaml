@@ -22,6 +22,10 @@ globals:
     type: int
     restore_value: yes
     initial_value: "0"
+  - id: recalibrate
+    type: int
+    restore_value: no
+    initial_value: "0"
 
 # Enable logging
 logger:
@@ -111,7 +115,7 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            recalibrate = 1;
+            id(recalibrate) = 1;
 
   - platform: template
     name: $friendly_name measured distance

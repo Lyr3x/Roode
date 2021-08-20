@@ -13,7 +13,7 @@ static int delay_between_measurements = 0;
 static int time_budget_in_ms = 0;
 const int threshold_percentage = 80;
 
-// this value has to be true if the sensor is oriented as in Duthdeffy's picture
+// this value has to be true if the sensor is oriented like this: | -> | 
 static bool advised_orientation_of_the_sensor = true;
 
 // this value has to be true if you don't need to compute the threshold every time the device is turned on
@@ -122,7 +122,7 @@ void calibration(SFEVL53L1X Sensor)
     delay_between_measurements = delay_between_measurements_long;
     center[0] = 167;
     center[1] = 231;
-    ROI_height = 8;
+    ROI_height = 16;
     ROI_width = 8;
     delay(500);
 
