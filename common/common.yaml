@@ -1,4 +1,4 @@
 <<: !include wifi.yaml
 <<: !include mqtt.yaml
-<<: !include api.yaml
+# <<: !include api.yaml
 <<: !include ota.yaml
