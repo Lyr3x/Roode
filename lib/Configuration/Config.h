@@ -11,29 +11,6 @@ The predefined config enables most of the features and uses the NRF24L01+ Radio 
 Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 
-/*
-  RooDe version number
-  Please update frequently
-### Changelog v1.0:
-* Complete architecture refactor
-  * New abstraction layers:
-    * Sensor
-    * Transmitter
-  * Easy to extend with the type of Sensors and Transmitters
-* Support for ESP8266 and MQTT
-* Support for Arduino with MySensors
-* Removed SHARP_IR infrared Sensors
-* Changed Message types
-* Added new message type INFO 
-* Independent sensor calibration
-* added full VL53L0X support
-  * measruing speed improvements 
-  * Fixed LONG_RANGE mode which gave just -1 as result
-  * Fixed receiving and sending message issues
-  * Added OLED brightness config option
-  * general bug fixes and improvements
-* added untested VL53L1X support
-*/
 #define ROODE_VERSION "1.1-alpha"
 /*
 ###### FEATURE SELECTION ######
@@ -48,18 +25,20 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 #define SDA_PIN D2
 #define SCL_PIN D1
-#define XSHUT_PIN 14
 /**
 ###### VL53L1X Definition ######
 **/
 #ifdef USE_VL53L1X
-#include <vl53l1_api.h>
-#define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
-#define dev1_desel digitalWrite(XSHUT_PIN, LOW);
-static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
-static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
-// #define INIT_WITH_SHORT // Only activate if values are totally wrong! That wil initialize the sensor in the short mode not in the long mode (reported by a user)
+
 #define SENSOR_I2C 0x52
+
+static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
+static int MIN_DISTANCE[] = {0, 0};
+static int center[2] = {0, 0}; /* center of the two zones */
+static int Zone = 0;
+static int ROI_height = 0;
+static int ROI_width = 0;
+#define INVERT_DIRECTION //this will invert the direction of the sensor
 
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
@@ -69,32 +48,6 @@ static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotR
 #define MTIME 800           // measuring/person (after 800ms a mis measure of one sensor is cleared)
 #define CALIBRATION_VAL 200 //read X values (X from each sensor) and calculate the max value and standard deviation
 #define DIST_THRESHOLD_MAX 1780
-#endif
-/*
- Feature switches:
- * If possible use HIGH_SPEED mode, which works in a range withing 1.2m fine
- * If you got en error code just toggle off HIGH_SPEED to off.
- * If you are still receiving an unreliable reading/error code turn on LONG_RANGE mode which
-   is working for up to  2m with the VL53L0X or 4m with the VL53L1X.
-*/
-#ifdef USE_VL53L1X
-
-enum SensorRangeModes
-{
-  SHORT_RANGE = 0,
-  MEDIUM_RANGE = 1,
-  LONG_RANGE = 2,
-};
-
-enum SensorPresetModes
-{
-  LITE_RANING = 0,
-  AUTONOMOUS = 1,
-  LOW_POWER_AUTONOMOUS = 2
-};
-
-#define SENSOR_RANGE_MODE MEDIUM_RANGE
-#define SENSOR_PRESET_MODE AUTONOMOUS
 #endif
 
 /* 

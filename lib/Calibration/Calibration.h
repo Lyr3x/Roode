@@ -76,10 +76,15 @@ void calibration(VL53L1XSensor Sensor)
     int irValues[30] = {};
     uint16_t min = 0;
     auto n = 0;
-    Sensor.readRangeContinuoisMillimeters(roiConfig1, 100);
+    Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+    delay(delay_between_measurements);
+    Sensor.setTimingBudgetInMs(time_budget_in_ms);
+    Sensor.startRanging();
+    distance = Sensor.getDistance();
+    Sensor.stopRanging();
     for (int m = 0; m < CALIBRATION_VAL; m++)
     {
-        auto sensor_value = Sensor.readRangeContinuoisMillimeters(roiConfig1);
+        auto sensor_value = Sensor.getDistance();
 
         // #ifdef MY_DEBUG
         ESP_LOGD("VL53L1X custom sensor", "sensor_value: %d", sensor_value);
@@ -112,14 +117,12 @@ void calibration(VL53L1XSensor Sensor)
 #endif //#ifdef CALIBRATION
 
 #ifdef CALIBRATIONV2
-void calibration(VL53L1XSensor Sensor)
+void calibration(SFEVL53L1X Sensor)
 {
-    // the sensor does 100 measurements for each zone (zones are predefined)
-    // each measurements is done with a timing budget of 100 ms, to increase the precision
-    //   client.publish(mqtt_serial_publish_distance_ch, "Computation of new threshold");
-    // we set the standard values for the measurements
-    Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-    Sensor.setRangeMode(LONG_RANGE);
+    /* 
+    * 100 measurements for each of the defined tones
+    * time_budget_in_ms_long = 100ms for increased precision
+    */
     time_budget_in_ms = time_budget_in_ms_long;
     delay_between_measurements = delay_between_measurements_long;
     center[0] = 167;
@@ -136,27 +139,35 @@ void calibration(VL53L1XSensor Sensor)
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 1
-        Sensor.startMeasurement();
+        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
-        Sensor.stopMeasurement();
+        Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
+        distance = Sensor.getDistance();
+        Sensor.stopRanging();
         sum_zone_0 = sum_zone_0 + distance;
+
+        // Update the zone
         Zone++;
         Zone = Zone % 2;
 
         // increase sum of values in Zone 2
-        Sensor.startMeasurement();
+        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
-        Sensor.stopMeasurement();
+        Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
+        distance = Sensor.getDistance();
+        Sensor.stopRanging();
+
         sum_zone_1 = sum_zone_1 + distance;
+        // Update the zone
         Zone++;
         Zone = Zone % 2;
     }
     // after we have computed the sum for each zone, we can compute the average distance of each zone
     float average_zone_0 = sum_zone_0 / number_attempts;
     float average_zone_1 = sum_zone_1 / number_attempts;
-    // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
+    // the value of the average distance is used for computing the optimal size of the ROI and the center of the two zones
     int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(average_zone_0, average_zone_1) / 1000)));
     delay(1000);
     int ROI_size = min(8, max(4, function_of_the_distance));
@@ -164,9 +175,9 @@ void calibration(VL53L1XSensor Sensor)
     ROI_height = ROI_size;
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
-        // we can use the short mode, which allows more precise measurements up to 1.3 meters
+        // we can use the short mode, which allows more precise measurements up to 1300 meters
         Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-        Sensor.setRangeMode(SHORT_RANGE);
+        Sensor.setDistanceModeShort();
         time_budget_in_ms = time_budget_in_ms_short;
         delay_between_measurements = delay_between_measurements_short;
     }
@@ -234,26 +245,31 @@ void calibration(VL53L1XSensor Sensor)
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 0
-        Sensor.startMeasurement();
+        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
-        Sensor.stopMeasurement();
+        Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
+        distance = Sensor.getDistance();
+        Sensor.stopRanging();
         sum_zone_0 = sum_zone_0 + distance;
         Zone++;
         Zone = Zone % 2;
 
         // increase sum of values in Zone 1
-        Sensor.startMeasurement();
+        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
-        Sensor.stopMeasurement();
+        Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
+        distance = Sensor.getDistance();
+        Sensor.stopRanging();
         sum_zone_1 = sum_zone_1 + distance;
         Zone++;
         Zone = Zone % 2;
     }
     average_zone_0 = sum_zone_0 / number_attempts;
     average_zone_1 = sum_zone_1 / number_attempts;
-    float threshold_zone_0 = average_zone_0 * threshold_percentage / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+    // Decimal values are not used for the threshold
+    float threshold_zone_0 = average_zone_0 * threshold_percentage / 100;
     float threshold_zone_1 = average_zone_1 * threshold_percentage / 100;
 
     DIST_THRESHOLD_MAX[0] = threshold_zone_0;
@@ -279,17 +295,14 @@ void calibration(VL53L1XSensor Sensor)
     EEPROM.commit();
 }
 
-void calibration_boot(VL53L1XSensor Sensor)
+void calibration_boot(SFEVL53L1X Sensor)
 {
-    ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
     if (save_calibration_result)
     {
         // if possible, we take the old values of the zones contained in the EEPROM memory
-        // client.publish(mqtt_serial_publish_distance_ch, "save calibration result true");
         if (EEPROM.read(0) == 1)
         {
-            // we have data in the EEPROM
-            //   client.publish(mqtt_serial_publish_distance_ch, "EEPROM memroy not empty");
+            // EEPROM is not empty
             center[0] = EEPROM.read(1);
             center[1] = EEPROM.read(2);
             ROI_height = EEPROM.read(3);
@@ -297,31 +310,32 @@ void calibration_boot(VL53L1XSensor Sensor)
             DIST_THRESHOLD_MAX[0] = EEPROM.read(4) * 100 + EEPROM.read(5);
             DIST_THRESHOLD_MAX[1] = EEPROM.read(6) * 100 + EEPROM.read(7);
 
-            // if the distance measured is small, then we can use the short range mode of the sensor
+            // if the distance measured is smaller then 1300mm, then we can use the short range mode of the sensor
             if (min(DIST_THRESHOLD_MAX[0], DIST_THRESHOLD_MAX[1]) <= short_distance_threshold)
             {
                 Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-                Sensor.setRangeMode(SHORT_RANGE);
+                Sensor.setDistanceModeShort();
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = delay_between_measurements_short;
             }
             else
             {
-                Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-                Sensor.setRangeMode(LONG_RANGE);
+                Sensor.setIntermeasurementPeriod(time_budget_in_ms_long);
+                Sensor.setDistanceModeLong();
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
             }
-            //   client.publish(mqtt_serial_publish_distance_ch, "All values updated");
         }
         else
         {
-            // there are no data in the EEPROM memory
+            // EEPROM is empty
+            ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
             calibration(Sensor);
         }
     }
     else
-        calibration(Sensor);
+        ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
+    calibration(Sensor);
     ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
 }
 #endif //#ifdef CALIBRATIONV2
