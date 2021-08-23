@@ -69,7 +69,7 @@ The calibration of the threshold can also be triggered by a MQTT message. An exa
 ## Hardware
 There will be a specific Hardware setup (recommended brands etc.) soon!
 * ESP8266 or ESP32 (Wemos D1 mini case will be available)
-* 1x VL53L1X
+* 1x VL53L1X (GY-53 and cheap chinese sensors)
 * Optional HC-SR501
 * Optional 128x32 OLED
 * Power Supply
