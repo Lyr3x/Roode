@@ -2,8 +2,10 @@
 People counter working with any smart home system which supports ESPHome
 Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
 
+![Roode](Roode.png)
+
 ## Algorithm
-The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. @Andrea-Fox implemented a more convinient way (based on STSW-IMG010) to track the path from one to the other direction. I migrated the algorigthm with some changes into the Roode project. 
+The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. @Andrea-Fox implemented a more convinient way for the ESP32 and 8266 (based on STSW-IMG010) to track the path from one to the other direction. I migrated the algorigthm with some changes into the Roode project. 
 The concept of path tracking is the detecion of a human:
 * In the first zone only
 * In both zones 
