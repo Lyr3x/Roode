@@ -22,10 +22,6 @@ int distance = 0;
 int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 boolean lastTrippedState = 0;
-static int PathTrack[] = {0, 0, 0, 0};
-static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
-static int LeftPreviousStatus = NOBODY;
-static int RightPreviousStatus = NOBODY;
 static int zone = 0;
 
 // MQTT Commands
@@ -50,8 +46,7 @@ public:
 
     if (countSensor.init() == false)
       Serial.println("Sensor online!");
-    countSensor.setIntermeasurementPeriod(time_budget_in_ms_long);
-    countSensor.setDistanceModeLong();
+    countSensor.startTemperatureUpdate();
 #ifdef CALIBRATION
     calibration(countSensor);
 #endif
@@ -70,7 +65,6 @@ public:
 
     getNewDistanceForZone();      // get the distance for the zone
     getDirection(distance, Zone); // get the direction of the path
-
     Zone++;
     Zone = Zone % 2;
 
@@ -115,12 +109,21 @@ public:
     }
     delay(delay_between_measurements);
     countSensor.startRanging();
+    while (dataReady == false)
+    {
+      dataReady = countSensor.checkForDataReady();
+    }
+    dataReady = false;
     distance = countSensor.getDistance();
+
     countSensor.stopRanging();
   }
   void getDirection(int16_t Distance, uint8_t zone)
   {
-
+    static int PathTrack[] = {0, 0, 0, 0};
+    static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
+    static int LeftPreviousStatus = NOBODY;
+    static int RightPreviousStatus = NOBODY;
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;

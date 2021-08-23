@@ -12,8 +12,9 @@
 static int delay_between_measurements = 0;
 static int time_budget_in_ms = 0;
 const int threshold_percentage = 80;
+static bool dataReady = false;
 
-// this value has to be true if the sensor is oriented like this: | -> | 
+// this value has to be true if the sensor is oriented like this: | -> |
 static bool advised_orientation_of_the_sensor = true;
 
 // this value has to be true if you don't need to compute the threshold every time the device is turned on
@@ -21,11 +22,11 @@ static bool save_calibration_result = true;
 
 // parameters which define the time between two different measurements in longRange mode
 static int delay_between_measurements_long = 55;
-static int time_budget_in_ms_long = 33; // maybe 50
+static int time_budget_in_ms_long = 100;
 
 // parameters which define the time between two different measurements in longRange mode
-static int time_budget_in_ms_short = 20;
-static int delay_between_measurements_short = 22;
+static int time_budget_in_ms_short = 33;
+static int delay_between_measurements_short = 20;
 
 // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
 static int short_distance_threshold = 1300;
@@ -74,7 +75,13 @@ void calibration(VL53L1XSensor Sensor)
     delay(delay_between_measurements);
     Sensor.setTimingBudgetInMs(time_budget_in_ms);
     Sensor.startRanging();
-    distance = Sensor.getDistance();
+    if (Sensor.checkForDataReady())
+    {
+        if (Sensor.checkForDataReady())
+        {
+            distance = Sensor.getDistance();
+        }
+    }
     Sensor.stopRanging();
     for (int m = 0; m < CALIBRATION_VAL; m++)
     {
@@ -120,7 +127,8 @@ void calibration(SFEVL53L1X Sensor)
     */
     time_budget_in_ms = time_budget_in_ms_long;
     delay_between_measurements = delay_between_measurements_long;
-    center[0] = 167;
+    Sensor.setDistanceModeLong();
+    center[0] = 175;
     center[1] = 231;
     ROI_height = 16;
     ROI_width = 8;
@@ -129,17 +137,23 @@ void calibration(SFEVL53L1X Sensor)
     Zone = 0;
     float sum_zone_0 = 0;
     float sum_zone_1 = 0;
-    uint16_t distance;
+    uint16_t distance = 0;
     int number_attempts = 20;
+
+    Sensor.startRanging();
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 1
         Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
-        Sensor.startRanging();
+        while (dataReady == false)
+        {
+            dataReady = Sensor.checkForDataReady();
+        }
+        dataReady = false;
         distance = Sensor.getDistance();
-        Sensor.stopRanging();
+
         sum_zone_0 = sum_zone_0 + distance;
 
         // Update the zone
@@ -150,9 +164,13 @@ void calibration(SFEVL53L1X Sensor)
         Sensor.setROI(ROI_height, ROI_width, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
-        Sensor.startRanging();
+
+        while (dataReady == false)
+        {
+            dataReady = Sensor.checkForDataReady();
+        }
+        dataReady = false;
         distance = Sensor.getDistance();
-        Sensor.stopRanging();
 
         sum_zone_1 = sum_zone_1 + distance;
         // Update the zone
@@ -165,17 +183,16 @@ void calibration(SFEVL53L1X Sensor)
     // the value of the average distance is used for computing the optimal size of the ROI and the center of the two zones
     int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(average_zone_0, average_zone_1) / 1000)));
     delay(1000);
-    // int ROI_size = min(8, max(4, function_of_the_distance));
-    int ROI_size = min(ROI_height, max(ROI_width, function_of_the_distance));
+    int ROI_size = min(8, max(4, function_of_the_distance));
     ROI_width = ROI_size;
     ROI_height = ROI_size;
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
         // we can use the short mode, which allows more precise measurements up to 1300 meters
-        Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-        Sensor.setDistanceModeShort();
         time_budget_in_ms = time_budget_in_ms_short;
         delay_between_measurements = delay_between_measurements_short;
+        Sensor.setIntermeasurementPeriod(time_budget_in_ms);
+        Sensor.setDistanceModeShort();
     }
     delay(250);
 
@@ -183,7 +200,7 @@ void calibration(SFEVL53L1X Sensor)
     if (advised_orientation_of_the_sensor)
     {
 
-        switch (ROI_size)
+        switch (ROI_width)
         {
         case 4:
             center[0] = 150;
@@ -202,14 +219,14 @@ void calibration(SFEVL53L1X Sensor)
             center[1] = 231;
             break;
         case 8:
-            center[0] = 167;
+            center[0] = 175;
             center[1] = 231;
             break;
         }
     }
     else
     {
-        switch (ROI_size)
+        switch (ROI_width)
         {
         case 4:
             center[0] = 193;
@@ -241,23 +258,29 @@ void calibration(SFEVL53L1X Sensor)
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 0
-        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+        Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
-        Sensor.startRanging();
+        while (dataReady == false)
+        {
+            dataReady = Sensor.checkForDataReady();
+        }
+        dataReady = false;
         distance = Sensor.getDistance();
-        Sensor.stopRanging();
         sum_zone_0 = sum_zone_0 + distance;
         Zone++;
         Zone = Zone % 2;
 
         // increase sum of values in Zone 1
-        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+        Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
-        Sensor.startRanging();
+        while (dataReady == false)
+        {
+            dataReady = Sensor.checkForDataReady();
+        }
+        dataReady = false;
         distance = Sensor.getDistance();
-        Sensor.stopRanging();
         sum_zone_1 = sum_zone_1 + distance;
         Zone++;
         Zone = Zone % 2;
@@ -291,6 +314,7 @@ void calibration(SFEVL53L1X Sensor)
     EEPROM.commit();
 
     ESP_LOGI("VL53L1X custom sensor", "#### calibration finished ####");
+    Sensor.stopRanging();
 }
 
 void calibration_boot(SFEVL53L1X Sensor)
@@ -333,7 +357,7 @@ void calibration_boot(SFEVL53L1X Sensor)
         }
     }
     else
-    ESP_LOGI("VL53L1X custom sensor", "#### calibration on boot done ####");
+        ESP_LOGI("VL53L1X custom sensor", "#### calibration on boot done ####");
 }
 #endif //#ifdef CALIBRATIONV2
 #endif
