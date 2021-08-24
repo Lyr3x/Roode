@@ -11,7 +11,7 @@ The predefined config enables most of the features and uses the NRF24L01+ Radio 
 Be carfeul with reconfiguring! Some options shouldnt be changed!
 */
 
-#define ROODE_VERSION "1.1-alpha"
+#define ROODE_VERSION "1.1-beta"
 /*
 ###### FEATURE SELECTION ######
 */
@@ -31,14 +31,21 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #ifdef USE_VL53L1X
 
 #define SENSOR_I2C 0x52
+#define NATIVE
+#ifdef SPARKFUN
 
+#endif
+#ifdef  NATIVE
+static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
+static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
+#endif
 static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */
 static int Zone = 0;
 static int ROI_height = 0;
 static int ROI_width = 0;
-#define INVERT_DIRECTION //this will invert the direction of the sensor
+// #define INVERT_DIRECTION //this will invert the direction of the sensor
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
 

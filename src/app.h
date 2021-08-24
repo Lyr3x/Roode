@@ -1,20 +1,26 @@
 #include "esphome.h"
 #include <Wire.h>
 #include <Config.h>
-#include "SparkFun_VL53L1X.h"
 #include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
-
+#ifdef SPARKFUN
+#include "SparkFun_VL53L1X.h"
 SFEVL53L1X countSensor(Wire);
+#endif
+
+#ifdef NATIVE
+#include "VL53L1XSensor.h"
+VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
+#endif
 #define NOBODY 0
 #define SOMEONE 1
 #ifdef INVERT_DIRECTION
 #define LEFT 1
 #define RIGHT 0
 #else
-#define LEFT 1
-#define RIGHT 0
+#define LEFT 0
+#define RIGHT 1
 #endif
 
 static const char *TAG = "main";
@@ -30,6 +36,10 @@ static int forceSetValue = -1;
 
 //static int num_timeouts = 0;
 double people, distance_avg;
+static int PathTrack[] = {0, 0, 0, 0};
+static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
+static int LeftPreviousStatus = NOBODY;
+static int RightPreviousStatus = NOBODY;
 
 class PeopleCountSensor : public Component, public Sensor
 {
@@ -44,8 +54,13 @@ public:
     Wire.begin();
     Wire.setClock(400000);
 
-    if (countSensor.init() == false)
-      Serial.println("Sensor online!");
+    if (countSensor.begin() == false)
+      ESP_LOGI("VL53L1X custom sensor", "Sensor online!");
+    if (countSensor.checkBootState() == false)
+    {
+      ESP_LOGE("VL53L1X custom sensor", "Boot state check failed!");
+    }
+
     countSensor.startTemperatureUpdate();
 #ifdef CALIBRATION
     calibration(countSensor);
@@ -74,28 +89,29 @@ public:
   {
     if (resetCounter == 1)
     {
-      ESP_LOGD("MQTTCommand", "Reset counter command received");
+      ESP_LOGI("MQTTCommand", "Reset counter command received");
       resetCounter = 0;
       sendCounter(-1);
     }
     if (id(recalibrate) == 1)
     {
-      ESP_LOGD("MQTTCommand", "Recalibration command received");
+      ESP_LOGI("MQTTCommand", "Recalibration command received");
       calibration(countSensor);
       recalibrate = 0;
     }
     if (forceSetValue != -1)
     {
-      ESP_LOGD("MQTTCommand", "Force set value command received");
+      ESP_LOGI("MQTTCommand", "Force set value command received");
       publishMQTT(id(cnt));
       forceSetValue = -1;
     }
   }
   void getNewDistanceForZone()
   {
+    countSensor.stopRanging();
     countSensor.setROI(ROI_height, ROI_width, center[Zone]);
-
-    if (DIST_THRESHOLD_MAX[0] < 1200 && DIST_THRESHOLD_MAX[1] < 1200)
+    countSensor.startRanging();
+    if (DIST_THRESHOLD_MAX[0] < 1300 && DIST_THRESHOLD_MAX[1] < 1300)
     {
       countSensor.setDistanceModeShort();
       countSensor.setTimingBudgetInMs(time_budget_in_ms_short);
@@ -108,22 +124,16 @@ public:
       delay_between_measurements = delay_between_measurements_long;
     }
     delay(delay_between_measurements);
-    countSensor.startRanging();
+
     while (dataReady == false)
     {
       dataReady = countSensor.checkForDataReady();
     }
     dataReady = false;
     distance = countSensor.getDistance();
-
-    countSensor.stopRanging();
   }
   void getDirection(int16_t Distance, uint8_t zone)
   {
-    static int PathTrack[] = {0, 0, 0, 0};
-    static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
-    static int LeftPreviousStatus = NOBODY;
-    static int RightPreviousStatus = NOBODY;
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;

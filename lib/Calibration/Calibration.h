@@ -71,7 +71,7 @@ void calibration(VL53L1XSensor Sensor)
     int irValues[30] = {};
     uint16_t min = 0;
     auto n = 0;
-    Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+    Sensor.setROI(ROI_width, ROI_height, center[Zone]);
     delay(delay_between_measurements);
     Sensor.setTimingBudgetInMs(time_budget_in_ms);
     Sensor.startRanging();
@@ -130,8 +130,8 @@ void calibration(SFEVL53L1X Sensor)
     Sensor.setDistanceModeLong();
     center[0] = 175;
     center[1] = 231;
-    ROI_height = 16;
-    ROI_width = 8;
+    ROI_height = 8; //columns
+    ROI_width = 8;  //rows
     delay(500);
 
     Zone = 0;
@@ -140,19 +140,21 @@ void calibration(SFEVL53L1X Sensor)
     uint16_t distance = 0;
     int number_attempts = 20;
 
-    Sensor.startRanging();
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 1
-        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+        Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        
+        Sensor.startRanging();
         while (dataReady == false)
         {
             dataReady = Sensor.checkForDataReady();
         }
         dataReady = false;
         distance = Sensor.getDistance();
+        Sensor.stopRanging();
 
         sum_zone_0 = sum_zone_0 + distance;
 
@@ -161,31 +163,35 @@ void calibration(SFEVL53L1X Sensor)
         Zone = Zone % 2;
 
         // increase sum of values in Zone 2
-        Sensor.setROI(ROI_height, ROI_width, center[Zone]);
+        Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
 
+        Sensor.startRanging();
         while (dataReady == false)
         {
             dataReady = Sensor.checkForDataReady();
         }
         dataReady = false;
         distance = Sensor.getDistance();
+        Sensor.stopRanging();
 
         sum_zone_1 = sum_zone_1 + distance;
         // Update the zone
         Zone++;
         Zone = Zone % 2;
     }
+    ESP_LOGD("Calibration", "ROI_X(width: %d, ROI_Y(height): %d", Sensor.getROIX(), Sensor.getROIY());
+    ESP_LOGD("Calibration", "Number of active SPADS: %d", Sensor.getSpadNb());
     // after we have computed the sum for each zone, we can compute the average distance of each zone
     float average_zone_0 = sum_zone_0 / number_attempts;
     float average_zone_1 = sum_zone_1 / number_attempts;
-    // the value of the average distance is used for computing the optimal size of the ROI and the center of the two zones
+    // // the value of the average distance is used for computing the optimal size of the ROI and the center of the two zones
     int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(average_zone_0, average_zone_1) / 1000)));
     delay(1000);
     int ROI_size = min(8, max(4, function_of_the_distance));
     ROI_width = ROI_size;
-    ROI_height = ROI_size;
+    // ROI_height = ROI_size;
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
         // we can use the short mode, which allows more precise measurements up to 1300 meters
@@ -200,7 +206,7 @@ void calibration(SFEVL53L1X Sensor)
     if (advised_orientation_of_the_sensor)
     {
 
-        switch (ROI_width)
+        switch (ROI_size)
         {
         case 4:
             center[0] = 150;
@@ -226,7 +232,7 @@ void calibration(SFEVL53L1X Sensor)
     }
     else
     {
-        switch (ROI_width)
+        switch (ROI_size)
         {
         case 4:
             center[0] = 193;
@@ -250,6 +256,7 @@ void calibration(SFEVL53L1X Sensor)
             break;
         }
     }
+    ESP_LOGD("Calibration", "center0: %d,center1: %d", center[0], center[1]);
     delay(2000);
     // we will now repeat the calculations necessary to define the thresholds with the updated zones
     Zone = 0;
@@ -261,12 +268,14 @@ void calibration(SFEVL53L1X Sensor)
         Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
         while (dataReady == false)
         {
             dataReady = Sensor.checkForDataReady();
         }
         dataReady = false;
         distance = Sensor.getDistance();
+        Sensor.stopRanging();
         sum_zone_0 = sum_zone_0 + distance;
         Zone++;
         Zone = Zone % 2;
@@ -275,12 +284,14 @@ void calibration(SFEVL53L1X Sensor)
         Sensor.setROI(ROI_width, ROI_height, center[Zone]);
         delay(delay_between_measurements);
         Sensor.setTimingBudgetInMs(time_budget_in_ms);
+        Sensor.startRanging();
         while (dataReady == false)
         {
             dataReady = Sensor.checkForDataReady();
         }
         dataReady = false;
         distance = Sensor.getDistance();
+        Sensor.stopRanging();
         sum_zone_1 = sum_zone_1 + distance;
         Zone++;
         Zone = Zone % 2;
@@ -291,6 +302,8 @@ void calibration(SFEVL53L1X Sensor)
     float threshold_zone_0 = average_zone_0 * threshold_percentage / 100;
     float threshold_zone_1 = average_zone_1 * threshold_percentage / 100;
 
+    ESP_LOGD("Calibration", "ROI_X(width: %d, ROI_Y(height): %d", Sensor.getROIX(), Sensor.getROIY());
+    ESP_LOGD("Calibration", "Number of active SPADS: %d", Sensor.getSpadNb());
     DIST_THRESHOLD_MAX[0] = threshold_zone_0;
     DIST_THRESHOLD_MAX[1] = threshold_zone_1;
     delay(2000);
@@ -300,13 +313,13 @@ void calibration(SFEVL53L1X Sensor)
     int hundred_threshold_zone_1 = threshold_zone_1 / 100;
     int unit_threshold_zone_0 = threshold_zone_0 - 100 * hundred_threshold_zone_0;
     int unit_threshold_zone_1 = threshold_zone_1 - 100 * hundred_threshold_zone_1;
-    ESP_LOGI("VL53L1X custom sensor", "New threshold zone1: %d", hundred_threshold_zone_0);
-    ESP_LOGI("VL53L1X custom sensor", "New threshold zone2: %d", hundred_threshold_zone_1);
+    ESP_LOGI("VL53L1X custom sensor", "New threshold zone1: %d", unit_threshold_zone_0);
+    ESP_LOGI("VL53L1X custom sensor", "New threshold zone2: %d", unit_threshold_zone_1); 
 
     EEPROM.write(0, 1);
     EEPROM.write(1, center[0]);
     EEPROM.write(2, center[1]);
-    EEPROM.write(3, ROI_size);
+    // EEPROM.write(3, ROI_size);
     EEPROM.write(4, hundred_threshold_zone_0);
     EEPROM.write(5, unit_threshold_zone_0);
     EEPROM.write(6, hundred_threshold_zone_1);
@@ -314,7 +327,6 @@ void calibration(SFEVL53L1X Sensor)
     EEPROM.commit();
 
     ESP_LOGI("VL53L1X custom sensor", "#### calibration finished ####");
-    Sensor.stopRanging();
 }
 
 void calibration_boot(SFEVL53L1X Sensor)
