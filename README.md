@@ -1,6 +1,10 @@
 # RooDe
-People counter working with any smart home system which supports ESPHome
-Project planning in public Trello Board: https://trello.com/b/Yonlc8Fw
+
+People counter working with any smart home system which supports ESPHome and therefore Home Assistamt. All necessary entities are created automatically.
+
+
+[![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
+
 
 ![Roode](Roode.png)
 
@@ -86,10 +90,16 @@ Configue at least the secrets.yaml with your wifi SSID and password to connect. 
 Set #define INVERT_DIRECTION or comment it out to invert the direction.
 
 
+## Configuration
+Be sure to configure your wifi credentials and adapt the Config.h to set everyhting to your needs.
+The most important config part is the calibration mode. You have two different calibration modes available:
+Calibration v1 calibrates the distance for one zone and calculates the standard deviation and uses that value for both zones. 
+Calibration v2 calibrates both zones individually (thanks to @andrea-fox). 
+
 ## Changelog
 ### Changelog v1.0
 #### Additions and Breaking Changes
-* ESPHome
+* ESPHome (thanks to @diplix)
 * Removes legacy support which includes
    * Arduino plattform
    * MySensors plattform
