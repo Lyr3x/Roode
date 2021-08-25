@@ -31,14 +31,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #ifdef USE_VL53L1X
 
 #define SENSOR_I2C 0x52
-#define NATIVE
-#ifdef SPARKFUN
-
-#endif
-#ifdef  NATIVE
-static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
-static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
-#endif
+#include "SparkFun_VL53L1X.h"
+SFEVL53L1X countSensor(Wire);
 static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */

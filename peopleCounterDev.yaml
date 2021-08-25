@@ -13,7 +13,6 @@ esphome:
   libraries:
     - file://../lib/Configuration/
     - file://../lib/Counter/
-    - file://../lib/vl53l1x/
     - sparkfun/SparkFun VL53L1X 4m Laser Distance Sensor@^1.2.9
 
 <<: !include common/common.yaml

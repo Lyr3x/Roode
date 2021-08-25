@@ -191,7 +191,7 @@ void calibration(SFEVL53L1X Sensor)
     delay(1000);
     int ROI_size = min(8, max(4, function_of_the_distance));
     ROI_width = ROI_size;
-    // ROI_height = ROI_size;
+    ROI_height = ROI_size;
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
         // we can use the short mode, which allows more precise measurements up to 1300 meters

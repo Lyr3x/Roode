@@ -4,15 +4,7 @@
 #include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
-#ifdef SPARKFUN
-#include "SparkFun_VL53L1X.h"
-SFEVL53L1X countSensor(Wire);
-#endif
 
-#ifdef NATIVE
-#include "VL53L1XSensor.h"
-VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
-#endif
 #define NOBODY 0
 #define SOMEONE 1
 #ifdef INVERT_DIRECTION
