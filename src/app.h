@@ -105,14 +105,14 @@ public:
       countSensor.setDistanceModeShort();
       countSensor.setTimingBudgetInMs(time_budget_in_ms_short);
       delay_between_measurements = delay_between_measurements_short;
-      Sensor.setIntermeasurementPeriod(delay_between_measurements);
+      countSensor.setIntermeasurementPeriod(delay_between_measurements);
     }
     else
     {
       countSensor.setDistanceModeLong();
       countSensor.setTimingBudgetInMs(time_budget_in_ms_long);
       delay_between_measurements = delay_between_measurements_long;
-      Sensor.setIntermeasurementPeriod(delay_between_measurements);
+      countSensor.setIntermeasurementPeriod(delay_between_measurements);
     }
     delay(delay_between_measurements);
 
