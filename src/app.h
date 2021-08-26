@@ -1,7 +1,6 @@
 #include "esphome.h"
 #include <Wire.h>
 #include <Config.h>
-#include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
 
@@ -69,7 +68,7 @@ public:
   }
   void loop() override
   {
-
+    countSensor.startRanging();
     getNewDistanceForZone();      // get the distance for the zone
     getDirection(distance, Zone); // get the direction of the path
     Zone++;
@@ -100,20 +99,20 @@ public:
   }
   void getNewDistanceForZone()
   {
-    countSensor.stopRanging();
     countSensor.setROI(ROI_height, ROI_width, center[Zone]);
-    countSensor.startRanging();
     if (DIST_THRESHOLD_MAX[0] < 1300 && DIST_THRESHOLD_MAX[1] < 1300)
     {
       countSensor.setDistanceModeShort();
       countSensor.setTimingBudgetInMs(time_budget_in_ms_short);
       delay_between_measurements = delay_between_measurements_short;
+      Sensor.setIntermeasurementPeriod(delay_between_measurements);
     }
     else
     {
       countSensor.setDistanceModeLong();
       countSensor.setTimingBudgetInMs(time_budget_in_ms_long);
       delay_between_measurements = delay_between_measurements_long;
+      Sensor.setIntermeasurementPeriod(delay_between_measurements);
     }
     delay(delay_between_measurements);
 
@@ -130,6 +129,7 @@ public:
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
 
+  
     if (Distance < DIST_THRESHOLD_MAX[Zone] && Distance > MIN_DISTANCE[Zone])
     {
       // Someone is in !

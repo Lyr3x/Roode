@@ -130,7 +130,7 @@ void calibration(SFEVL53L1X Sensor)
     Sensor.setDistanceModeLong();
     center[0] = 175;
     center[1] = 231;
-    ROI_height = 8; //columns
+    ROI_height = 16; //columns
     ROI_width = 8;  //rows
     delay(500);
 

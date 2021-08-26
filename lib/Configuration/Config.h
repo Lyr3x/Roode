@@ -39,7 +39,7 @@ static int center[2] = {0, 0}; /* center of the two zones */
 static int Zone = 0;
 static int ROI_height = 0;
 static int ROI_width = 0;
-// #define INVERT_DIRECTION //this will invert the direction of the sensor
+#define INVERT_DIRECTION //this will invert the direction of the sensor
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
 
