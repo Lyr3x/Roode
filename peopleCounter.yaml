@@ -25,6 +25,10 @@ globals:
     type: int
     restore_value: no
     initial_value: "0"
+  - id: threshold_percentage
+    type: int
+    restore_value: no
+    initial_value: "60"
 
 # Enable logging
 logger:

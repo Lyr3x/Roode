@@ -11,7 +11,6 @@
 
 static int delay_between_measurements = 0;
 static int time_budget_in_ms = 0;
-const int threshold_percentage = 80;
 static bool dataReady = false;
 
 // this value has to be true if the sensor is oriented like this: | -> |
@@ -299,8 +298,8 @@ void calibration(SFEVL53L1X Sensor)
     average_zone_0 = sum_zone_0 / number_attempts;
     average_zone_1 = sum_zone_1 / number_attempts;
     // Decimal values are not used for the threshold
-    float threshold_zone_0 = average_zone_0 * threshold_percentage / 100;
-    float threshold_zone_1 = average_zone_1 * threshold_percentage / 100;
+    float threshold_zone_0 = average_zone_0 * id(threshold_percentage) / 100;
+    float threshold_zone_1 = average_zone_1 * id(threshold_percentage) / 100;
 
     ESP_LOGD("Calibration", "ROI_X(width: %d, ROI_Y(height): %d", Sensor.getROIX(), Sensor.getROIY());
     ESP_LOGD("Calibration", "Number of active SPADS: %d", Sensor.getSpadNb());
