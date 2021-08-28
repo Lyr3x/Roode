@@ -151,7 +151,7 @@ sensor:
     accuracy_decimals: 0
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
-    update_interval: 1s
+    update_interval: 5s
     lambda: |-
       return distance;
     filters:
@@ -164,7 +164,7 @@ sensor:
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
     internal: true
-    update_interval: 0.5s
+    update_interval: 2s
     lambda: |-
       return distance;
     filters:
