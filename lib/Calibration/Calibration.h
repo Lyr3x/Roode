@@ -11,13 +11,12 @@
 static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */
-static int Zone = 0;
 static int ROI_height = 0;
 static int ROI_width = 0;
+static int zone = 0;
 
 static int delay_between_measurements = 0;
 static int time_budget_in_ms = 0;
-const int threshold_percentage = 80;
 
 // this value has to be true if the sensor is oriented as in Duthdeffy's picture
 static bool advised_orientation_of_the_sensor = true;
@@ -118,7 +117,7 @@ void calibration(VL53L1XSensor Sensor)
     // each measurements is done with a timing budget of 100 ms, to increase the precision
     //   client.publish(mqtt_serial_publish_distance_ch, "Computation of new threshold");
     // we set the standard values for the measurements
-    Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
+    Sensor.setIntermeasurementPeriod(time_budget_in_ms_long);
     Sensor.setRangeMode(LONG_RANGE);
     time_budget_in_ms = time_budget_in_ms_long;
     delay_between_measurements = delay_between_measurements_long;
@@ -128,7 +127,7 @@ void calibration(VL53L1XSensor Sensor)
     ROI_width = 8;
     delay(500);
 
-    Zone = 0;
+    zone = 0;
     float sum_zone_0 = 0;
     float sum_zone_1 = 0;
     uint16_t distance;
@@ -141,8 +140,8 @@ void calibration(VL53L1XSensor Sensor)
         distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
         Sensor.stopMeasurement();
         sum_zone_0 = sum_zone_0 + distance;
-        Zone++;
-        Zone = Zone % 2;
+        zone++;
+        zone = zone % 2;
 
         // increase sum of values in Zone 2
         Sensor.startMeasurement();
@@ -150,8 +149,8 @@ void calibration(VL53L1XSensor Sensor)
         distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
         Sensor.stopMeasurement();
         sum_zone_1 = sum_zone_1 + distance;
-        Zone++;
-        Zone = Zone % 2;
+        zone++;
+        zone = zone % 2;
     }
     // after we have computed the sum for each zone, we can compute the average distance of each zone
     float average_zone_0 = sum_zone_0 / number_attempts;
@@ -228,7 +227,7 @@ void calibration(VL53L1XSensor Sensor)
     }
     delay(2000);
     // we will now repeat the calculations necessary to define the thresholds with the updated zones
-    Zone = 0;
+    zone = 0;
     sum_zone_0 = 0;
     sum_zone_1 = 0;
     for (int i = 0; i < number_attempts; i++)
@@ -239,8 +238,8 @@ void calibration(VL53L1XSensor Sensor)
         distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
         Sensor.stopMeasurement();
         sum_zone_0 = sum_zone_0 + distance;
-        Zone++;
-        Zone = Zone % 2;
+        zone++;
+        zone = zone % 2;
 
         // increase sum of values in Zone 1
         Sensor.startMeasurement();
@@ -248,13 +247,13 @@ void calibration(VL53L1XSensor Sensor)
         distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
         Sensor.stopMeasurement();
         sum_zone_1 = sum_zone_1 + distance;
-        Zone++;
-        Zone = Zone % 2;
+        zone++;
+        zone = zone % 2;
     }
     average_zone_0 = sum_zone_0 / number_attempts;
     average_zone_1 = sum_zone_1 / number_attempts;
-    float threshold_zone_0 = average_zone_0 * threshold_percentage / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-    float threshold_zone_1 = average_zone_1 * threshold_percentage / 100;
+    float threshold_zone_0 = average_zone_0 * id(threshold_percentage) / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+    float threshold_zone_1 = average_zone_1 * id(threshold_percentage) / 100;
 
     DIST_THRESHOLD_MAX[0] = threshold_zone_0;
     DIST_THRESHOLD_MAX[1] = threshold_zone_1;
