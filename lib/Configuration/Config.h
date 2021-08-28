@@ -34,7 +34,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
   * general bug fixes and improvements
 * added untested VL53L1X support
 */
-#define ROODE_VERSION "1.1-alpha"
+#define ROODE_VERSION "1.1-beta"
 /*
 ###### FEATURE SELECTION ######
 */

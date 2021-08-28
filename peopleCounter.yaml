@@ -77,7 +77,28 @@ sensor:
     update_interval: 60s
 
   - platform: uptime
-    name: $friendly_name Uptime
+    name: Uptime Sensor
+    id: uptime_sensor
+    update_interval: 120s
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? String(days) + "d " : "") +
+                (hours ? String(hours) + "h " : "") +
+                (minutes ? String(minutes) + "m " : "") +
+                (String(seconds) + "s")
+              ).c_str();
 
   - platform: custom
     lambda: |-
@@ -181,3 +202,7 @@ text_sensor:
     lambda: |-
       std::string version = ROODE_VERSION;
       return version;
+  - platform: template
+    name: Uptime Human Readable
+    id: uptime_human
+    icon: mdi:clock-start

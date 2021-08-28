@@ -114,9 +114,6 @@ void calibration(VL53L1XSensor Sensor)
 void calibration(VL53L1XSensor Sensor)
 {
     // the sensor does 100 measurements for each zone (zones are predefined)
-    // each measurements is done with a timing budget of 100 ms, to increase the precision
-    //   client.publish(mqtt_serial_publish_distance_ch, "Computation of new threshold");
-    // we set the standard values for the measurements
     Sensor.setIntermeasurementPeriod(time_budget_in_ms_long);
     Sensor.setRangeMode(LONG_RANGE);
     time_budget_in_ms = time_budget_in_ms_long;
