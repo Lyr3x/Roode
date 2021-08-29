@@ -206,8 +206,7 @@ text_sensor:
     name: "$friendly_name Version"
     icon: mdi:git
     lambda: |-
-      std::string version = ROODE_VERSION;
-      return version;
+      return "v1.1-beta";
 
   - platform: template
     name: $friendly_name Uptime Human Readable
