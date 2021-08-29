@@ -104,7 +104,6 @@ public:
     {
       // Someone is in !
       CurrentZoneStatus = SOMEONE;
-      //ESP_LOGE(TAG, "Global value is: %d", id(DIST_THRESHOLD_MAX_G));
     }
 
     // left zone
