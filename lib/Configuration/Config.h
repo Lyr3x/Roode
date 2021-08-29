@@ -17,6 +17,5 @@ License: GPLv3
 #ifdef USE_VL53L1X
 #include <VL53L1X.h>
 #endif //USE_VL53L1X
-#ifdef USE_VL53L1X
 
 #endif //CONFIG_H
