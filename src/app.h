@@ -4,7 +4,7 @@
 #include <Config.h>
 #include <Counter.h>
 #include <EEPROM.h>
-// #include <Calibration.h>
+#include <Calibration.h>
 
 #define USE_VL53L1X
 VL53L1X distanceSensor;
@@ -18,17 +18,9 @@ int distance = 0;
 int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 boolean lastTrippedState = 0;
-
+// int SENSOR_I2C = 0x52;
 //static int num_timeouts = 0;
 double people, distance_avg;
-
-//Remove
-static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
-static int MIN_DISTANCE[] = {0, 0};
-static int center[2] = {0, 0}; /* center of the two zones */
-static int ROI_height = 0;
-static int ROI_width = 0;
-static int zone = 0;
 
 // MQTT Commands
 static int resetCounter = 0;
@@ -46,7 +38,7 @@ public:
     // This will be called by App.setup()
     Wire.begin();
     Wire.setClock(400000);
-
+    distanceSensor.setAddress(id(SENSOR_I2C));
     distanceSensor.setTimeout(500);
     if (!distanceSensor.init())
     {
@@ -58,12 +50,10 @@ public:
     calibration(distanceSensor);
 #endif
 #ifdef CALIBRATIONV2
-    // calibration_boot(distanceSensor);
+    calibration_boot(distanceSensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    distanceSensor.setDistanceMode(VL53L1X::Long);
-    distanceSensor.setMeasurementTimingBudget(50000);
-    distanceSensor.startContinuous(50);
+    distanceSensor.startContinuous(delay_between_measurements);
   }
 
   void checkMQTTCommands()
@@ -104,14 +94,11 @@ public:
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
-    if (zone == 0)
-    {
-      distance = distanceSensor.read();
-    }
-    else if (zone == 1)
-    {
-      distance = distanceSensor.read();
-    }
+
+    distanceSensor.setROICenter(center[zone]);
+    distanceSensor.startContinuous(delay_between_measurements);
+    distance = distanceSensor.read();
+    distanceSensor.stopContinuous();
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {

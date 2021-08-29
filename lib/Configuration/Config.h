@@ -43,18 +43,12 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 // #define USE_BATTERY (preconfigured for Lithium-Ion (4.2V))
 // #define CALIBRATION //enables calibration of the distance sensors and motion sensor initializing
 #define CALIBRATIONV2
-/*
-###### I2C Pin Definition ######
-*/
-#define SDA_PIN D2
-#define SCL_PIN D1
-#define XSHUT_PIN 14
+
 /**
 ###### VL53L1X Definition ######
 **/
 #ifdef USE_VL53L1X
 #include <VL53L1X.h>
-#define SENSOR_I2C 0x52
 
 //#define INT			D7 not used right now
 #endif //USE_VL53L1X
