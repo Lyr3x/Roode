@@ -83,9 +83,9 @@ public:
     peopleCount = val;
     people_sensor->publish_state(val);
   }
-  void loop() override
+
+  void getZoneDistance()
   {
-    checkMQTTCommands();
     static int PathTrack[] = {0, 0, 0, 0};
     static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
     static int LeftPreviousStatus = NOBODY;
@@ -206,7 +206,11 @@ public:
         PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
       }
     }
-
+  }
+  void loop() override
+  {
+    checkMQTTCommands();
+    getZoneDistance(); // ~42ms
     zone++;
     zone = zone % 2;
 
