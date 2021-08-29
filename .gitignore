@@ -7,4 +7,6 @@
 .vscode/
 lib/Configuration/Config.h
 people_counter/
+people_counter_dev/
 .esphome/
+.DS_Store
