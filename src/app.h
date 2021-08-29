@@ -210,7 +210,7 @@ public:
   void loop() override
   {
     checkMQTTCommands();
-    getZoneDistance(); // ~42ms
+    getZoneDistance();
     zone++;
     zone = zone % 2;
 

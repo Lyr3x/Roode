@@ -93,9 +93,9 @@ void calibration(VL53L1X distanceSensor)
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
         // we can use the short mode, which allows more precise measurements up to 1.3 meters
-        distanceSensor.setDistanceMode(VL53L1X::Short);
         time_budget_in_ms = time_budget_in_ms_short;
         delay_between_measurements = delay_between_measurements_short;
+        distanceSensor.setDistanceMode(VL53L1X::Short);
     }
     delay(250);
 
