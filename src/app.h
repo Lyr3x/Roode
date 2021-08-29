@@ -8,7 +8,7 @@
 #include <Calibration.h>
 
 #define USE_VL53L1X
-VL53L1XSensor count_sensor(XSHUT_PIN, SENSOR_I2C);
+VL53L1XSensor countSensor(XSHUT_PIN, SENSOR_I2C);
 int gesture_code;
 #define NOBODY 0
 #define SOMEONE 1
@@ -19,11 +19,14 @@ static const char *TAG = "main";
 int distance = 0;
 int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
-static int resetCounter = 0;
 boolean lastTrippedState = 0;
 
 //static int num_timeouts = 0;
 double people, distance_avg;
+
+// MQTT Commands
+static int resetCounter = 0;
+static int forceSetValue = -1;
 
 class PeopleCountSensor : public Component, public Sensor
 {
@@ -38,43 +41,69 @@ public:
     Wire.begin();
     Wire.setClock(400000);
 
-    count_sensor.init();
+    countSensor.init();
 #ifdef CALIBRATION
-    calibration(count_sensor);
+    calibration(countSensor);
 #endif
 #ifdef CALIBRATIONV2
-  calibration_boot(count_sensor);
+    calibration_boot(countSensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    count_sensor.startMeasurement();
+    countSensor.startMeasurement();
   }
 
+  void checkMQTTCommands()
+  {
+    if (resetCounter == 1)
+    {
+      ESP_LOGI("MQTTCommand", "Reset counter command received");
+      resetCounter = 0;
+      sendCounter(-1);
+    }
+    if (id(recalibrate) == 1)
+    {
+      ESP_LOGI("MQTTCommand", "Recalibration command received");
+      calibration(countSensor);
+      recalibrate = 0;
+    }
+    if (forceSetValue != -1)
+    {
+      ESP_LOGI("MQTTCommand", "Force set value command received");
+      publishMQTT(id(cnt));
+      forceSetValue = -1;
+    }
+  }
+
+  void publishMQTT(int val)
+  {
+    peopleCount = val;
+    people_sensor->publish_state(val);
+  }
   void loop() override
   {
+    checkMQTTCommands();
     static int PathTrack[] = {0, 0, 0, 0};
     static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
     static int LeftPreviousStatus = NOBODY;
     static int RightPreviousStatus = NOBODY;
-    static int zone = 0;
+
 
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
-    if (zone == LEFT)
+    if (zone == 0)
     {
-      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig1);
+      distance = countSensor.readRangeContinuoisMillimeters(roiConfig1);
     }
-    else
+    else if (zone == 1)
     {
-      distance = count_sensor.readRangeContinuoisMillimeters(roiConfig2);
+      distance = countSensor.readRangeContinuoisMillimeters(roiConfig2);
     }
 
-    // if (distance < id(DIST_THRESHOLD_MAX_G))
-    if (distance < DIST_THRESHOLD_MAX[Zone] && distance > MIN_DISTANCE[Zone])
+    if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {
       // Someone is in !
       CurrentZoneStatus = SOMEONE;
-      //ESP_LOGE(TAG, "Global value is: %d", id(DIST_THRESHOLD_MAX_G));
     }
 
     // left zone

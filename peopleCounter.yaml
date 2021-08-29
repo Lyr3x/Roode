@@ -19,14 +19,18 @@ esphome:
 <<: !include common/common.yaml
 
 globals:
-  - id: DIST_THRESHOLD_MAX_G
-    type: int
-    restore_value: no
-    initial_value: "1780"
   - id: cnt
     type: int
     restore_value: yes
     initial_value: "0"
+  - id: recalibrate
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: threshold_percentage
+    type: int
+    restore_value: no
+    initial_value: "60"
 
 # Enable logging
 logger:
@@ -57,7 +61,7 @@ binary_sensor:
   - platform: template
     name: $friendly_name photo sensor
     lambda: |-
-      if (id(tof_distance_avg).state < 1400) {
+      if (id(tof_distance_avg).state < DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < DIST_THRESHOLD_MAX[1]) {
         // someone in the door
         return true;
       } else {
@@ -73,7 +77,28 @@ sensor:
     update_interval: 60s
 
   - platform: uptime
-    name: $friendly_name Uptime
+    name: Uptime Sensor
+    id: uptime_sensor
+    update_interval: 120s
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? String(days) + "d " : "") +
+                (hours ? String(hours) + "h " : "") +
+                (minutes ? String(minutes) + "m " : "") +
+                (String(seconds) + "s")
+              ).c_str();
 
   - platform: custom
     lambda: |-
@@ -97,13 +122,36 @@ sensor:
         - lambda: |-
             resetCounter = 1;
 
+  - platform: mqtt_subscribe
+    name: "People set counter"
+    id: people_set_counter
+    topic: $devicename/sensor/people/set
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if(id(cnt)!=id(people_set_counter).state){
+              id(cnt)=id(people_set_counter).state;
+              forceSetValue=1;
+            }
+
+  - platform: mqtt_subscribe
+    name: "People recalibrate"
+    id: people_recalibrate
+    topic: $devicename/sensor/people/recalibrate
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            id(recalibrate) = 1;
+
   - platform: template
     name: $friendly_name measured distance
     id: tof_distance
     accuracy_decimals: 0
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
-    update_interval: 1s
+    update_interval: 5s
     lambda: |-
       return distance;
     filters:
@@ -116,10 +164,45 @@ sensor:
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
     internal: true
-    update_interval: 0.1s
+    update_interval: 2s
     lambda: |-
       return distance;
     filters:
       - sliding_window_moving_average:
           window_size: 10
           send_every: 10
+
+  - platform: template
+    name: $friendly_name threshold zone 0
+    id: threshold_zone0
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    lambda: |-
+      return DIST_THRESHOLD_MAX[0];
+    filters:
+      - delta: 1
+
+  - platform: template
+    name: $friendly_name threshold zone 1
+    id: threshold_zone1
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    update_interval: 60s
+    lambda: |-
+      return DIST_THRESHOLD_MAX[1];
+    filters:
+      - delta: 1
+
+text_sensor:
+  - platform: template
+    name: "$friendly_name Version"
+    icon: mdi:git
+    lambda: |-
+      std::string version = ROODE_VERSION;
+      return version;
+  - platform: template
+    name: Uptime Human Readable
+    id: uptime_human
+    icon: mdi:clock-start

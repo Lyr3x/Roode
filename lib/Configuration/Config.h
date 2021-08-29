@@ -34,7 +34,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
   * general bug fixes and improvements
 * added untested VL53L1X support
 */
-#define ROODE_VERSION "1.1-alpha"
+#define ROODE_VERSION "1.1-beta"
 /*
 ###### FEATURE SELECTION ######
 */
@@ -56,8 +56,8 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 #include <vl53l1_api.h>
 #define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
 #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
-static VL53L1_UserRoi_t roiConfig1 = {10, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
-static VL53L1_UserRoi_t roiConfig2 = {0, 15, 5, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
+static VL53L1_UserRoi_t roiConfig1 = {9, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
+static VL53L1_UserRoi_t roiConfig2 = {0, 15, 6, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
 
 #define SENSOR_I2C 0x52
 
