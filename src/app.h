@@ -2,14 +2,13 @@
 
 #include <Wire.h>
 #include <Config.h>
-#include <VL53L1XSensor.h>
+#include <VL53L1X.h>
 #include <Counter.h>
 #include <EEPROM.h>
-#include <Calibration.h>
+// #include <Calibration.h>
 
 #define USE_VL53L1X
-VL53L1XSensor countSensor(XSHUT_PIN, SENSOR_I2C);
-int gesture_code;
+VL53L1X distanceSensor;
 #define NOBODY 0
 #define SOMEONE 1
 #define LEFT 0
@@ -23,6 +22,14 @@ boolean lastTrippedState = 0;
 
 //static int num_timeouts = 0;
 double people, distance_avg;
+
+//Remove
+static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
+static int MIN_DISTANCE[] = {0, 0};
+static int center[2] = {0, 0}; /* center of the two zones */
+static int ROI_height = 0;
+static int ROI_width = 0;
+static int zone = 0;
 
 // MQTT Commands
 static int resetCounter = 0;
@@ -41,15 +48,22 @@ public:
     Wire.begin();
     Wire.setClock(400000);
 
-    countSensor.init();
+    distanceSensor.setTimeout(500);
+    if (!distanceSensor.init())
+    {
+      ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
+      while (1);
+    }
 #ifdef CALIBRATION
     calibration(countSensor);
 #endif
 #ifdef CALIBRATIONV2
-    calibration_boot(countSensor);
+    // calibration_boot(countSensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    countSensor.startMeasurement();
+    distanceSensor.setDistanceMode(VL53L1X::Long);
+    distanceSensor.setMeasurementTimingBudget(50000);
+    distanceSensor.startContinuous(50);
   }
 
   void checkMQTTCommands()
@@ -63,7 +77,7 @@ public:
     if (id(recalibrate) == 1)
     {
       ESP_LOGI("MQTTCommand", "Recalibration command received");
-      calibration(countSensor);
+      // calibration(sensor);
       recalibrate = 0;
     }
     if (forceSetValue != -1)
@@ -87,17 +101,16 @@ public:
     static int LeftPreviousStatus = NOBODY;
     static int RightPreviousStatus = NOBODY;
 
-
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
     if (zone == 0)
     {
-      distance = countSensor.readRangeContinuoisMillimeters(roiConfig1);
+      distance = distanceSensor.read();
     }
     else if (zone == 1)
     {
-      distance = countSensor.readRangeContinuoisMillimeters(roiConfig2);
+      distance = distanceSensor.read();
     }
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])

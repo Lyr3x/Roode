@@ -1,6 +1,7 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
 #include <Config.h>
+#include <VL53L1X.h>
 #include <math.h>
 #include "esphome/core/log.h"
 
@@ -111,13 +112,12 @@ void calibration(VL53L1XSensor Sensor)
 #endif //#ifdef CALIBRATION
 
 #ifdef CALIBRATIONV2
-void calibration(VL53L1XSensor Sensor)
+void calibration(VL53L1X Sensor)
 {
     // the sensor does 100 measurements for each zone (zones are predefined)
-    Sensor.setIntermeasurementPeriod(time_budget_in_ms_long);
-    Sensor.setRangeMode(LONG_RANGE);
-    time_budget_in_ms = time_budget_in_ms_long;
-    delay_between_measurements = delay_between_measurements_long;
+    Sensor.startContinuous(time_budget_in_ms_long);
+    Sensor.setDistanceMode(Long);
+    Sensor.writeReg32Bit(SYSTEM__INTERMEASUREMENT_PERIOD, delay_between_measurements_long * osc_calibrate_val);
     center[0] = 167;
     center[1] = 231;
     ROI_height = 8;
