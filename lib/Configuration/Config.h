@@ -53,11 +53,7 @@ Be carfeul with reconfiguring! Some options shouldnt be changed!
 ###### VL53L1X Definition ######
 **/
 #ifdef USE_VL53L1X
-// #define dev1_sel digitalWrite(XSHUT_PIN, HIGH);
-// #define dev1_desel digitalWrite(XSHUT_PIN, LOW);
-// static VL53L1_UserRoi_t roiConfig1 = {9, 15, 15, 0}; //TopLeftX, TopLeftY, BotRightX, BotRightY
-// static VL53L1_UserRoi_t roiConfig2 = {0, 15, 6, 0};   //TopLeftX, TopLeftY, BotRightX, BotRightY
-
+#include <VL53L1X.h>
 #define SENSOR_I2C 0x52
 
 //#define INT			D7 not used right now

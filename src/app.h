@@ -2,7 +2,6 @@
 
 #include <Wire.h>
 #include <Config.h>
-#include <VL53L1X.h>
 #include <Counter.h>
 #include <EEPROM.h>
 // #include <Calibration.h>
@@ -52,13 +51,14 @@ public:
     if (!distanceSensor.init())
     {
       ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
-      while (1);
+      while (1)
+        ;
     }
 #ifdef CALIBRATION
-    calibration(countSensor);
+    calibration(distanceSensor);
 #endif
 #ifdef CALIBRATIONV2
-    // calibration_boot(countSensor);
+    // calibration_boot(distanceSensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
     distanceSensor.setDistanceMode(VL53L1X::Long);

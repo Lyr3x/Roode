@@ -8,7 +8,7 @@ esphome:
   board: nodemcuv2
   includes:
     - src/app.h
-    # - lib/Calibration/Calibration.h
+    - lib/Calibration/Calibration.h
 
   libraries:
     - file://../lib/Configuration/
