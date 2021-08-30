@@ -35,92 +35,20 @@ static int delay_between_measurements_short = 22;
 // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
 static int short_distance_threshold = 1300;
 
-/*
-##### CALIBRATION END ##### 
-*/
 #endif //#ifdef CALIBRATIONV2
 
-#ifdef CALIBRATION
-int calculateStandardDeviation(int irValues[])
-{
-    auto sumOfValues = 0;
-    auto arrLength = 0;
-    for (int i = 0; i < 30; i++)
-    {
-        if (irValues[i] != 0)
-        {
-            sumOfValues += irValues[i];
-            arrLength++;
-        }
-    }
-
-    auto meanValue = sumOfValues / arrLength;
-
-    auto standardDeviation = 0;
-    for (int i = 0; i < arrLength; ++i)
-    {
-        standardDeviation += pow(irValues[i] - meanValue, 2);
-    }
-    standardDeviation /= arrLength;
-
-    standardDeviation = sqrt(standardDeviation);
-
-    return standardDeviation;
-}
-
-//Calibration v1
-void calibration(VL53L1XSensor Sensor)
-{
-    ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
-    int irValues[30] = {};
-    uint16_t min = 0;
-    auto n = 0;
-    Sensor.readRangeContinuoisMillimeters(roiConfig1, 100);
-    for (int m = 0; m < CALIBRATION_VAL; m++)
-    {
-        auto sensor_value = Sensor.readRangeContinuoisMillimeters(roiConfig1);
-
-        // #ifdef MY_DEBUG
-        ESP_LOGD("VL53L1X custom sensor", "sensor_value: %d", sensor_value);
-        // #endif
-        //calculate the max without jumps for the room sensor
-        if ((sensor_value < min) || ((sensor_value - min) == sensor_value))
-        {
-            ESP_LOGD("VL53L1X custom sensor", "sensor_value: %d", sensor_value);
-            min = sensor_value;
-            if (n < 30)
-            {
-                irValues[n] = min;
-                n++;
-            }
-        }
-    }
-    auto sd = 0;
-
-    sd = calculateStandardDeviation(irValues);
-
-// Serial.print("standard deviation: " + threshold);
-// threshold = max + THRESHOLD_X;#
-#undef DIST_THRESHOLD_MAX
-#define DIST_THRESHOLD_MAX min - sd
-    ESP_LOGI("VL53L1X custom sensor", "standard deviation: %d", sd);
-    ESP_LOGI("VL53L1X custom sensor", "new threshold: %d", DIST_THRESHOLD_MAX);
-    ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
-}
-
-#endif //#ifdef CALIBRATION
-
 #ifdef CALIBRATIONV2
-void calibration(VL53L1XSensor Sensor)
+void calibration(VL53L1X distanceSensor)
 {
     // the sensor does 100 measurements for each zone (zones are predefined)
-    Sensor.setIntermeasurementPeriod(time_budget_in_ms_long);
-    Sensor.setRangeMode(LONG_RANGE);
     time_budget_in_ms = time_budget_in_ms_long;
     delay_between_measurements = delay_between_measurements_long;
+    distanceSensor.startContinuous(delay_between_measurements);
+    distanceSensor.setDistanceMode(VL53L1X::Long);
+    distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
     center[0] = 167;
     center[1] = 231;
-    ROI_height = 8;
+    ROI_height = 16;
     ROI_width = 8;
     delay(500);
 
@@ -132,19 +60,23 @@ void calibration(VL53L1XSensor Sensor)
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 1
-        Sensor.startMeasurement();
-        delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
-        Sensor.stopMeasurement();
+        distanceSensor.setROISize(ROI_width, ROI_height);
+        distanceSensor.setROICenter(center[zone]);
+        distanceSensor.startContinuous(delay_between_measurements);
+        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+        distance = distanceSensor.read();
+        distanceSensor.stopContinuous();
         sum_zone_0 = sum_zone_0 + distance;
         zone++;
         zone = zone % 2;
 
         // increase sum of values in Zone 2
-        Sensor.startMeasurement();
-        delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
-        Sensor.stopMeasurement();
+        distanceSensor.setROISize(ROI_width, ROI_height);
+        distanceSensor.setROICenter(center[zone]);
+        distanceSensor.startContinuous(delay_between_measurements);
+        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+        distance = distanceSensor.read();
+        distanceSensor.stopContinuous();
         sum_zone_1 = sum_zone_1 + distance;
         zone++;
         zone = zone % 2;
@@ -161,10 +93,9 @@ void calibration(VL53L1XSensor Sensor)
     if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
     {
         // we can use the short mode, which allows more precise measurements up to 1.3 meters
-        Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-        Sensor.setRangeMode(SHORT_RANGE);
         time_budget_in_ms = time_budget_in_ms_short;
         delay_between_measurements = delay_between_measurements_short;
+        distanceSensor.setDistanceMode(VL53L1X::Short);
     }
     delay(250);
 
@@ -230,19 +161,23 @@ void calibration(VL53L1XSensor Sensor)
     for (int i = 0; i < number_attempts; i++)
     {
         // increase sum of values in Zone 0
-        Sensor.startMeasurement();
-        delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig1);
-        Sensor.stopMeasurement();
+        distanceSensor.setROISize(ROI_width, ROI_height);
+        distanceSensor.setROICenter(center[zone]);
+        distanceSensor.startContinuous(delay_between_measurements);
+        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+        distance = distanceSensor.read();
+        distanceSensor.stopContinuous();
         sum_zone_0 = sum_zone_0 + distance;
         zone++;
         zone = zone % 2;
 
         // increase sum of values in Zone 1
-        Sensor.startMeasurement();
-        delay(delay_between_measurements);
-        distance = Sensor.readRangeContinuoisMillimeters(roiConfig2);
-        Sensor.stopMeasurement();
+        distanceSensor.setROISize(ROI_width, ROI_height);
+        distanceSensor.setROICenter(center[zone]);
+        distanceSensor.startContinuous(delay_between_measurements);
+        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+        distance = distanceSensor.read();
+        distanceSensor.stopContinuous();
         sum_zone_1 = sum_zone_1 + distance;
         zone++;
         zone = zone % 2;
@@ -254,15 +189,15 @@ void calibration(VL53L1XSensor Sensor)
 
     DIST_THRESHOLD_MAX[0] = threshold_zone_0;
     DIST_THRESHOLD_MAX[1] = threshold_zone_1;
-    ESP_LOGI("VL53L1X custom sensor", "Threshold zone1: %d", threshold_zone_0);
-    ESP_LOGI("VL53L1X custom sensor", "Threshold zone2: %d", threshold_zone_1);
-    delay(2000);
 
     // we now save the values into the EEPROM memory
     int hundred_threshold_zone_0 = threshold_zone_0 / 100;
     int hundred_threshold_zone_1 = threshold_zone_1 / 100;
     int unit_threshold_zone_0 = threshold_zone_0 - 100 * hundred_threshold_zone_0;
     int unit_threshold_zone_1 = threshold_zone_1 - 100 * hundred_threshold_zone_1;
+    ESP_LOGI("VL53L1X custom sensor", "Threshold zone1: %d", threshold_zone_0);
+    ESP_LOGI("VL53L1X custom sensor", "Threshold zone2: %d", threshold_zone_1);
+    delay(2000);
 
     EEPROM.write(0, 1);
     EEPROM.write(1, center[0]);
@@ -275,7 +210,7 @@ void calibration(VL53L1XSensor Sensor)
     EEPROM.commit();
 }
 
-void calibration_boot(VL53L1XSensor Sensor)
+void calibration_boot(VL53L1X distanceSensor)
 {
     ESP_LOGI("VL53L1X custom sensor", "#### calibration started ####");
     if (save_calibration_result)
@@ -296,28 +231,28 @@ void calibration_boot(VL53L1XSensor Sensor)
             // if the distance measured is small, then we can use the short range mode of the sensor
             if (min(DIST_THRESHOLD_MAX[0], DIST_THRESHOLD_MAX[1]) <= short_distance_threshold)
             {
-                Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-                Sensor.setRangeMode(SHORT_RANGE);
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = delay_between_measurements_short;
+                distanceSensor.setDistanceMode(VL53L1X::Short);
+                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             }
             else
             {
-                Sensor.setIntermeasurementPeriod(time_budget_in_ms_short);
-                Sensor.setRangeMode(LONG_RANGE);
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
+                distanceSensor.setDistanceMode(VL53L1X::Long);
+                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             }
             //   client.publish(mqtt_serial_publish_distance_ch, "All values updated");
         }
         else
         {
             // there are no data in the EEPROM memory
-            calibration(Sensor);
+            calibration(distanceSensor);
         }
     }
     else
-        calibration(Sensor);
+        calibration(distanceSensor);
     ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
 }
 #endif //#ifdef CALIBRATIONV2

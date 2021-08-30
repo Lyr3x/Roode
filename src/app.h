@@ -2,14 +2,12 @@
 
 #include <Wire.h>
 #include <Config.h>
-#include <VL53L1XSensor.h>
 #include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
 
 #define USE_VL53L1X
-VL53L1XSensor countSensor(XSHUT_PIN, SENSOR_I2C);
-int gesture_code;
+VL53L1X distanceSensor;
 #define NOBODY 0
 #define SOMEONE 1
 #define LEFT 0
@@ -20,7 +18,7 @@ int distance = 0;
 int left = 0, right = 0, oldcnt;
 static uint8_t peopleCount = 0; //default state: nobody is inside the room
 boolean lastTrippedState = 0;
-
+// int SENSOR_I2C = 0x52;
 //static int num_timeouts = 0;
 double people, distance_avg;
 
@@ -40,16 +38,22 @@ public:
     // This will be called by App.setup()
     Wire.begin();
     Wire.setClock(400000);
-
-    countSensor.init();
+    distanceSensor.setAddress(id(SENSOR_I2C));
+    distanceSensor.setTimeout(500);
+    if (!distanceSensor.init())
+    {
+      ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
+      while (1)
+        ;
+    }
 #ifdef CALIBRATION
-    calibration(countSensor);
+    calibration(distanceSensor);
 #endif
 #ifdef CALIBRATIONV2
-    calibration_boot(countSensor);
+    calibration_boot(distanceSensor);
 #endif
     ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    countSensor.startMeasurement();
+    distanceSensor.startContinuous(delay_between_measurements);
   }
 
   void checkMQTTCommands()
@@ -63,7 +67,7 @@ public:
     if (id(recalibrate) == 1)
     {
       ESP_LOGI("MQTTCommand", "Recalibration command received");
-      calibration(countSensor);
+      // calibration(sensor);
       recalibrate = 0;
     }
     if (forceSetValue != -1)
@@ -79,26 +83,22 @@ public:
     peopleCount = val;
     people_sensor->publish_state(val);
   }
-  void loop() override
+
+  void getZoneDistance()
   {
-    checkMQTTCommands();
     static int PathTrack[] = {0, 0, 0, 0};
     static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
     static int LeftPreviousStatus = NOBODY;
     static int RightPreviousStatus = NOBODY;
 
-
     int CurrentZoneStatus = NOBODY;
     int AllZonesCurrentStatus = 0;
     int AnEventHasOccured = 0;
-    if (zone == 0)
-    {
-      distance = countSensor.readRangeContinuoisMillimeters(roiConfig1);
-    }
-    else if (zone == 1)
-    {
-      distance = countSensor.readRangeContinuoisMillimeters(roiConfig2);
-    }
+
+    distanceSensor.setROICenter(center[zone]);
+    distanceSensor.startContinuous(delay_between_measurements);
+    distance = distanceSensor.read();
+    distanceSensor.stopContinuous();
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {
@@ -206,7 +206,11 @@ public:
         PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
       }
     }
-
+  }
+  void loop() override
+  {
+    checkMQTTCommands();
+    getZoneDistance();
     zone++;
     zone = zone % 2;
 
