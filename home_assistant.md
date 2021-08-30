@@ -7,21 +7,21 @@ Roode has endpoints to set the count value, reset the counter to 0 and to recali
 - alias: "Set people slider"
   trigger:
     platform: mqtt
-    topic: "people_counter/sensor/people_counter_people/state"
+    topic: "roode/sensor/people_set_counter/state"
   action:
     service: input_number.set_value
     target:
       entity_id: input_number.set_people
     data:
       value: "{{ trigger.payload }}"
-- alias: "People slider moved"
+- alias: "people slider moved"
   trigger:
     platform: state
     entity_id: input_number.set_people
   action:
     service: mqtt.publish
     data:
-      topic: "people_counter/sensor/people/set"
+      topic: "roode/sensor/people/set"
       retain: true
       payload: "{{ states('input_number.set_people') | int }}"
 ```

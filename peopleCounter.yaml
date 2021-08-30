@@ -1,6 +1,6 @@
 substitutions:
-  devicename: people_counter
-  friendly_name: People Counter
+  devicename: roode
+  friendly_name: Roode
 
 esphome:
   name: $devicename
