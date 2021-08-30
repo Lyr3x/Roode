@@ -12,3 +12,4 @@ people_counter_dev/
 .DS_Store
 common/wifi.yaml
 common/secrets.yaml
+secrets.yaml
