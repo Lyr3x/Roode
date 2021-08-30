@@ -4,4 +4,4 @@ wifi:
       password: !secret ssid1_password
     - ssid: !secret ssid2
       password: !secret ssid2_password
-#  use_address: tagreader_25c38f.local
+  use_address: roode.local

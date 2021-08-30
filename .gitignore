@@ -10,3 +10,5 @@ people_counter/
 people_counter_dev/
 .esphome/
 .DS_Store
+common/wifi.yaml
+common/secrets.yaml
