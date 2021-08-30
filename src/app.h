@@ -2,7 +2,6 @@
 
 #include <Wire.h>
 #include <Config.h>
-#include <Counter.h>
 #include <EEPROM.h>
 #include <Calibration.h>
 
