@@ -45,8 +45,7 @@ public:
     if (!distanceSensor.init())
     {
       ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
-      while (1)
-        ;
+      while (1);
     }
 #ifdef CALIBRATION
     calibration(distanceSensor);
