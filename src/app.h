@@ -15,9 +15,7 @@ VL53L1X distanceSensor;
 static const char *TAG = "main";
 int distance = 0;
 int left = 0, right = 0, oldcnt;
-static uint8_t peopleCount = 0; //default state: nobody is inside the room
 boolean lastTrippedState = 0;
-// int SENSOR_I2C = 0x52;
 //static int num_timeouts = 0;
 double people, distance_avg;
 
@@ -37,7 +35,12 @@ public:
     // This will be called by App.setup()
     Wire.begin();
     Wire.setClock(400000);
-    distanceSensor.setAddress(id(SENSOR_I2C));
+    if (id(SENSOR_I2C) != 0)
+    {
+      ESP_LOGI("VL53L1X custom sensor", "Setting custom I2C address");
+      distanceSensor.setAddress(id(SENSOR_I2C));
+    }
+
     distanceSensor.setTimeout(500);
     if (!distanceSensor.init())
     {
@@ -61,7 +64,8 @@ public:
     {
       ESP_LOGI("MQTTCommand", "Reset counter command received");
       resetCounter = 0;
-      sendCounter(-1);
+      id(peopleCounter) = 0;
+      sendCounter();
     }
     if (id(recalibrate) == 1)
     {
@@ -72,14 +76,14 @@ public:
     if (forceSetValue != -1)
     {
       ESP_LOGI("MQTTCommand", "Force set value command received");
-      publishMQTT(id(cnt));
+      publishMQTT(id(peopleCounter));
       forceSetValue = -1;
     }
   }
 
   void publishMQTT(int val)
   {
-    peopleCount = val;
+    id(peopleCounter) = val;
     people_sensor->publish_state(val);
   }
 
@@ -172,9 +176,9 @@ public:
           if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2))
           {
             // This an exit
-            //PeopleCount --;
-            if (id(cnt) > 0)
-              id(cnt)--;
+            //peopleCounter --;
+            if (id(peopleCounter) > 0)
+              id(peopleCounter)--;
             right = 1;
             dispUpdate();
             right = 0;
@@ -182,8 +186,8 @@ public:
           else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
           {
             // This an entry
-            //PeopleCount ++;
-            id(cnt)++;
+            //peopleCounter ++;
+            id(peopleCounter)++;
             left = 1;
             dispUpdate();
             left = 0;
@@ -212,12 +216,6 @@ public:
     getZoneDistance();
     zone++;
     zone = zone % 2;
-
-    if (resetCounter == 1)
-    {
-      resetCounter = 0;
-      sendCounter(-1);
-    }
   }
   inline void dispUpdate()
   { // 33mS
@@ -226,37 +224,21 @@ public:
     {
       // Serial.println("--->");
       ESP_LOGD("VL53L1X custom sensor", "--->");
-      sendCounter(1);
+      sendCounter();
     }
     // right = out
     if (right)
     {
       // Serial.println("<---");
       ESP_LOGD("VL53L1X custom sensor", "<---");
-      sendCounter(0);
+      sendCounter();
     }
-    Serial.println(id(cnt));
-    ESP_LOGD("VL53L1X custom sensor", "Count: %d", id(cnt));
+    Serial.println(id(peopleCounter));
+    ESP_LOGD("VL53L1X custom sensor", "Count: %d", id(peopleCounter));
   }
-  void sendCounter(int inout)
+  void sendCounter()
   {
-    if (inout == 1)
-    {
-      peopleCount++;
-    }
-    else if (inout == 0)
-    {
-      if (peopleCount > 0)
-      {
-        peopleCount--;
-      }
-    }
-    else if (inout == -1)
-    {
-      peopleCount = 0;
-    }
-
-    ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", peopleCount);
-    people_sensor->publish_state(peopleCount);
+    ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", id(peopleCounter));
+    people_sensor->publish_state(id(peopleCounter));
   }
 };

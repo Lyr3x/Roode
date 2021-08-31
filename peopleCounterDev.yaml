@@ -17,7 +17,7 @@ esphome:
 <<: !include common/common.yaml
 
 globals:
-  - id: cnt
+  - id: peopleCounter
     type: int
     restore_value: yes
     initial_value: "0"
@@ -135,8 +135,8 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            if(id(cnt)!=id(people_set_counter).state){
-              id(cnt)=id(people_set_counter).state;
+            if(id(peopleCounter)!=id(people_set_counter).state){
+              id(peopleCounter)=id(people_set_counter).state;
               forceSetValue=1;
             }
 

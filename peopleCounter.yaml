@@ -17,7 +17,7 @@ esphome:
 <<: !include common/common.yaml
 
 globals:
-  - id: cnt
+  - id: peopleCounter
     type: int
     restore_value: yes
     initial_value: "0"
@@ -32,7 +32,7 @@ globals:
   - id: SENSOR_I2C
     type: int
     restore_value: no
-    initial_value: "0b0101001" #0x52
+    initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
 
 # Enable logging
 logger:
@@ -53,7 +53,6 @@ web_server:
 i2c:
   sda: 4
   scl: 5
-  scan: true
 
 switch:
   - platform: restart
@@ -135,8 +134,8 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            if(id(cnt)!=id(people_set_counter).state){
-              id(cnt)=id(people_set_counter).state;
+            if(id(peopleCounter)!=id(people_set_counter).state){
+              id(peopleCounter)=id(people_set_counter).state;
               forceSetValue=1;
             }
 
@@ -169,7 +168,7 @@ sensor:
     icon: "mdi:ruler"
     unit_of_measurement: "mm"
     internal: true
-    update_interval: 2s
+    update_interval: 1s
     lambda: |-
       return distance;
     filters:
@@ -205,7 +204,7 @@ text_sensor:
     name: "$friendly_name Version"
     icon: mdi:git
     lambda: |-
-      std::string version = "v1.1-beta";
+      std::string version = "v1.1";
       return version;
 
   - platform: template
