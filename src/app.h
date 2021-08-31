@@ -53,8 +53,6 @@ public:
 #ifdef CALIBRATIONV2
     calibration_boot(distanceSensor);
 #endif
-    ESP_LOGI("VL53L1X custom sensor", "Starting measurements");
-    distanceSensor.startContinuous(delay_between_measurements);
   }
 
   void checkMQTTCommands()
