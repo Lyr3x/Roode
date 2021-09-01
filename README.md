@@ -79,19 +79,19 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
 * Power Supply
 * Encolsure (see .stl files) - will be updated soon!
 Pins:
-#define SDA_PIN D2
-#define SCL_PIN D1
+SDA_PIN D2 or 21 (ESP32)
+SCL_PIN D1 or 22 (ESP32)
 
 ## Configuration
 ### ESPHome
 Configue at least the secrets.yaml with your wifi SSID and password to connect. Check the peopleCounter.yaml to adapt the exposed sensors to your needs.
 
 ### Entry/Exit inverted:
-Set #define INVERT_DIRECTION or comment it out to invert the direction.
+Set INVERT_DIRECTION to true or false to invert the direction.
 
 
 ## Configuration
-Be sure to configure your wifi credentials and adapt the Config.h to set everyhting to your needs.
+Be sure to configure your wifi credentials and adapt the global variables to set everyhting to your needs.
 The most important config part is the calibration mode. You have two different calibration modes available:
 Calibration v1 calibrates the distance for one zone and calculates the standard deviation and uses that value for both zones. 
 Calibration v2 calibrates both zones individually (thanks to @andrea-fox). 
