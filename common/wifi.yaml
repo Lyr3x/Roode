@@ -5,3 +5,5 @@ wifi:
     - ssid: !secret ssid2
       password: !secret ssid2_password
   use_address: roode.local
+  fast_connect: True
+  power_save_mode: none
