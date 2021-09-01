@@ -18,12 +18,12 @@ esphome:
 globals:
   - id: CALIBRATION
     type: bool
-    restore_value: yes
+    restore_value: no
     initial_value: "true"
   - id: INVERT_DIRECTION
     type: bool
-    restore_value: yes
-    initial_value: "false"
+    restore_value: no
+    initial_value: "true"
   - id: peopleCounter
     type: int
     restore_value: yes
@@ -39,7 +39,7 @@ globals:
   - id: SENSOR_I2C
     type: int
     restore_value: no
-    initial_value: "0b0101001" #0x52
+    initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
 
 # Enable logging
 logger:

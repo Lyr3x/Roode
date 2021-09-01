@@ -18,11 +18,11 @@ esphome:
 globals:
   - id: CALIBRATION
     type: bool
-    restore_value: yes
+    restore_value: no
     initial_value: "true"
   - id: INVERT_DIRECTION
     type: bool
-    restore_value: yes
+    restore_value: no
     initial_value: "true"
   - id: peopleCounter
     type: int
