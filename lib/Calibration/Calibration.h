@@ -80,6 +80,7 @@ void calibration(VL53L1X distanceSensor)
         sum_zone_1 = sum_zone_1 + distance;
         zone++;
         zone = zone % 2;
+        yield();
     }
     // after we have computed the sum for each zone, we can compute the average distance of each zone
     float average_zone_0 = sum_zone_0 / number_attempts;
@@ -181,6 +182,7 @@ void calibration(VL53L1X distanceSensor)
         sum_zone_1 = sum_zone_1 + distance;
         zone++;
         zone = zone % 2;
+        yield();
     }
     average_zone_0 = sum_zone_0 / number_attempts;
     average_zone_1 = sum_zone_1 / number_attempts;
