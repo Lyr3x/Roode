@@ -207,7 +207,6 @@ void calibration(VL53L1X distanceSensor)
     EEPROM.write(6, hundred_threshold_zone_1);
     EEPROM.write(7, unit_threshold_zone_1);
     EEPROM.commit();
-    distanceSensor.startContinuous(delay_between_measurements); //Start continuous measurements
 }
 
 void calibration_boot(VL53L1X distanceSensor)

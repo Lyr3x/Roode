@@ -66,6 +66,7 @@ public:
       DIST_THRESHOLD_MAX[0] = 800;
       DIST_THRESHOLD_MAX[1] = 800;
     }
+  
   }
 
   void checkMQTTCommands()
@@ -109,7 +110,9 @@ public:
     int AnEventHasOccured = 0;
 
     distanceSensor.setROICenter(center[zone]);
+    distanceSensor.startContinuous(delay_between_measurements); 
     distance = distanceSensor.read();
+    distanceSensor.stopContinuous(); 
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {
