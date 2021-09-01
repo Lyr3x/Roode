@@ -7,6 +7,7 @@
 .vscode/
 lib/Configuration/Config.h
 roode/
+roode32/
 roode_dev/
 .esphome/
 .DS_Store

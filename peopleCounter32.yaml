@@ -1,0 +1,212 @@
+substitutions:
+  devicename: roode32
+  friendly_name: Roode 32
+
+esphome:
+  name: $devicename
+  platform: ESP32
+  board: wemos_d1_mini32
+  includes:
+    - src/app.h
+    - lib/Calibration/Calibration.h
+
+  libraries:
+    - file://../lib/Configuration/
+    - pololu/VL53L1X@^1.3.0
+
+<<: !include common/common.yaml
+
+globals:
+  - id: peopleCounter
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: recalibrate
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: threshold_percentage
+    type: int
+    restore_value: no
+    initial_value: "70"
+  - id: SENSOR_I2C
+    type: int
+    restore_value: no
+    initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
+
+# Enable logging
+logger:
+  level: DEBUG
+
+#status_led:
+#  pin:
+#    number: D0
+#    inverted: True
+
+web_server:
+  port: 80
+  auth:
+    username: admin
+    password: "1248"
+
+i2c:
+  sda: 21
+  scl: 22
+
+switch:
+  - platform: restart
+    name: $friendly_name Restart
+
+binary_sensor:
+  - platform: status
+    name: $friendly_name Status
+
+  - platform: template
+    name: $friendly_name photo sensor
+    lambda: |-
+      if (id(tof_distance_avg).state < DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < DIST_THRESHOLD_MAX[1]) {
+        // someone in the door
+        return true;
+      } else {
+        // no one in the door
+        return false;
+      }
+    filters:
+      - delayed_off: 100ms
+
+sensor:
+  - platform: wifi_signal
+    name: $friendly_name RSSI
+    update_interval: 60s
+
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor
+    update_interval: 120s
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? String(days) + "d " : "") +
+                (hours ? String(hours) + "h " : "") +
+                (minutes ? String(minutes) + "m " : "") +
+                (String(seconds) + "s")
+              ).c_str();
+
+  - platform: custom
+    lambda: |-
+      auto people_counter = new PeopleCountSensor();
+      App.register_component(people_counter);
+      return {people_counter->people_sensor};
+    sensors:
+      - name: $friendly_name People
+        id: people_count
+        icon: "mdi:counter"
+        accuracy_decimals: 0
+        unit_of_measurement: "people"
+
+  - platform: mqtt_subscribe
+    name: "People reset"
+    id: people_reset
+    topic: $devicename/sensor/people/reset
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            resetCounter = 1;
+
+  - platform: mqtt_subscribe
+    name: "People set counter"
+    id: people_set_counter
+    topic: $devicename/sensor/people/set
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if(id(peopleCounter)!=id(people_set_counter).state){
+              id(peopleCounter)=id(people_set_counter).state;
+              forceSetValue=1;
+            }
+
+  - platform: mqtt_subscribe
+    name: "People recalibrate"
+    id: people_recalibrate
+    topic: $devicename/sensor/people/recalibrate
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            id(recalibrate) = 1;
+
+  - platform: template
+    name: $friendly_name measured distance
+    id: tof_distance
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    update_interval: 5s
+    lambda: |-
+      return distance;
+    filters:
+      - delta: 100.0
+
+  - platform: template
+    name: tof distance avg
+    id: tof_distance_avg
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    internal: true
+    update_interval: 1s
+    lambda: |-
+      return distance;
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 10
+
+  - platform: template
+    name: $friendly_name threshold zone 0
+    id: threshold_zone0
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    lambda: |-
+      return DIST_THRESHOLD_MAX[0];
+    filters:
+      - delta: 1
+
+  - platform: template
+    name: $friendly_name threshold zone 1
+    id: threshold_zone1
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    unit_of_measurement: "mm"
+    update_interval: 60s
+    lambda: |-
+      return DIST_THRESHOLD_MAX[1];
+    filters:
+      - delta: 1
+
+text_sensor:
+  - platform: template
+    name: "$friendly_name Version"
+    icon: mdi:git
+    lambda: |-
+      std::string version = "v1.1";
+      return version;
+
+  - platform: template
+    name: $friendly_name Uptime Human Readable
+    id: uptime_human
+    icon: mdi:clock-start
