@@ -17,6 +17,10 @@ esphome:
 <<: !include common/common.yaml
 
 globals:
+  - id: INVERT_DIRECTION
+    type: bool
+    restore_value: yes
+    initial_value: "true"
   - id: peopleCounter
     type: int
     restore_value: yes

@@ -9,8 +9,8 @@
 VL53L1X distanceSensor;
 #define NOBODY 0
 #define SOMEONE 1
-#define LEFT 0
-#define RIGHT 1
+static int LEFT = 0;
+static int RIGHT = 1;
 
 static const char *TAG = "main";
 int distance = 0;
@@ -32,6 +32,16 @@ public:
 
   void setup() override
   {
+    if (id(INVERT_DIRECTION) == true)
+    {
+      LEFT = 1;
+      RIGHT = 0;
+    }
+    else
+    {
+      LEFT = 0;
+      RIGHT = 1;
+    }
     // This will be called by App.setup()
     Wire.begin();
     Wire.setClock(400000);
@@ -45,7 +55,8 @@ public:
     if (!distanceSensor.init())
     {
       ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
-      while (1);
+      while (1)
+        ;
     }
 #ifdef CALIBRATION
     calibration(distanceSensor);
