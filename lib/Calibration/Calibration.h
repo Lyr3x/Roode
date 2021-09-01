@@ -1,6 +1,5 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
-#include <Config.h>
 #include <math.h>
 #include "esphome/core/log.h"
 #include <VL53L1X.h>
