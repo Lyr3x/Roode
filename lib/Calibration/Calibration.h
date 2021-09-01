@@ -24,12 +24,12 @@ static bool advised_orientation_of_the_sensor = true;
 static bool save_calibration_result = true;
 
 // parameters which define the time between two different measurements in longRange mode
-static int delay_between_measurements_long = 55;
-static int time_budget_in_ms_long = 50;
+static int delay_between_measurements_long = 66;
+static int time_budget_in_ms_long = 33;
 
 // parameters which define the time between two different measurements in longRange mode
 static int time_budget_in_ms_short = 20;
-static int delay_between_measurements_short = 22;
+static int delay_between_measurements_short = 40;
 
 // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
 static int short_distance_threshold = 1300;
