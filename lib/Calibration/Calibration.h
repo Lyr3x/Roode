@@ -3,11 +3,11 @@
 #include <Config.h>
 #include <math.h>
 #include "esphome/core/log.h"
+#include <VL53L1X.h>
 
 /*
 ##### CALIBRATION ##### 
 */
-#ifdef CALIBRATIONV2
 static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */
@@ -35,9 +35,7 @@ static int delay_between_measurements_short = 22;
 // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
 static int short_distance_threshold = 1300;
 
-#endif //#ifdef CALIBRATIONV2
 
-#ifdef CALIBRATIONV2
 void calibration(VL53L1X distanceSensor)
 {
     // the sensor does 100 measurements for each zone (zones are predefined)
@@ -257,5 +255,4 @@ void calibration_boot(VL53L1X distanceSensor)
         calibration(distanceSensor);
     ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
 }
-#endif //#ifdef CALIBRATIONV2
 #endif

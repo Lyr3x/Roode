@@ -11,12 +11,15 @@ esphome:
     - lib/Calibration/Calibration.h
 
   libraries:
-    - file://../lib/Configuration/
     - pololu/VL53L1X@^1.3.0
 
 <<: !include common/common.yaml
 
 globals:
+  - id: CALIBRATION
+    type: bool
+    restore_value: yes
+    initial_value: "true"
   - id: INVERT_DIRECTION
     type: bool
     restore_value: yes
