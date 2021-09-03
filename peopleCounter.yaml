@@ -211,7 +211,7 @@ text_sensor:
     name: "$friendly_name Version"
     icon: mdi:git
     lambda: |-
-      std::string version = "v1.1";
+      std::string version = "v1.2";
       return version;
 
   - platform: template
