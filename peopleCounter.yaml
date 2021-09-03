@@ -11,16 +11,19 @@ esphome:
     - lib/Calibration/Calibration.h
 
   libraries:
-    - file://../lib/Configuration/
     - pololu/VL53L1X@^1.3.0
 
 <<: !include common/common.yaml
 
 globals:
+  - id: CALIBRATION
+    type: bool
+    restore_value: no
+    initial_value: "true"
   - id: INVERT_DIRECTION
     type: bool
-    restore_value: yes
-    initial_value: "false"
+    restore_value: no
+    initial_value: "true"
   - id: peopleCounter
     type: int
     restore_value: yes
@@ -208,7 +211,7 @@ text_sensor:
     name: "$friendly_name Version"
     icon: mdi:git
     lambda: |-
-      std::string version = "v1.1";
+      std::string version = "v1.2";
       return version;
 
   - platform: template

@@ -1,19 +1,27 @@
 #ifndef CALIBRATION_H
 #define CALIBRATION_H
-#include <Config.h>
 #include <math.h>
 #include "esphome/core/log.h"
+#include <VL53L1X.h>
 
 /*
 ##### CALIBRATION ##### 
 */
-#ifdef CALIBRATIONV2
 static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */
 static int ROI_height = 0;
 static int ROI_width = 0;
 static int zone = 0;
+
+
+/*
+Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
+33, 50, 100, 200, 500]. This function must be called after VL53L1X_SetDistanceMode.
+Note: 15 ms only works with Short distance mode. 100 ms is the default value.
+The TB can be adjusted to improve the standard deviation (SD) of the measurement. 
+Increasing the TB, decreases the SD but increases the power consumption.
+*/
 
 static int delay_between_measurements = 0;
 static int time_budget_in_ms = 0;
@@ -25,19 +33,16 @@ static bool advised_orientation_of_the_sensor = true;
 static bool save_calibration_result = true;
 
 // parameters which define the time between two different measurements in longRange mode
-static int delay_between_measurements_long = 55;
-static int time_budget_in_ms_long = 50;
+static int delay_between_measurements_long = 50;
+static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m 
+static int delay_between_measurements_short = 25;
+static int time_budget_in_ms_short = 15;
 
-// parameters which define the time between two different measurements in longRange mode
-static int time_budget_in_ms_short = 20;
-static int delay_between_measurements_short = 22;
 
 // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
 static int short_distance_threshold = 1300;
 
-#endif //#ifdef CALIBRATIONV2
 
-#ifdef CALIBRATIONV2
 void calibration(VL53L1X distanceSensor)
 {
     // the sensor does 100 measurements for each zone (zones are predefined)
@@ -49,7 +54,7 @@ void calibration(VL53L1X distanceSensor)
     center[0] = 167;
     center[1] = 231;
     ROI_height = 16;
-    ROI_width = 8;
+    ROI_width = 7;
     delay(500);
 
     zone = 0;
@@ -257,5 +262,4 @@ void calibration_boot(VL53L1X distanceSensor)
         calibration(distanceSensor);
     ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
 }
-#endif //#ifdef CALIBRATIONV2
 #endif

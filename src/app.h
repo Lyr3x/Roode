@@ -1,7 +1,6 @@
 #include "esphome.h"
 
 #include <Wire.h>
-#include <Config.h>
 #include <EEPROM.h>
 #include <Calibration.h>
 
@@ -58,12 +57,16 @@ public:
       while (1)
         ;
     }
-#ifdef CALIBRATION
-    calibration(distanceSensor);
-#endif
-#ifdef CALIBRATIONV2
-    calibration_boot(distanceSensor);
-#endif
+    if (id(CALIBRATION))
+    {
+      calibration_boot(distanceSensor);
+    }
+    else
+    {
+      DIST_THRESHOLD_MAX[0] = 800;
+      DIST_THRESHOLD_MAX[1] = 800;
+    }
+  
   }
 
   void checkMQTTCommands()
@@ -107,9 +110,9 @@ public:
     int AnEventHasOccured = 0;
 
     distanceSensor.setROICenter(center[zone]);
-    distanceSensor.startContinuous(delay_between_measurements);
+    distanceSensor.startContinuous(delay_between_measurements); 
     distance = distanceSensor.read();
-    distanceSensor.stopContinuous();
+    distanceSensor.stopContinuous(); 
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {
