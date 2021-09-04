@@ -21,34 +21,26 @@ esphome:
 <<: !include common/common.yaml
 
 globals:
-  - id: CALIBRATION
+  - id: CALIBRATION # Should always set to true, unless you know what you are doing
     type: bool
     restore_value: no
     initial_value: "true"
-  - id: ROI_CALIBRATION
+  - id: ROI_CALIBRATION # Set to true if using doorframe installation. False if using wall to wall or ceiling to floor installation
     type: bool
     restore_value: no
     initial_value: "false"
-  - id: ROI_height
+  - id: ROI_height # Minimum 4 - check documentation
     type: int
     restore_value: no
     initial_value: "16"
-  - id: ROI_width
+  - id: ROI_width # Minimum 4 - check documentation
     type: int
     restore_value: no
     initial_value: "6"
-  - id: INVERT_DIRECTION
+  - id: INVERT_DIRECTION # Inverts the counting direction
     type: bool
     restore_value: no
     initial_value: "true"
-  - id: peopleCounter
-    type: int
-    restore_value: yes
-    initial_value: "0"
-  - id: recalibrate
-    type: int
-    restore_value: no
-    initial_value: "0"
   - id: threshold_percentage
     type: int
     restore_value: no
@@ -57,6 +49,14 @@ globals:
     type: int
     restore_value: no
     initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
+  - id: peopleCounter
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: recalibrate
+    type: int
+    restore_value: no
+    initial_value: "0"
 
 # Enable logging
 logger:
