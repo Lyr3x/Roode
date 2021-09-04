@@ -74,8 +74,8 @@ web_server:
     password: "1248"
 
 i2c:
-  sda: 21
-  scl: 22
+  sda: 4
+  scl: 5
 
 switch:
   - platform: restart

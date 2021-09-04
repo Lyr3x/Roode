@@ -52,7 +52,7 @@ globals:
   - id: threshold_percentage
     type: int
     restore_value: no
-    initial_value: "65" # % of the measured distance set as threshold
+    initial_value: "80" # % of the measured distance set as threshold
   - id: SENSOR_I2C
     type: int
     restore_value: no
