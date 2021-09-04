@@ -12,7 +12,6 @@ static int LEFT = 0;
 static int RIGHT = 1;
 
 static const char *TAG = "main";
-int distance = 0;
 int left = 0, right = 0, oldcnt;
 boolean lastTrippedState = 0;
 //static int num_timeouts = 0;
@@ -66,7 +65,7 @@ public:
       DIST_THRESHOLD_MAX[0] = 800;
       DIST_THRESHOLD_MAX[1] = 800;
     }
-  
+    // distanceSensor.setROISize(ROI_width, ROI_height); //Make dynamic ROI configurable otherwise set to 7,16
   }
 
   void checkMQTTCommands()
@@ -110,9 +109,9 @@ public:
     int AnEventHasOccured = 0;
 
     distanceSensor.setROICenter(center[zone]);
-    distanceSensor.startContinuous(delay_between_measurements); 
+    distanceSensor.startContinuous(delay_between_measurements);
     distance = distanceSensor.read();
-    distanceSensor.stopContinuous(); 
+    distanceSensor.stopContinuous();
 
     if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
     {

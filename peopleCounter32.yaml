@@ -16,7 +16,7 @@ esphome:
     then:
       - sensor.template.publish:
           id: people_count
-          state: !lambda 'return id(peopleCounter);'
+          state: !lambda "return id(peopleCounter);"
 
 <<: !include common/common.yaml
 
@@ -25,6 +25,18 @@ globals:
     type: bool
     restore_value: no
     initial_value: "true"
+  - id: ROI_CALIBRATION
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: ROI_height
+    type: int
+    restore_value: no
+    initial_value: "16"
+  - id: ROI_width
+    type: int
+    restore_value: no
+    initial_value: "6"
   - id: INVERT_DIRECTION
     type: bool
     restore_value: no
@@ -40,7 +52,7 @@ globals:
   - id: threshold_percentage
     type: int
     restore_value: no
-    initial_value: "70"
+    initial_value: "65" # % of the measured distance set as threshold
   - id: SENSOR_I2C
     type: int
     restore_value: no
@@ -209,13 +221,33 @@ sensor:
       return DIST_THRESHOLD_MAX[1];
     filters:
       - delta: 1
+  - platform: template
+    name: $friendly_name ROI width
+    id: roi_width
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    update_interval: 60s
+    lambda: |-
+      return id(ROI_width);
+    filters:
+      - delta: 1
+  - platform: template
+    name: $friendly_name ROI height
+    id: roi_height
+    accuracy_decimals: 0
+    icon: "mdi:ruler"
+    update_interval: 60s
+    lambda: |-
+      return id(ROI_height);
+    filters:
+      - delta: 1
 
 text_sensor:
   - platform: template
     name: "$friendly_name Version"
     icon: mdi:git
     lambda: |-
-      std::string version = "v1.3-beta";
+      std::string version = "v1.3-dev";
       return version;
 
   - platform: template
