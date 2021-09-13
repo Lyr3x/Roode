@@ -97,6 +97,16 @@ binary_sensor:
       }
     filters:
       - delayed_off: 100ms
+  - platform: template
+    name: $friendly_name somebody in
+    lambda: |-
+      if (id(people_count).state > 0) {
+        // somebody is in the room
+        return true;
+      } else {
+        // nobody is in the room
+        return false;
+      }
 
 sensor:
   - platform: wifi_signal
@@ -203,7 +213,7 @@ sensor:
     name: $friendly_name threshold zone 0
     id: threshold_zone0
     accuracy_decimals: 0
-    icon: "mdi:ruler"
+    icon: "mdi:map-marker-distance"
     unit_of_measurement: "mm"
     lambda: |-
       return DIST_THRESHOLD_MAX[0];
@@ -214,7 +224,7 @@ sensor:
     name: $friendly_name threshold zone 1
     id: threshold_zone1
     accuracy_decimals: 0
-    icon: "mdi:ruler"
+    icon: "mdi:map-marker-distance"
     unit_of_measurement: "mm"
     update_interval: 60s
     lambda: |-
@@ -225,7 +235,7 @@ sensor:
     name: $friendly_name ROI width
     id: roi_width
     accuracy_decimals: 0
-    icon: "mdi:ruler"
+    icon: "mdi:table-column-width"
     update_interval: 60s
     lambda: |-
       return id(ROI_width);
@@ -235,7 +245,7 @@ sensor:
     name: $friendly_name ROI height
     id: roi_height
     accuracy_decimals: 0
-    icon: "mdi:ruler"
+    icon: "mdi:table-row-height"
     update_interval: 60s
     lambda: |-
       return id(ROI_height);

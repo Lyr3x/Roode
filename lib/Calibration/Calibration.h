@@ -157,8 +157,17 @@ void calibration(VL53L1X distanceSensor)
     distanceSensor.startContinuous(delay_between_measurements);
     distanceSensor.setDistanceMode(VL53L1X::Long);
     distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-    center[0] = 167;
-    center[1] = 231;
+    if (advised_orientation_of_the_sensor)
+    {
+        center[0] = 167;
+        center[1] = 231;
+    }
+    else
+    {
+        center[0] = 195;
+        center[1] = 60;
+    }
+
     delay(500);
 
     zone = 0;
