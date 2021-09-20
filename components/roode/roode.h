@@ -49,23 +49,18 @@ namespace esphome
     static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m
     static int delay_between_measurements_short = 25;
     static int time_budget_in_ms_short = 15;
-namespace esphome
-{
-  namespace roode
-  {
-#define NOBODY 0
-#define SOMEONE 1
 
     class Roode : public PollingComponent
     {
     public:
       Roode() : PollingComponent(60000) {}
-      Sensor *sensor_distance = new Sensor();
+      sensor::Sensor *distance_sensor = new sensor::Sensor();
+      sensor::Sensor *people_counter_sensor = new sensor::Sensor();
       void dump_config() override;
       void setup() override;
       void update() override
       {
-        sensor_distance->publish_state(distance);
+        distance_sensor->publish_state(distance);
       }
       // constructor
       // Sensor *people_sensor = new Sensor();

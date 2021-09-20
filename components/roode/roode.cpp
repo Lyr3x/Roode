@@ -86,7 +86,7 @@ namespace esphome
         void Roode::publishMQTT(int val)
         {
             peopleCounter = val;
-            this->publish_state(val);
+            people_counter_sensor->publish_state(val);
         }
 
         void Roode::getZoneDistance()
@@ -220,7 +220,7 @@ namespace esphome
         void Roode::sendCounter()
         {
             ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", peopleCounter);
-            this->publish_state(Roode::peopleCounter);
+            people_counter_sensor->publish_state(Roode::peopleCounter);
         }
 
         void Roode::roi_calibration(VL53L1X distanceSensor)
