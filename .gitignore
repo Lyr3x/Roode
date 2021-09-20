@@ -6,10 +6,11 @@
 .vscode/launch.json
 .vscode/
 lib/Configuration/Config.h
-roode
-roode32/
-roode_dev/
+/roode/
+/roode32/
+/roode_dev/
 .esphome/
+.pyc
 .DS_Store
 common/wifi.yaml
 common/secrets.yaml

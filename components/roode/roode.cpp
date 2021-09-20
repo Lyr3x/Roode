@@ -39,7 +39,7 @@ namespace esphome
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
             {
-                ESP_LOGI("VL53L1X custom sensor", "Failed to detect and initialize sensor!");
+                ESP_LOGI("Roode setup", "Failed to detect and initialize sensor!");
                 while (1)
                     ;
             }
@@ -103,7 +103,6 @@ namespace esphome
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
             distanceSensor.stopContinuous();
-
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
             {
                 // Someone is in !
@@ -178,8 +177,12 @@ namespace esphome
                         {
                             // This an exit
                             //peopleCounter --;
-                            if (peopleCounter > 0)
+                            if (peopleCounter > 0){
                                 peopleCounter--;
+                                sendCounter();
+                                ESP_LOGD("Roode pathTracking", "Exit detected.");
+                            }
+                            
                             right = 1;
                             right = 0;
                         }
@@ -188,6 +191,8 @@ namespace esphome
                             // This an entry
                             //peopleCounter ++;
                             peopleCounter++;
+                            sendCounter();
+                            ESP_LOGD("Roode pathTracking", "Entry detected.");
                             left = 1;
                             left = 0;
                         }

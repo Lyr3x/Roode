@@ -15,11 +15,9 @@ static int forceSetValue = -1;
 /*
 ##### CALIBRATION ##### 
 */
-static int DIST_THRESHOLD_MAX[] = {0, 0}; // treshold of the two zones
 static int MIN_DISTANCE[] = {0, 0};
 static int center[2] = {0, 0}; /* center of the two zones */
 static int zone = 0;
-static uint16_t distance = 0;
 
 /*
 Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
@@ -80,17 +78,18 @@ namespace esphome
       void calibration_boot(VL53L1X distanceSensor);
       void set_i2c_parent(i2c::I2CComponent *parent);
       void set_i2c_address(uint8_t address);
-
+      uint16_t distance = 0;
+      int DIST_THRESHOLD_MAX[2] = {0, 0}; // treshold of the two zones
+      int roi_width_{6};
+      int roi_height_{16};
+      uint64_t peopleCounter{0};
+      uint64_t recalibrate{0};
     protected:
       VL53L1X distanceSensor;
       bool calibration_{true};
       bool roi_calibration_{false};
       uint64_t address_ = 0;
       bool invert_direction_{true};
-      int roi_width_{6};
-      int roi_height_{16};
-      uint64_t peopleCounter{0};
-      uint64_t recalibrate{0};
       uint64_t threshold_percentage_{85};
       uint64_t update_interval_;
       float sum_zone_0 = 0;
