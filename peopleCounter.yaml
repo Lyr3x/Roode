@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roode
+  devicename: roode8266
   friendly_name: $devicename
 external_components:
   - source: components
