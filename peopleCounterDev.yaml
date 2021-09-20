@@ -77,8 +77,9 @@ roode:
   roi_calibration: false
 sensor:
   - platform: roode
-    id: $devicename
-    
+    id: distance_sensor
+    distance_sensor:
+      name: $friendly_name distance
 
   # - platform: wifi_signal
   #   name: $friendly_name RSSI

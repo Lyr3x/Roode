@@ -67,6 +67,7 @@ namespace esphome
       void set_address(uint64_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
+      void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void checkMQTTCommands();
 
       void publishMQTT(int val);
