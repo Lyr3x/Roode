@@ -1,6 +1,6 @@
 substitutions:
   devicename: roode_dev
-  friendly_name: Roode Dev
+  friendly_name: $devicename
 external_components:
   - source: components
 esphome:
@@ -13,11 +13,10 @@ esphome:
     priority: 600
     then:
       - sensor.template.publish:
-          id: roodeDev
-          state: !lambda "return roodeDev->peopleCounter;"
+          id: $devicename
+          state: !lambda "return $devicename->peopleCounter;"
 
 <<: !include common/common.yaml
-
 
 # Enable logging
 logger:
@@ -49,7 +48,7 @@ binary_sensor:
   - platform: template
     name: $friendly_name photo sensor
     lambda: |-
-      if (id(tof_distance_avg).state < roodeDev->DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < roodeDev->DIST_THRESHOLD_MAX[1]) {
+      if (id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[1]) {
         // someone in the door
         return true;
       } else {
@@ -61,7 +60,7 @@ binary_sensor:
   - platform: template
     name: $friendly_name somebody in
     lambda: |-
-      if (roodeDev->state > 0) {
+      if ($devicename->state > 0) {
         // somebody is in the room
         return true;
       } else {
@@ -70,7 +69,7 @@ binary_sensor:
       }
 sensor:
   - platform: roode
-    id: roodeDev
+    id: $devicename
     calibration: true
     name: living room
     roi_height: 16
@@ -123,8 +122,8 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            if(roodeDev->peopleCounter!=id(people_set_counter).state){
-              roodeDev->peopleCounter=id(people_set_counter).state;
+            if($devicename->peopleCounter!=id(people_set_counter).state){
+              $devicename->peopleCounter=id(people_set_counter).state;
               forceSetValue=1;
             }
   - platform: mqtt_subscribe
@@ -135,7 +134,7 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            roodeDev->recalibrate = 1;
+            $devicename->recalibrate = 1;
 
   - platform: template
     name: $friendly_name measured distance
@@ -145,7 +144,7 @@ sensor:
     unit_of_measurement: "mm"
     update_interval: 5s
     lambda: |-
-      return roodeDev->distance;
+      return $devicename->distance;
     filters:
       - delta: 100.0
 
@@ -158,7 +157,7 @@ sensor:
     internal: true
     update_interval: 1s
     lambda: |-
-      return roodeDev->distance;
+      return $devicename->distance;
     filters:
       - sliding_window_moving_average:
           window_size: 10
@@ -171,7 +170,7 @@ sensor:
     icon: "mdi:map-marker-distance"
     unit_of_measurement: "mm"
     lambda: |-
-      return roodeDev->DIST_THRESHOLD_MAX[0];
+      return $devicename->DIST_THRESHOLD_MAX[0];
     filters:
       - delta: 1
   - platform: template
@@ -182,7 +181,7 @@ sensor:
     unit_of_measurement: "mm"
     update_interval: 60s
     lambda: |-
-      return roodeDev->DIST_THRESHOLD_MAX[1];
+      return $devicename->DIST_THRESHOLD_MAX[1];
     filters:
       - delta: 1
   - platform: template
@@ -192,7 +191,7 @@ sensor:
     icon: "mdi:table-column-width"
     update_interval: 60s
     lambda: |-
-      return roodeDev->roi_width_;
+      return $devicename->roi_width_;
     filters:
       - delta: 1
   - platform: template
@@ -202,7 +201,7 @@ sensor:
     icon: "mdi:table-row-height"
     update_interval: 60s
     lambda: |-
-      return roodeDev->roi_height_;
+      return $devicename->roi_height_;
     filters:
       - delta: 1
 
