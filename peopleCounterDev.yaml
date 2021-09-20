@@ -80,6 +80,8 @@ sensor:
     id: distance_sensor
     distance_sensor:
       name: $friendly_name distance
+    people_counter_sensor:
+      name: $friendly_name people counter
 
   # - platform: wifi_signal
   #   name: $friendly_name RSSI

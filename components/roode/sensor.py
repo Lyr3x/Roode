@@ -47,6 +47,7 @@ from . import Roode, CONF_ROODE_ID
 DEPENDENCIES = ["roode"]
 
 CONF_DISTANCE = 'distance_sensor'
+CONF_PEOPLE_COUNTER = 'people_counter_sensor'
 CONFIG_SCHEMA = sensor.sensor_schema(
     unit_of_measurement=UNIT_METER,
     icon=ICON_LIGHTBULB,
@@ -59,6 +60,11 @@ CONFIG_SCHEMA = sensor.sensor_schema(
                 accuracy_decimals=2,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
+        cv.Optional(CONF_PEOPLE_COUNTER): sensor.sensor_schema(
+                unit_of_measurement=UNIT_EMPTY,
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
         cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
     }
 )
@@ -67,5 +73,8 @@ CONFIG_SCHEMA = sensor.sensor_schema(
 async def to_code(config):
     var = await cg.get_variable(config[CONF_ROODE_ID])
     if CONF_DISTANCE in config:
-        sens = await sensor.new_sensor(config[CONF_DISTANCE])
-        cg.add(var.set_distance_sensor(sens))
+        distance = await sensor.new_sensor(config[CONF_DISTANCE])
+        cg.add(var.set_distance_sensor(distance))
+    if CONF_PEOPLE_COUNTER in config:
+        count = await sensor.new_sensor(config[CONF_PEOPLE_COUNTER])
+        cg.add(var.set_people_counter_sensor(count))
