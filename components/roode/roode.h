@@ -58,13 +58,8 @@ namespace esphome
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
       void dump_config() override;
       void setup() override;
-      void update() override
-      {
-        distance_sensor->publish_state(distance);
-      }
-      // constructor
-      // Sensor *people_sensor = new Sensor();
-      // Sensor *distance_sensor = new Sensor();
+      void update() override;
+
       void set_calibration(bool val) { calibration_ = val; }
       void set_threshold_percentage(int val) { threshold_percentage_ = val; }
       void set_roi_height(int height) { roi_height_ = height; }

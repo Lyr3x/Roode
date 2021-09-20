@@ -52,6 +52,11 @@ namespace esphome
             // distanceSensor.setROISize(roi_width_, roi_height_); //Make dynamic ROI configurable otherwise set to 7,16
         }
 
+        void Roode::update()
+        {
+            distance_sensor->publish_state(distance);
+        }
+
         void Roode::loop()
         {
             checkMQTTCommands();
