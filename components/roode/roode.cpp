@@ -14,6 +14,9 @@ namespace esphome
         //     this->publish_state(Roode::peopleCounter);
         // }
         void Roode::setup()
+        {
+            Wire.begin();
+            Wire.setClock(400000);
             if (Roode::invert_direction_ == true)
             {
                 LEFT = 1;
@@ -441,6 +444,25 @@ namespace esphome
             else
                 calibration(distanceSensor);
             ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
+        }
+        class I2CComponentDummy : public i2c::I2CComponent
+        {
+        public:
+            TwoWire *get_wire() const { return this->wire_; }
+        };
+
+        // sets
+        void Roode::set_i2c_parent(i2c::I2CComponent *parent)
+        {
+            distanceSensor.setBus(static_cast<I2CComponentDummy *>(parent)->get_wire());
+        }
+
+        void Roode::set_i2c_address(uint8_t address)
+        {
+            if (distanceSensor.getAddress() != address)
+            {
+                distanceSensor.setAddress(address);
+            }
         }
     }
 }

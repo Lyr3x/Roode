@@ -53,7 +53,6 @@ namespace esphome
     class Roode : public Component, public sensor::Sensor
     {
     public:
-      Roode();
       void dump_config() override;
       void setup() override;
       // void update() override;
@@ -79,6 +78,8 @@ namespace esphome
       void calibration(VL53L1X distanceSensor);
 
       void calibration_boot(VL53L1X distanceSensor);
+      void set_i2c_parent(i2c::I2CComponent *parent);
+      void set_i2c_address(uint8_t address);
 
     protected:
       VL53L1X distanceSensor;

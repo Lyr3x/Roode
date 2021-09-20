@@ -6,7 +6,7 @@
 .vscode/launch.json
 .vscode/
 lib/Configuration/Config.h
-roode/
+roode
 roode32/
 roode_dev/
 .esphome/
