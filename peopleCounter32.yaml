@@ -1,62 +1,60 @@
 substitutions:
   devicename: roode32
   friendly_name: Roode 32
-
+external_components:
+  - source: components
 esphome:
   name: $devicename
   platform: ESP32
   board: wemos_d1_mini32
-  includes:
-    - src/app.h
-    - lib/Calibration/Calibration.h
   libraries:
     - pololu/VL53L1X@^1.3.0
-  on_boot:
-    priority: 600
-    then:
-      - sensor.template.publish:
-          id: people_count
-          state: !lambda "return id(peopleCounter);"
+  # on_boot:
+  #   priority: 600
+  #   then:
+  #     - sensor.template.publish:
+  #         id: people_count
+  #         state: !lambda "return id(peopleCounter);"
 
 <<: !include common/common.yaml
 
-globals:
-  - id: CALIBRATION # Should always set to true, unless you know what you are doing
-    type: bool
-    restore_value: no
-    initial_value: "true"
-  - id: ROI_CALIBRATION # Set to true if using doorframe installation. False if using wall to wall or ceiling to floor installation
-    type: bool
-    restore_value: no
-    initial_value: "false"
-  - id: ROI_height # Minimum 4 - check documentation
-    type: int
-    restore_value: no
-    initial_value: "16"
-  - id: ROI_width # Minimum 4 - check documentation
-    type: int
-    restore_value: no
-    initial_value: "6"
-  - id: INVERT_DIRECTION # Inverts the counting direction
-    type: bool
-    restore_value: no
-    initial_value: "true"
-  - id: threshold_percentage
-    type: int
-    restore_value: no
-    initial_value: "80" # % of the measured distance set as threshold
-  - id: SENSOR_I2C
-    type: int
-    restore_value: no
-    initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
-  - id: peopleCounter
-    type: int
-    restore_value: yes
-    initial_value: "0"
-  - id: recalibrate
-    type: int
-    restore_value: no
-    initial_value: "0"
+# globals:
+#   - id: CALIBRATION # Should always set to true, unless you know what you are doing
+#     type: bool
+#     restore_value: no
+#     initial_value: "true"
+#   - id: ROI_CALIBRATION # Set to true if using doorframe installation. False if using wall to wall or ceiling to floor installation
+#     type: bool
+#     restore_value: no
+#     initial_value: "false"
+#   - id: roi_height_ # Minimum 4 - check documentation
+#     type: int
+#     restore_value: no
+#     initial_value: "16"
+#   - id: roi_width_ # Minimum 4 - check documentation
+#     type: int
+#     restore_value: no
+#     initial_value: "6"
+#   - id: INVERT_DIRECTION # Inverts the counting direction
+#     type: bool
+#     restore_value: no
+#     initial_value: "true"
+#   - id: threshold_percentage
+#     type: int
+#     restore_value: no
+#     initial_value: "80" # % of the measured distance set as threshold
+#   - id: SENSOR_I2C
+#     type: int
+#     restore_value: no
+#     initial_value: "0" #0b0101001 = 0x52, set to 0 to disable custom address
+#   - id: peopleCounter
+#     type: int
+#     restore_value: yes
+#     initial_value: "0"
+#   - id: recalibrate
+#     type: int
+#     restore_value: no
+#     initial_value: "0"
 
 # Enable logging
 logger:
@@ -85,182 +83,180 @@ binary_sensor:
   - platform: status
     name: $friendly_name Status
 
-  - platform: template
-    name: $friendly_name photo sensor
-    lambda: |-
-      if (id(tof_distance_avg).state < DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < DIST_THRESHOLD_MAX[1]) {
-        // someone in the door
-        return true;
-      } else {
-        // no one in the door
-        return false;
-      }
-    filters:
-      - delayed_off: 100ms
-  - platform: template
-    name: $friendly_name somebody in
-    lambda: |-
-      if (id(people_count).state > 0) {
-        // somebody is in the room
-        return true;
-      } else {
-        // nobody is in the room
-        return false;
-      }
-
+  # - platform: template
+  #   name: $friendly_name photo sensor
+  #   lambda: |-
+  #     if (id(tof_distance_avg).state < DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < DIST_THRESHOLD_MAX[1]) {
+  #       // someone in the door
+  #       return true;
+  #     } else {
+  #       // no one in the door
+  #       return false;
+  #     }
+  #   filters:
+  #     - delayed_off: 100ms
+  # - platform: template
+  #   name: $friendly_name somebody in
+  #   lambda: |-
+  #     if (id(people_count).state > 0) {
+  #       // somebody is in the room
+  #       return true;
+  #     } else {
+  #       // nobody is in the room
+  #       return false;
+  #     }
 sensor:
-  - platform: wifi_signal
-    name: $friendly_name RSSI
-    update_interval: 60s
+  - platform: roode
+    calibration: false
+    name: living room
+# sensor:
+#   - platform: wifi_signal
+#     name: $friendly_name RSSI
+#     update_interval: 60s
 
-  - platform: uptime
-    name: Uptime Sensor
-    id: uptime_sensor
-    update_interval: 120s
-    internal: true
-    on_raw_value:
-      then:
-        - text_sensor.template.publish:
-            id: uptime_human
-            state: !lambda |-
-              int seconds = round(id(uptime_sensor).raw_state);
-              int days = seconds / (24 * 3600);
-              seconds = seconds % (24 * 3600);
-              int hours = seconds / 3600;
-              seconds = seconds % 3600;
-              int minutes = seconds /  60;
-              seconds = seconds % 60;
-              return (
-                (days ? String(days) + "d " : "") +
-                (hours ? String(hours) + "h " : "") +
-                (minutes ? String(minutes) + "m " : "") +
-                (String(seconds) + "s")
-              ).c_str();
+#   - platform: uptime
+#     name: Uptime Sensor
+#     id: uptime_sensor
+#     update_interval: 120s
+#     internal: true
+#     on_raw_value:
+#       then:
+#         - text_sensor.template.publish:
+#             id: uptime_human
+#             state: !lambda |-
+#               int seconds = round(id(uptime_sensor).raw_state);
+#               int days = seconds / (24 * 3600);
+#               seconds = seconds % (24 * 3600);
+#               int hours = seconds / 3600;
+#               seconds = seconds % 3600;
+#               int minutes = seconds /  60;
+#               seconds = seconds % 60;
+#               return (
+#                 (days ? String(days) + "d " : "") +
+#                 (hours ? String(hours) + "h " : "") +
+#                 (minutes ? String(minutes) + "m " : "") +
+#                 (String(seconds) + "s")
+#               ).c_str();
 
-  - platform: custom
-    lambda: |-
-      auto people_counter = new PeopleCountSensor();
-      App.register_component(people_counter);
-      return {people_counter->people_sensor};
-    sensors:
-      - name: $friendly_name People
-        id: people_count
-        icon: "mdi:counter"
-        accuracy_decimals: 0
-        unit_of_measurement: "people"
+#     sensors:
+#       - name: $friendly_name People
+#         id: people_count
+#         icon: "mdi:counter"
+#         accuracy_decimals: 0
+#         unit_of_measurement: "people"
 
-  - platform: mqtt_subscribe
-    name: "People reset"
-    id: people_reset
-    topic: $devicename/sensor/people/reset
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            resetCounter = 1;
+#   - platform: mqtt_subscribe
+#     name: "People reset"
+#     id: people_reset
+#     topic: $devicename/sensor/people/reset
+#     internal: true
+#     on_value:
+#       then:
+#         - lambda: |-
+#             resetCounter = 1;
 
-  - platform: mqtt_subscribe
-    name: "People set counter"
-    id: people_set_counter
-    topic: $devicename/sensor/people/set
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            if(id(peopleCounter)!=id(people_set_counter).state){
-              id(peopleCounter)=id(people_set_counter).state;
-              forceSetValue=1;
-            }
+#   - platform: mqtt_subscribe
+#     name: "People set counter"
+#     id: people_set_counter
+#     topic: $devicename/sensor/people/set
+#     internal: true
+#     on_value:
+#       then:
+#         - lambda: |-
+#             if(id(peopleCounter)!=id(people_set_counter).state){
+#               id(peopleCounter)=id(people_set_counter).state;
+#               forceSetValue=1;
+#             }
 
-  - platform: mqtt_subscribe
-    name: "People recalibrate"
-    id: people_recalibrate
-    topic: $devicename/sensor/people/recalibrate
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            id(recalibrate) = 1;
+#   - platform: mqtt_subscribe
+#     name: "People recalibrate"
+#     id: people_recalibrate
+#     topic: $devicename/sensor/people/recalibrate
+#     internal: true
+#     on_value:
+#       then:
+#         - lambda: |-
+#             id(recalibrate) = 1;
 
-  - platform: template
-    name: $friendly_name measured distance
-    id: tof_distance
-    accuracy_decimals: 0
-    icon: "mdi:ruler"
-    unit_of_measurement: "mm"
-    update_interval: 5s
-    lambda: |-
-      return distance;
-    filters:
-      - delta: 100.0
+#   - platform: template
+#     name: $friendly_name measured distance
+#     id: tof_distance
+#     accuracy_decimals: 0
+#     icon: "mdi:ruler"
+#     unit_of_measurement: "mm"
+#     update_interval: 5s
+#     lambda: |-
+#       return distance;
+#     filters:
+#       - delta: 100.0
 
-  - platform: template
-    name: tof distance avg
-    id: tof_distance_avg
-    accuracy_decimals: 0
-    icon: "mdi:ruler"
-    unit_of_measurement: "mm"
-    internal: true
-    update_interval: 1s
-    lambda: |-
-      return distance;
-    filters:
-      - sliding_window_moving_average:
-          window_size: 10
-          send_every: 10
+#   - platform: template
+#     name: tof distance avg
+#     id: tof_distance_avg
+#     accuracy_decimals: 0
+#     icon: "mdi:ruler"
+#     unit_of_measurement: "mm"
+#     internal: true
+#     update_interval: 1s
+#     lambda: |-
+#       return distance;
+#     filters:
+#       - sliding_window_moving_average:
+#           window_size: 10
+#           send_every: 10
 
-  - platform: template
-    name: $friendly_name threshold zone 0
-    id: threshold_zone0
-    accuracy_decimals: 0
-    icon: "mdi:map-marker-distance"
-    unit_of_measurement: "mm"
-    lambda: |-
-      return DIST_THRESHOLD_MAX[0];
-    filters:
-      - delta: 1
+#   - platform: template
+#     name: $friendly_name threshold zone 0
+#     id: threshold_zone0
+#     accuracy_decimals: 0
+#     icon: "mdi:map-marker-distance"
+#     unit_of_measurement: "mm"
+#     lambda: |-
+#       return DIST_THRESHOLD_MAX[0];
+#     filters:
+#       - delta: 1
 
-  - platform: template
-    name: $friendly_name threshold zone 1
-    id: threshold_zone1
-    accuracy_decimals: 0
-    icon: "mdi:map-marker-distance"
-    unit_of_measurement: "mm"
-    update_interval: 60s
-    lambda: |-
-      return DIST_THRESHOLD_MAX[1];
-    filters:
-      - delta: 1
-  - platform: template
-    name: $friendly_name ROI width
-    id: roi_width
-    accuracy_decimals: 0
-    icon: "mdi:table-column-width"
-    update_interval: 60s
-    lambda: |-
-      return id(ROI_width);
-    filters:
-      - delta: 1
-  - platform: template
-    name: $friendly_name ROI height
-    id: roi_height
-    accuracy_decimals: 0
-    icon: "mdi:table-row-height"
-    update_interval: 60s
-    lambda: |-
-      return id(ROI_height);
-    filters:
-      - delta: 1
+#   - platform: template
+#     name: $friendly_name threshold zone 1
+#     id: threshold_zone1
+#     accuracy_decimals: 0
+#     icon: "mdi:map-marker-distance"
+#     unit_of_measurement: "mm"
+#     update_interval: 60s
+#     lambda: |-
+#       return DIST_THRESHOLD_MAX[1];
+#     filters:
+#       - delta: 1
+#   - platform: template
+#     name: $friendly_name ROI width
+#     id: roi_width
+#     accuracy_decimals: 0
+#     icon: "mdi:table-column-width"
+#     update_interval: 60s
+#     lambda: |-
+#       return id(roi_width_);
+#     filters:
+#       - delta: 1
+#   - platform: template
+#     name: $friendly_name ROI height
+#     id: roi_height
+#     accuracy_decimals: 0
+#     icon: "mdi:table-row-height"
+#     update_interval: 60s
+#     lambda: |-
+#       return id(roi_height_);
+#     filters:
+#       - delta: 1
 
-text_sensor:
-  - platform: template
-    name: "$friendly_name Version"
-    icon: mdi:git
-    lambda: |-
-      std::string version = "v1.3-dev";
-      return version;
+# text_sensor:
+#   - platform: template
+#     name: "$friendly_name Version"
+#     icon: mdi:git
+#     lambda: |-
+#       std::string version = "v1.3-dev";
+#       return version;
 
-  - platform: template
-    name: $friendly_name Uptime Human Readable
-    id: uptime_human
-    icon: mdi:clock-start
+#   - platform: template
+#     name: $friendly_name Uptime Human Readable
+#     id: uptime_human
+#     icon: mdi:clock-start

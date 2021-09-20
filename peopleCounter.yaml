@@ -29,11 +29,11 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
-  - id: ROI_height # Minimum 4 - check documentation
+  - id: roi_height_ # Minimum 4 - check documentation
     type: int
     restore_value: no
     initial_value: "16"
-  - id: ROI_width # Minimum 4 - check documentation
+  - id: roi_width_ # Minimum 4 - check documentation
     type: int
     restore_value: no
     initial_value: "6"
@@ -228,7 +228,7 @@ sensor:
     icon: "mdi:ruler"
     update_interval: 60s
     lambda: |-
-      return id(ROI_width);
+      return id(roi_width_);
     filters:
       - delta: 1
   - platform: template
@@ -238,7 +238,7 @@ sensor:
     icon: "mdi:ruler"
     update_interval: 60s
     lambda: |-
-      return id(ROI_height);
+      return id(roi_height_);
     filters:
       - delta: 1
 
