@@ -6,8 +6,8 @@ namespace esphome
     {
         void Roode::dump_config()
         {
-            LOG_SENSOR("", "ROODE", this);
-            LOG_I2C_DEVICE(this);
+            // LOG_SENSOR("", "ROODE", this);
+            // LOG_I2C_DEVICE(this);
         }
 
         void Roode::setup()
