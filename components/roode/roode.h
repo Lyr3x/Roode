@@ -5,42 +5,50 @@
 #include "EEPROM.h"
 #include <VL53L1X.h>
 #include <math.h>
-static const char *TAG = "main";
-static int LEFT = 0;
-static int RIGHT = 1;
-// MQTT Commands
-static int resetCounter = 0;
-static int forceSetValue = -1;
 
-/*
-##### CALIBRATION ##### 
-*/
-static int MIN_DISTANCE[] = {0, 0};
-static int center[2] = {0, 0}; /* center of the two zones */
-static int zone = 0;
+namespace esphome
+{
+  namespace roode
+  {
+#define NOBODY 0
+#define SOMEONE 1
 
-/*
-Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
-33, 50, 100, 200, 500]. This function must be called after VL53L1X_SetDistanceMode.
-Note: 15 ms only works with Short distance mode. 100 ms is the default value.
-The TB can be adjusted to improve the standard deviation (SD) of the measurement. 
-Increasing the TB, decreases the SD but increases the power consumption.
-*/
+    static const char *TAG = "main";
+    static int LEFT = 0;
+    static int RIGHT = 1;
+    // MQTT Commands
+    static int resetCounter = 0;
+    static int forceSetValue = -1;
 
-static int delay_between_measurements = 0;
-static int time_budget_in_ms = 0;
+    /*
+    ##### CALIBRATION ##### 
+    */
+    static int MIN_DISTANCE[] = {0, 0};
+    static int center[2] = {0, 0}; /* center of the two zones */
+    static int zone = 0;
 
-// this value has to be true if the sensor is oriented as in Duthdeffy's picture
-static bool advised_orientation_of_the_sensor = true;
+    /*
+    Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
+    33, 50, 100, 200, 500]. This function must be called after VL53L1X_SetDistanceMode.
+    Note: 15 ms only works with Short distance mode. 100 ms is the default value.
+    The TB can be adjusted to improve the standard deviation (SD) of the measurement. 
+    Increasing the TB, decreases the SD but increases the power consumption.
+    */
 
-// this value has to be true if you don't need to compute the threshold every time the device is turned on
-static bool save_calibration_result = true;
+    static int delay_between_measurements = 0;
+    static int time_budget_in_ms = 0;
 
-// parameters which define the time between two different measurements in longRange mode
-static int delay_between_measurements_long = 50;
-static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m
-static int delay_between_measurements_short = 25;
-static int time_budget_in_ms_short = 15;
+    // this value has to be true if the sensor is oriented as in Duthdeffy's picture
+    static bool advised_orientation_of_the_sensor = true;
+
+    // this value has to be true if you don't need to compute the threshold every time the device is turned on
+    static bool save_calibration_result = true;
+
+    // parameters which define the time between two different measurements in longRange mode
+    static int delay_between_measurements_long = 50;
+    static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m
+    static int delay_between_measurements_short = 25;
+    static int time_budget_in_ms_short = 15;
 namespace esphome
 {
   namespace roode
