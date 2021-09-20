@@ -9,10 +9,6 @@ namespace esphome
             LOG_SENSOR("", "ROODE", this);
             LOG_I2C_DEVICE(this);
         }
-        // void Roode::update()
-        // {
-        //     this->publish_state(Roode::peopleCounter);
-        // }
         void Roode::setup()
         {
             Wire.begin();

@@ -48,12 +48,17 @@ namespace esphome
 #define NOBODY 0
 #define SOMEONE 1
 
-    class Roode : public Component, public sensor::Sensor
+    class Roode : public PollingComponent
     {
     public:
+      Roode() : PollingComponent(60000) {}
+      Sensor *sensor_distance = new Sensor();
       void dump_config() override;
       void setup() override;
-      // void update() override;
+      void update() override
+      {
+        sensor_distance->publish_state(distance);
+      }
       // constructor
       // Sensor *people_sensor = new Sensor();
       // Sensor *distance_sensor = new Sensor();
@@ -84,6 +89,7 @@ namespace esphome
       int roi_height_{16};
       uint64_t peopleCounter{0};
       uint64_t recalibrate{0};
+
     protected:
       VL53L1X distanceSensor;
       bool calibration_{true};
