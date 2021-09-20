@@ -107,8 +107,12 @@ binary_sensor:
   #     }
 sensor:
   - platform: roode
-    calibration: false
+    calibration: true
     name: living room
+    roi_height: 16
+    roi_width: 6
+    threshold_percentage: 80
+    roi_calibration: false
 # sensor:
 #   - platform: wifi_signal
 #     name: $friendly_name RSSI

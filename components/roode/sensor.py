@@ -37,6 +37,7 @@ CONFIG_SCHEMA = sensor.sensor_schema(UNIT_METER, ICON_ARROW_EXPAND_VERTICAL, 2).
     cv.Optional(CONF_ROI_WIDTH, default=5): cv.int_range(min=0, max=255),
     cv.Optional(CONF_THRESHOLD_PERCENTAGE, default=85): cv.int_range(min=50, max=100),
     cv.Optional(CONF_CALIBRATION, default='true'): cv.boolean,
+    cv.Optional(CONF_ROI_CALIBRATION, default='false'): cv.boolean,
     cv.Optional(CONF_DIST_THRESHOLD, default=[1500, 1500]): cv.All([cv.int_range(min=0, max=0xFFFF,
                                                             max_included=False)], cv.Length(min=2, max=2)),
 
