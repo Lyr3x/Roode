@@ -217,7 +217,7 @@ namespace esphome
             people_counter_sensor->publish_state(Roode::peopleCounter);
         }
         void Roode::recalibration(){
-            calibration_boot(distanceSensor);
+            calibration(distanceSensor);
         }
         void Roode::roi_calibration(VL53L1X distanceSensor)
         {
@@ -326,7 +326,11 @@ namespace esphome
         }
 
         void Roode::calibration(VL53L1X distanceSensor)
-        {
+        {   
+            sum_zone_0 = 0;
+            sum_zone_1 = 0;
+            average_zone_0 = 0;
+            average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_long;
             delay_between_measurements = delay_between_measurements_long;
