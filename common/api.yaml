@@ -2,3 +2,26 @@
 api:
   password: !secret api_password
   reboot_timeout: 60min
+  services:
+    - service: setCounter
+      variables:
+        newCount: int
+      then:
+        - lambda: "id(peopleCounter)->publish_state(newCount);"
+    - service: resetCounter
+      then:
+        - lambda: "id(peopleCounter)->publish_state(0);"
+    - service: recalibrate
+      then:
+        - lambda: "id(peopleCounter)->publish_state(0);"
+
+
+  # - platform: mqtt_subscribe
+  #   name: "People recalibrate"
+  #   id: people_recalibrate
+  #   topic: $devicename/sensor/people/recalibrate
+  #   internal: true
+  #   on_value:
+  #     then:
+  #       - lambda: |-
+  #           $devicename->recalibrate = 1;

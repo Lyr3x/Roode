@@ -57,14 +57,6 @@ namespace esphome
     {
     public:
       Roode() : PollingComponent(5000) {}
-      sensor::Sensor *distance_sensor = new sensor::Sensor();
-      sensor::Sensor *people_counter_sensor = new sensor::Sensor();
-      sensor::Sensor *threshold_zone0_sensor = new sensor::Sensor();
-      sensor::Sensor *threshold_zone1_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_height_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_width_sensor = new sensor::Sensor();
-      binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
-      text_sensor::TextSensor *version_sensor= new text_sensor::TextSensor();
       void dump_config() override;
       void setup() override;
       void update() override;
@@ -84,7 +76,7 @@ namespace esphome
       void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
-      void checkMQTTCommands();
+      void checkCommands();
 
       void publishMQTT(int val);
 
@@ -107,6 +99,14 @@ namespace esphome
 
     protected:
       VL53L1X distanceSensor;
+      sensor::Sensor *distance_sensor = new sensor::Sensor();
+      sensor::Sensor *people_counter_sensor = new sensor::Sensor();
+      sensor::Sensor *threshold_zone0_sensor = new sensor::Sensor();
+      sensor::Sensor *threshold_zone1_sensor = new sensor::Sensor();
+      sensor::Sensor *roi_height_sensor = new sensor::Sensor();
+      sensor::Sensor *roi_width_sensor = new sensor::Sensor();
+      binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
+      text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
       bool calibration_{true};
       bool roi_calibration_{false};
       uint64_t address_ = 0;

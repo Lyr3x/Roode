@@ -52,30 +52,30 @@ switch:
 binary_sensor:
   - platform: status
     name: $friendly_name Status
-  - platform: roode 
+  - platform: roode
     presence_sensor:
-        name: $friendly_name presence
-      
+      name: $friendly_name presence
+  - platform: template
+    name: $friendly_name somebody in
+    lambda: |-
+      if (id(peopleCounter)->state > 0) {
+        // somebody is in the room
+        return true;
+      } else {
+        // nobody is in the room
+        return false;
+      }
 
-  # - platform: template
-  #   name: $friendly_name somebody in
-  #   lambda: |-
-  #     if ($devicename->state > 0) {
-  #       // somebody is in the room
-  #       return true;
-  #     } else {
-  #       // nobody is in the room
-  #       return false;
-  #     }
 sensor:
   - platform: roode
     id: hallway
+    people_counter_sensor:
+      id: peopleCounter
+      name: $friendly_name people counter
     distance_sensor:
       name: $friendly_name distance
       filters:
         - delta: 100.0
-    people_counter_sensor:
-      name: $friendly_name people counter
     threshold_zone0:
       name: $friendly_name Zone 0
     threshold_zone1:
@@ -113,41 +113,10 @@ sensor:
                 (String(seconds) + "s")
               ).c_str();
 
-  # - platform: mqtt_subscribe
-  #   name: "People reset"
-  #   id: people_reset
-  #   topic: $devicename/sensor/people/reset
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       - lambda: |-
-  #           resetCounter = 1;
-  # - platform: mqtt_subscribe
-  #   name: "People set counter"
-  #   id: people_set_counter
-  #   topic: $devicename/sensor/people/set
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       - lambda: |-
-  #           if($devicename->peopleCounter!=id(people_set_counter).state){
-  #             $devicename->peopleCounter=id(people_set_counter).state;
-  #             forceSetValue=1;
-  #           }
-  # - platform: mqtt_subscribe
-  #   name: "People recalibrate"
-  #   id: people_recalibrate
-  #   topic: $devicename/sensor/people/recalibrate
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       - lambda: |-
-  #           $devicename->recalibrate = 1;
-
 text_sensor:
   - platform: roode
     version:
-        name: $friendly_name version
+      name: $friendly_name version
 
   - platform: template
     name: $friendly_name Uptime Human Readable

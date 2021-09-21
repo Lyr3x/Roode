@@ -66,33 +66,14 @@ namespace esphome
             zone = zone % 2;
         }
 
-        void Roode::checkMQTTCommands()
+        void Roode::checkCommands()
         {
-            if (resetCounter == 1)
-            {
-                ESP_LOGI("MQTTCommand", "Reset counter command received");
-                resetCounter = 0;
-                peopleCounter = 0;
-                sendCounter();
-            }
             if (recalibrate == 1)
             {
                 ESP_LOGI("MQTTCommand", "Recalibration command received");
                 // calibration(sensor);
                 recalibrate = 0;
             }
-            if (forceSetValue != -1)
-            {
-                ESP_LOGI("MQTTCommand", "Force set value command received");
-                publishMQTT(peopleCounter);
-                forceSetValue = -1;
-            }
-        }
-
-        void Roode::publishMQTT(int val)
-        {
-            peopleCounter = val;
-            people_counter_sensor->publish_state(val);
         }
 
         void Roode::getZoneDistance()
