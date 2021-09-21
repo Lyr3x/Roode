@@ -41,7 +41,7 @@ roode:
   address: 0x29
   update_interval: 100ms
   calibration: true
-  roi_height: 5
+  roi_height: 16
   roi_width: 6
   threshold_percentage: 80
   roi_calibration: false
