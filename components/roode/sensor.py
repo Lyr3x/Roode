@@ -8,9 +8,8 @@ from esphome.const import (
     ICON_RULER,
     STATE_CLASS_MEASUREMENT,
     UNIT_EMPTY,
-    UNIT_METER,
 )
-from . import CONF_ROI_HEIGHT, CONF_ROI_WIDTH, Roode, CONF_ROODE_ID
+from . import Roode, CONF_ROODE_ID
 
 DEPENDENCIES = ["roode"]
 
@@ -35,25 +34,25 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend(
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
         cv.Optional(CONF_THRESHOLD_ZONE0): sensor.sensor_schema(
-                icon=ICON_NEW_BOX,
+                icon="mdi:map-marker-distance",
                 unit_of_measurement="mm",
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
         cv.Optional(CONF_THRESHOLD_ZONE1): sensor.sensor_schema(
-                icon=ICON_NEW_BOX,
+                icon="mdi:map-marker-distance",
                 unit_of_measurement="mm",
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
         cv.Optional(CONF_ROI_HEIGHT): sensor.sensor_schema(
-                icon=ICON_ARROW_EXPAND_VERTICAL,
+                icon="mdi:table-row-height",
                 unit_of_measurement="px",
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
         cv.Optional(CONF_ROI_WIDTH): sensor.sensor_schema(
-                icon=ICON_ARROW_EXPAND_VERTICAL,
+                icon="mdi:table-column-width",
                 unit_of_measurement="px",
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,

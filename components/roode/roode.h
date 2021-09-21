@@ -2,6 +2,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
 #include "EEPROM.h"
 #include <VL53L1X.h>
@@ -62,6 +63,7 @@ namespace esphome
       sensor::Sensor *roi_height_sensor = new sensor::Sensor();
       sensor::Sensor *roi_width_sensor = new sensor::Sensor();
       binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
+      text_sensor::TextSensor *version_sensor= new text_sensor::TextSensor();
       void dump_config() override;
       void setup() override;
       void update() override;
@@ -79,7 +81,8 @@ namespace esphome
       void set_threshold_zone1_sensor(sensor::Sensor *threshold_zone1_sensor_) { threshold_zone1_sensor = threshold_zone1_sensor_; }
       void set_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { roi_height_sensor = roi_height_sensor_; }
       void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
-      void set_presence_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
+      void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
+      void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void checkMQTTCommands();
 
       void publishMQTT(int val);

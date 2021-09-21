@@ -52,21 +52,11 @@ switch:
 binary_sensor:
   - platform: status
     name: $friendly_name Status
-  # - platform: roode
-  #   presence_sensor:
-  #   name: "Occupancy"
-  # - platform: template
-  #   name: $friendly_name photo sensor
-  #   lambda: |-
-  #     if (id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[1]) {
-  #       // someone in the door
-  #       return true;
-  #     } else {
-  #       // no one in the door
-  #       return false;
-  #     }
-  #   filters:
-  #     - delayed_off: 100ms
+  - platform: roode 
+    presence_sensor:
+        name: $friendly_name presence
+      
+
   # - platform: template
   #   name: $friendly_name somebody in
   #   lambda: |-
@@ -87,31 +77,13 @@ sensor:
     people_counter_sensor:
       name: $friendly_name people counter
     threshold_zone0:
-      icon: "mdi:map-marker-distance"
       name: $friendly_name Zone 0
     threshold_zone1:
-      icon: "mdi:map-marker-distance"
       name: $friendly_name Zone 1
     roi_height:
       name: $friendly_name ROI height
-      icon: "mdi:table-row-height"
     roi_width:
       name: $friendly_name ROI width
-      icon: "mdi:table-column-width"
-  # - platform: template
-  #   name: tof distance avg
-  #   id: tof_distance_avg
-  #   accuracy_decimals: 0
-  #   icon: "mdi:ruler"
-  #   unit_of_measurement: "mm"
-  #   internal: true
-  #   update_interval: 1s
-  #   lambda: |-
-  #     return $devicename->distance;
-  #   filters:
-  #     - sliding_window_moving_average:
-  #         window_size: 10
-  #         send_every: 10
 
   - platform: wifi_signal
     name: $friendly_name RSSI
@@ -173,12 +145,10 @@ sensor:
   #           $devicename->recalibrate = 1;
 
 text_sensor:
-  - platform: template
-    name: "$friendly_name Version"
-    icon: mdi:git
-    lambda: |-
-      std::string version = "v1.3-dev-alpha";
-      return version;
+  - platform: roode
+    version:
+        icon: mdi:git
+        name: $friendly_name version
 
   - platform: template
     name: $friendly_name Uptime Human Readable

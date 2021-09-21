@@ -12,6 +12,7 @@ namespace esphome
 
         void Roode::setup()
         {
+            version_sensor->publish_state("v1.3-alpha");
             Wire.begin();
             Wire.setClock(400000);
             if (Roode::invert_direction_ == true)
@@ -109,11 +110,17 @@ namespace esphome
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
             distanceSensor.stopContinuous();
+
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
             {
-                // Someone is in !
+                // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
                 presence_sensor->publish_state(true);
+            }
+            else
+            {   
+                // Nobody is in the sensing area
+                presence_sensor->publish_state(false);
             }
 
             // left zone
