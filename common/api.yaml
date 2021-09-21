@@ -14,14 +14,3 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-
-
-  # - platform: mqtt_subscribe
-  #   name: "People recalibrate"
-  #   id: people_recalibrate
-  #   topic: $devicename/sensor/people/recalibrate
-  #   internal: true
-  #   on_value:
-  #     then:
-  #       - lambda: |-
-  #           $devicename->recalibrate = 1;
