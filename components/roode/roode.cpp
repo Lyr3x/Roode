@@ -60,7 +60,7 @@ namespace esphome
 
         void Roode::loop()
         {
-            checkMQTTCommands();
+            checkCommands();
             getZoneDistance();
             zone++;
             zone = zone % 2;

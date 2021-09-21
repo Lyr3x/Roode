@@ -3,12 +3,12 @@ api:
   password: !secret api_password
   reboot_timeout: 60min
   services:
-    - service: setCounter
+    - service: set_counter
       variables:
         newCount: int
       then:
         - lambda: "id(peopleCounter)->publish_state(newCount);"
-    - service: resetCounter
+    - service: reset_counter
       then:
         - lambda: "id(peopleCounter)->publish_state(0);"
     - service: recalibrate
