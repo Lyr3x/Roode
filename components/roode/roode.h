@@ -1,6 +1,7 @@
 #pragma once
 #include "esphome/core/component.h"
 #include "esphome/components/sensor/sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/i2c/i2c.h"
 #include "EEPROM.h"
 #include <VL53L1X.h>
@@ -56,6 +57,7 @@ namespace esphome
       Roode() : PollingComponent(60000) {}
       sensor::Sensor *distance_sensor = new sensor::Sensor();
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
+      binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
       void dump_config() override;
       void setup() override;
       void update() override;
@@ -69,6 +71,7 @@ namespace esphome
       void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
+      void set_presence_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_}
       void checkMQTTCommands();
 
       void publishMQTT(int val);

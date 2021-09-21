@@ -40,11 +40,12 @@ i2c:
 switch:
   - platform: restart
     name: $friendly_name Restart
-
 binary_sensor:
   - platform: status
     name: $friendly_name Status
-
+  - platform: roode
+    presence_sensor:
+      name: test
   # - platform: template
   #   name: $friendly_name photo sensor
   #   lambda: |-
@@ -82,7 +83,6 @@ sensor:
       name: $friendly_name distance
     people_counter_sensor:
       name: $friendly_name people counter
-
   # - platform: wifi_signal
   #   name: $friendly_name RSSI
   #   update_interval: 60s

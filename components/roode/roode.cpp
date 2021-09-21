@@ -113,6 +113,7 @@ namespace esphome
             {
                 // Someone is in !
                 CurrentZoneStatus = SOMEONE;
+                presence_sensor->publish_state(true);
             }
 
             // left zone
