@@ -216,7 +216,9 @@ namespace esphome
             ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", peopleCounter);
             people_counter_sensor->publish_state(Roode::peopleCounter);
         }
-
+        void Roode::recalibration(){
+            calibration_boot(distanceSensor);
+        }
         void Roode::roi_calibration(VL53L1X distanceSensor)
         {
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones

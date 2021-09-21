@@ -13,7 +13,7 @@ api:
         - lambda: "id(peopleCounter)->publish_state(0);"
     - service: recalibrate
       then:
-        - lambda: "id(peopleCounter)->publish_state(0);"
+        - lambda: "id(roode_platform)->recalibrate();"
 
 
   # - platform: mqtt_subscribe

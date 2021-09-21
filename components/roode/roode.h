@@ -3,6 +3,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
+#include "esphome/components/switch/switch.h"
 #include "esphome/components/i2c/i2c.h"
 #include "EEPROM.h"
 #include <VL53L1X.h>
@@ -84,10 +85,8 @@ namespace esphome
       void sendCounter();
       void loop() override;
 
-      void roi_calibration(VL53L1X distanceSensor);
-      void calibration(VL53L1X distanceSensor);
+      void recalibration();
 
-      void calibration_boot(VL53L1X distanceSensor);
       void set_i2c_parent(i2c::I2CComponent *parent);
       void set_i2c_address(uint8_t address);
       uint16_t distance = 0;
@@ -98,6 +97,9 @@ namespace esphome
       uint64_t recalibrate{0};
 
     protected:
+      void roi_calibration(VL53L1X distanceSensor);
+      void calibration(VL53L1X distanceSensor);
+      void calibration_boot(VL53L1X distanceSensor);
       VL53L1X distanceSensor;
       sensor::Sensor *distance_sensor = new sensor::Sensor();
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
