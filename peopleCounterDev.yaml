@@ -147,7 +147,6 @@ sensor:
 text_sensor:
   - platform: roode
     version:
-        icon: mdi:git
         name: $friendly_name version
 
   - platform: template

@@ -14,6 +14,7 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
+#define VERSION "v1.3-alpha1"
 
     static const char *TAG = "main";
     static int LEFT = 0;

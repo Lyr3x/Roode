@@ -12,7 +12,7 @@ namespace esphome
 
         void Roode::setup()
         {
-            version_sensor->publish_state("v1.3-alpha");
+            version_sensor->publish_state(VERSION);
             Wire.begin();
             Wire.setClock(400000);
             if (Roode::invert_direction_ == true)
