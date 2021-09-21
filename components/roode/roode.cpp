@@ -397,7 +397,10 @@ namespace esphome
 
             DIST_THRESHOLD_MAX[0] = threshold_zone_0;
             DIST_THRESHOLD_MAX[1] = threshold_zone_1;
-
+            threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
+            threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
+            roi_height_sensor->publish_state(roi_height_);
+            roi_width_sensor->publish_state(roi_width_);
             // we now save the values into the EEPROM memory
             int hundred_threshold_zone_0 = threshold_zone_0 / 100;
             int hundred_threshold_zone_1 = threshold_zone_1 / 100;

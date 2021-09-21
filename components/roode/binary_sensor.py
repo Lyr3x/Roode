@@ -12,15 +12,13 @@ DEPENDENCIES = ["roode"]
 
 CONF_PRESENCE = 'presence_sensor'
 
-CONFIG_SCHEMA = cv.All(
-    binary_sensor.BINARY_SENSOR_SCHEMA.extend(
-        {
-            cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
-            cv.Optional(
+CONFIG_SCHEMA = binary_sensor.BINARY_SENSOR_SCHEMA.extend(
+    {
+        cv.Optional(
             CONF_DEVICE_CLASS, default=DEVICE_CLASS_OCCUPANCY
         ): binary_sensor.device_class,
-        }
-    )
+        cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
+    }
 )
 
 async def to_code(config):

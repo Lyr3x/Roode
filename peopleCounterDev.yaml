@@ -37,15 +37,24 @@ i2c:
   sda: 4
   scl: 5
 
+roode:
+  address: 0x29
+  update_interval: 100ms
+  calibration: true
+  roi_height: 5
+  roi_width: 6
+  threshold_percentage: 80
+  roi_calibration: false
+
 switch:
   - platform: restart
     name: $friendly_name Restart
 binary_sensor:
   - platform: status
     name: $friendly_name Status
-  - platform: roode
-    presence_sensor:
-      name: test
+  # - platform: roode
+  #   presence_sensor:
+  #   name: "Occupancy"
   # - platform: template
   #   name: $friendly_name photo sensor
   #   lambda: |-
@@ -68,48 +77,69 @@ binary_sensor:
   #       // nobody is in the room
   #       return false;
   #     }
-roode:
-  address: 0x29
-  update_interval: 100ms
-  calibration: true
-  roi_height: 5
-  roi_width: 6
-  threshold_percentage: 80
-  roi_calibration: false
 sensor:
   - platform: roode
-    id: distance_sensor
+    id: hallway
     distance_sensor:
       name: $friendly_name distance
+      filters:
+        - delta: 100.0
     people_counter_sensor:
       name: $friendly_name people counter
-  # - platform: wifi_signal
-  #   name: $friendly_name RSSI
-  #   update_interval: 60s
-
-  # - platform: uptime
-  #   name: Uptime Sensor
-  #   id: uptime_sensor
-  #   update_interval: 120s
+    threshold_zone0:
+      icon: "mdi:map-marker-distance"
+      name: $friendly_name Zone 0
+    threshold_zone1:
+      icon: "mdi:map-marker-distance"
+      name: $friendly_name Zone 1
+    roi_height:
+      name: $friendly_name ROI height
+      icon: "mdi:table-row-height"
+    roi_width:
+      name: $friendly_name ROI width
+      icon: "mdi:table-column-width"
+  # - platform: template
+  #   name: tof distance avg
+  #   id: tof_distance_avg
+  #   accuracy_decimals: 0
+  #   icon: "mdi:ruler"
+  #   unit_of_measurement: "mm"
   #   internal: true
-  #   on_raw_value:
-  #     then:
-  #       - text_sensor.template.publish:
-  #           id: uptime_human
-  #           state: !lambda |-
-  #             int seconds = round(id(uptime_sensor).raw_state);
-  #             int days = seconds / (24 * 3600);
-  #             seconds = seconds % (24 * 3600);
-  #             int hours = seconds / 3600;
-  #             seconds = seconds % 3600;
-  #             int minutes = seconds /  60;
-  #             seconds = seconds % 60;
-  #             return (
-  #               (days ? String(days) + "d " : "") +
-  #               (hours ? String(hours) + "h " : "") +
-  #               (minutes ? String(minutes) + "m " : "") +
-  #               (String(seconds) + "s")
-  #             ).c_str();
+  #   update_interval: 1s
+  #   lambda: |-
+  #     return $devicename->distance;
+  #   filters:
+  #     - sliding_window_moving_average:
+  #         window_size: 10
+  #         send_every: 10
+
+  - platform: wifi_signal
+    name: $friendly_name RSSI
+    update_interval: 60s
+
+  - platform: uptime
+    name: Uptime Sensor
+    id: uptime_sensor
+    update_interval: 120s
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? String(days) + "d " : "") +
+                (hours ? String(hours) + "h " : "") +
+                (minutes ? String(minutes) + "m " : "") +
+                (String(seconds) + "s")
+              ).c_str();
 
   # - platform: mqtt_subscribe
   #   name: "People reset"
@@ -141,75 +171,6 @@ sensor:
   #     then:
   #       - lambda: |-
   #           $devicename->recalibrate = 1;
-
-  # - platform: template
-  #   name: $friendly_name measured distance
-  #   id: tof_distance
-  #   accuracy_decimals: 0
-  #   icon: "mdi:ruler"
-  #   unit_of_measurement: "mm"
-  #   update_interval: 5s
-  #   lambda: |-
-  #     return $devicename->distance;
-  #   filters:
-  #     - delta: 100.0
-
-  # - platform: template
-  #   name: tof distance avg
-  #   id: tof_distance_avg
-  #   accuracy_decimals: 0
-  #   icon: "mdi:ruler"
-  #   unit_of_measurement: "mm"
-  #   internal: true
-  #   update_interval: 1s
-  #   lambda: |-
-  #     return $devicename->distance;
-  #   filters:
-  #     - sliding_window_moving_average:
-  #         window_size: 10
-  #         send_every: 10
-
-  # - platform: template
-  #   name: $friendly_name threshold zone 0
-  #   id: threshold_zone0
-  #   accuracy_decimals: 0
-  #   icon: "mdi:map-marker-distance"
-  #   unit_of_measurement: "mm"
-  #   lambda: |-
-  #     return $devicename->DIST_THRESHOLD_MAX[0];
-  #   filters:
-  #     - delta: 1
-  # - platform: template
-  #   name: $friendly_name threshold zone 1
-  #   id: threshold_zone1
-  #   accuracy_decimals: 0
-  #   icon: "mdi:map-marker-distance"
-  #   unit_of_measurement: "mm"
-  #   update_interval: 60s
-  #   lambda: |-
-  #     return $devicename->DIST_THRESHOLD_MAX[1];
-  #   filters:
-  #     - delta: 1
-  # - platform: template
-  #   name: $friendly_name ROI width
-  #   id: roi_width
-  #   accuracy_decimals: 0
-  #   icon: "mdi:table-column-width"
-  #   update_interval: 60s
-  #   lambda: |-
-  #     return $devicename->roi_width_;
-  #   filters:
-  #     - delta: 1
-  # - platform: template
-  #   name: $friendly_name ROI height
-  #   id: roi_height
-  #   accuracy_decimals: 0
-  #   icon: "mdi:table-row-height"
-  #   update_interval: 60s
-  #   lambda: |-
-  #     return $devicename->roi_height_;
-  #   filters:
-  #     - delta: 1
 
 text_sensor:
   - platform: template

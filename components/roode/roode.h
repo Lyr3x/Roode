@@ -54,9 +54,13 @@ namespace esphome
     class Roode : public PollingComponent
     {
     public:
-      Roode() : PollingComponent(60000) {}
+      Roode() : PollingComponent(5000) {}
       sensor::Sensor *distance_sensor = new sensor::Sensor();
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
+      sensor::Sensor *threshold_zone0_sensor = new sensor::Sensor();
+      sensor::Sensor *threshold_zone1_sensor = new sensor::Sensor();
+      sensor::Sensor *roi_height_sensor = new sensor::Sensor();
+      sensor::Sensor *roi_width_sensor = new sensor::Sensor();
       binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
       void dump_config() override;
       void setup() override;
@@ -71,7 +75,11 @@ namespace esphome
       void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
-      void set_presence_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_}
+      void set_threshold_zone0_sensor(sensor::Sensor *threshold_zone0_sensor_) { threshold_zone0_sensor = threshold_zone0_sensor_; }
+      void set_threshold_zone1_sensor(sensor::Sensor *threshold_zone1_sensor_) { threshold_zone1_sensor = threshold_zone1_sensor_; }
+      void set_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { roi_height_sensor = roi_height_sensor_; }
+      void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
+      void set_presence_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void checkMQTTCommands();
 
       void publishMQTT(int val);
