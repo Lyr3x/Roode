@@ -6,9 +6,10 @@ namespace esphome
     {
         void Roode::dump_config()
         {
-            LOG_SENSOR("", "ROODE", this);
-            LOG_I2C_DEVICE(this);
+            // LOG_SENSOR("", "ROODE", this);
+            // LOG_I2C_DEVICE(this);
         }
+
         void Roode::setup()
         {
             Wire.begin();
@@ -50,6 +51,12 @@ namespace esphome
             }
             // distanceSensor.setROISize(roi_width_, roi_height_); //Make dynamic ROI configurable otherwise set to 7,16
         }
+
+        void Roode::update()
+        {
+            distance_sensor->publish_state(distance);
+        }
+
         void Roode::loop()
         {
             checkMQTTCommands();
@@ -57,6 +64,7 @@ namespace esphome
             zone++;
             zone = zone % 2;
         }
+
         void Roode::checkMQTTCommands()
         {
             if (resetCounter == 1)
@@ -79,11 +87,13 @@ namespace esphome
                 forceSetValue = -1;
             }
         }
+
         void Roode::publishMQTT(int val)
         {
             peopleCounter = val;
-            this->publish_state(val);
+            people_counter_sensor->publish_state(val);
         }
+
         void Roode::getZoneDistance()
         {
             static int PathTrack[] = {0, 0, 0, 0};
@@ -103,6 +113,7 @@ namespace esphome
             {
                 // Someone is in !
                 CurrentZoneStatus = SOMEONE;
+                presence_sensor->publish_state(true);
             }
 
             // left zone
@@ -173,12 +184,13 @@ namespace esphome
                         {
                             // This an exit
                             //peopleCounter --;
-                            if (peopleCounter > 0){
+                            if (peopleCounter > 0)
+                            {
                                 peopleCounter--;
                                 sendCounter();
                                 ESP_LOGD("Roode pathTracking", "Exit detected.");
                             }
-                            
+
                             right = 1;
                             right = 0;
                         }
@@ -210,11 +222,13 @@ namespace esphome
                 }
             }
         }
+
         void Roode::sendCounter()
         {
             ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", peopleCounter);
-            this->publish_state(Roode::peopleCounter);
+            people_counter_sensor->publish_state(Roode::peopleCounter);
         }
+
         void Roode::roi_calibration(VL53L1X distanceSensor)
         {
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
@@ -402,6 +416,7 @@ namespace esphome
             EEPROM.write(7, unit_threshold_zone_1);
             EEPROM.commit();
         }
+
         void Roode::calibration_boot(VL53L1X distanceSensor)
         {
             ESP_LOGI("Calibration", "#### calibration started ####");
@@ -446,6 +461,7 @@ namespace esphome
                 calibration(distanceSensor);
             ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
         }
+
         class I2CComponentDummy : public i2c::I2CComponent
         {
         public:
