@@ -4,7 +4,7 @@ from esphome.components import i2c, sensor
 from esphome.const import CONF_ID, STATE_CLASS_MEASUREMENT, UNIT_EMPTY, UNIT_METER
 
 DEPENDENCIES = ["i2c"]
-AUTO_LOAD = ["sensor", "binary_sensor"]
+AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
 MULTI_CONF = True
 
 CONF_ROODE_ID = "roode_id"
