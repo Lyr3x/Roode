@@ -42,6 +42,8 @@ namespace esphome
             {
                 ESP_LOGI("Roode setup", "Restoring last count value...");
                 peopleCounter = EEPROM.read(100);
+                if (peopleCounter == 255) // 255 is the default value if no value was stored
+                    peopleCounter = 0;
                 ESP_LOGD("Roode setup", "last value: %d", peopleCounter);
             }
             sendCounter(peopleCounter);
