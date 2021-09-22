@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roode_dev32
+  devicename: roode32
   friendly_name: $devicename
 external_components:
   - source: components
@@ -46,6 +46,8 @@ roode:
   roi_width: 6
   threshold_percentage: 80
   roi_calibration: false
+  invert_direction: false
+  restore_values: true
 
 switch:
   - platform: restart
@@ -56,16 +58,6 @@ binary_sensor:
   - platform: roode
     presence_sensor:
       name: $friendly_name presence
-  - platform: template
-    name: $friendly_name somebody in
-    lambda: |-
-      if (id(peopleCounter)->state > 0) {
-        // somebody is in the room
-        return true;
-      } else {
-        // nobody is in the room
-        return false;
-      }
 
 sensor:
   - platform: roode
@@ -118,6 +110,9 @@ text_sensor:
   - platform: roode
     version:
       name: $friendly_name version
+  - platform: roode
+    entry_exit_event:
+      name: $friendly_name last direction
 
   - platform: template
     name: $friendly_name Uptime Human Readable
