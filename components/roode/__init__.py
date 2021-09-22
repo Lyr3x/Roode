@@ -30,8 +30,8 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(Roode),
-            cv.Optional(CONF_ROI_HEIGHT, default=5): cv.int_range(min=0, max=255),
-            cv.Optional(CONF_ROI_WIDTH, default=5): cv.int_range(min=0, max=255),
+            cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(min=4, max=16),
+            cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(min=4, max=16),
             cv.Optional(CONF_THRESHOLD_PERCENTAGE, default=85): cv.int_range(min=50, max=100),
             cv.Optional(CONF_CALIBRATION, default='true'): cv.boolean,
             cv.Optional(CONF_ROI_CALIBRATION, default='false'): cv.boolean,
