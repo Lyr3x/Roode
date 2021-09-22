@@ -5,7 +5,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/Lyr3x/Roode
-      ref: master
+      ref: dev
 esphome:
   name: $devicename
   platform: ESP8266
