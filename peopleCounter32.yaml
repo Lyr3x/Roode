@@ -37,14 +37,13 @@ i2c:
 roode:
   id: roode_platform
   address: 0x29
-  update_interval: 100ms
   update_interval: 60s
   calibration: true
   roi_height: 16
   roi_width: 6
   threshold_percentage: 80
   roi_calibration: false
-  invert_direction: false
+  invert_direction: true
   restore_values: true
 
 switch:
