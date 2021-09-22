@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roodeDev
+  devicename: roodedev
   friendly_name: $devicename
 external_components:
   - source: components
@@ -9,12 +9,12 @@ esphome:
   board: d1_mini
   libraries:
     - pololu/VL53L1X@^1.3.0
-  on_boot:
-    priority: 600
-    then:
-      - sensor.template.publish:
-          id: $devicename
-          state: !lambda "return $devicename->peopleCounter;"
+  # on_boot:
+  #   priority: 600
+  #   then:
+  #     - sensor.template.publish:
+  #         id: $devicename
+  #         state: !lambda "return $devicename->peopleCounter;"
 
 <<: !include common/common.yaml
 
@@ -37,45 +37,46 @@ i2c:
   sda: 4
   scl: 5
 
+roode:
+  id: roode_platform
+  address: 0x29
+  update_interval: 100ms
+  calibration: true
+  roi_height: 16
+  roi_width: 6
+  threshold_percentage: 80
+  roi_calibration: false
+  invert_direction: false
+  restore_values: true
+
 switch:
   - platform: restart
     name: $friendly_name Restart
-
 binary_sensor:
   - platform: status
     name: $friendly_name Status
+  - platform: roode
+    presence_sensor:
+      name: $friendly_name presence
 
-  - platform: template
-    name: $friendly_name photo sensor
-    lambda: |-
-      if (id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[0] || id(tof_distance_avg).state < $devicename->DIST_THRESHOLD_MAX[1]) {
-        // someone in the door
-        return true;
-      } else {
-        // no one in the door
-        return false;
-      }
-    filters:
-      - delayed_off: 100ms
-  - platform: template
-    name: $friendly_name somebody in
-    lambda: |-
-      if ($devicename->state > 0) {
-        // somebody is in the room
-        return true;
-      } else {
-        // nobody is in the room
-        return false;
-      }
 sensor:
   - platform: roode
-    id: $devicename
-    calibration: true
-    name: living room
-    roi_height: 16
-    roi_width: 6
-    threshold_percentage: 80
-    roi_calibration: false
+    id: hallway
+    people_counter_sensor:
+      id: peopleCounter
+      name: $friendly_name people counter
+    distance_sensor:
+      name: $friendly_name distance
+      filters:
+        - delta: 100.0
+    threshold_zone0:
+      name: $friendly_name Zone 0
+    threshold_zone1:
+      name: $friendly_name Zone 1
+    roi_height:
+      name: $friendly_name ROI height
+    roi_width:
+      name: $friendly_name ROI width
 
   - platform: wifi_signal
     name: $friendly_name RSSI
@@ -105,113 +106,13 @@ sensor:
                 (String(seconds) + "s")
               ).c_str();
 
-  - platform: mqtt_subscribe
-    name: "People reset"
-    id: people_reset
-    topic: $devicename/sensor/people/reset
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            resetCounter = 1;
-  - platform: mqtt_subscribe
-    name: "People set counter"
-    id: people_set_counter
-    topic: $devicename/sensor/people/set
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            if($devicename->peopleCounter!=id(people_set_counter).state){
-              $devicename->peopleCounter=id(people_set_counter).state;
-              forceSetValue=1;
-            }
-  - platform: mqtt_subscribe
-    name: "People recalibrate"
-    id: people_recalibrate
-    topic: $devicename/sensor/people/recalibrate
-    internal: true
-    on_value:
-      then:
-        - lambda: |-
-            $devicename->recalibrate = 1;
-
-  - platform: template
-    name: $friendly_name measured distance
-    id: tof_distance
-    accuracy_decimals: 0
-    icon: "mdi:ruler"
-    unit_of_measurement: "mm"
-    update_interval: 5s
-    lambda: |-
-      return $devicename->distance;
-    filters:
-      - delta: 100.0
-
-  - platform: template
-    name: tof distance avg
-    id: tof_distance_avg
-    accuracy_decimals: 0
-    icon: "mdi:ruler"
-    unit_of_measurement: "mm"
-    internal: true
-    update_interval: 1s
-    lambda: |-
-      return $devicename->distance;
-    filters:
-      - sliding_window_moving_average:
-          window_size: 10
-          send_every: 10
-
-  - platform: template
-    name: $friendly_name threshold zone 0
-    id: threshold_zone0
-    accuracy_decimals: 0
-    icon: "mdi:map-marker-distance"
-    unit_of_measurement: "mm"
-    lambda: |-
-      return $devicename->DIST_THRESHOLD_MAX[0];
-    filters:
-      - delta: 1
-  - platform: template
-    name: $friendly_name threshold zone 1
-    id: threshold_zone1
-    accuracy_decimals: 0
-    icon: "mdi:map-marker-distance"
-    unit_of_measurement: "mm"
-    update_interval: 60s
-    lambda: |-
-      return $devicename->DIST_THRESHOLD_MAX[1];
-    filters:
-      - delta: 1
-  - platform: template
-    name: $friendly_name ROI width
-    id: roi_width
-    accuracy_decimals: 0
-    icon: "mdi:table-column-width"
-    update_interval: 60s
-    lambda: |-
-      return $devicename->roi_width_;
-    filters:
-      - delta: 1
-  - platform: template
-    name: $friendly_name ROI height
-    id: roi_height
-    accuracy_decimals: 0
-    icon: "mdi:table-row-height"
-    update_interval: 60s
-    lambda: |-
-      return $devicename->roi_height_;
-    filters:
-      - delta: 1
-
 text_sensor:
-  - platform: template
-    name: "$friendly_name Version"
-    icon: mdi:git
-    lambda: |-
-      std::string version = "v1.3-dev-alpha";
-      return version;
+  - platform: roode
+    version:
+      name: $friendly_name version
+  - platform: roode
+    entry_exit_event:
+      name: $friendly_name last direction
 
   - platform: template
     name: $friendly_name Uptime Human Readable
