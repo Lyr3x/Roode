@@ -217,10 +217,12 @@ namespace esphome
         void Roode::sendCounter(uint16_t counter)
         {
             ESP_LOGI("Roode", "Sending people count: %d", counter);
-            people_counter_sensor->publish_state(counter);
+            peopleCounter = counter;
+            people_counter_sensor->publish_state(peopleCounter);
+
             if (restore_values_)
             {
-                EEPROM.write(100, counter);
+                EEPROM.write(100, peopleCounter);
                 EEPROM.commit();
             }
         }
