@@ -1,4 +1,0 @@
-# Enable logging
-logger:
-  #level: DEBUG
-  level: ERROR
