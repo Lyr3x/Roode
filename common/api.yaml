@@ -10,7 +10,7 @@ api:
         - lambda: "id(roode_platform)->sendCounter(newCount);"
     - service: reset_counter
       then:
-        - lambda: "id(peopleCounter)->publish_state(0);"
+        - lambda: "id(roode_platform)->sendCounter(0);"
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"

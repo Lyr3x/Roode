@@ -28,14 +28,6 @@ namespace esphome
                 LEFT = 0;
                 RIGHT = 1;
             }
-            // This will be called by App.setup()
-            // Wire.begin();
-            // Wire.setClock(400000);
-            // if (id(SENSOR_I2C) != 0)
-            // {
-            //     ESP_LOGI("Roode", "Setting custom I2C address");
-            //     distanceSensor.setAddress(id(SENSOR_I2C));
-            // }
 
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
