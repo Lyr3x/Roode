@@ -7,6 +7,7 @@ namespace esphome
         void Roode::setup()
         {
             ESP_LOGI("Roode setup", "Booting Roode %d", VERSION);
+            version_sensor->publish_state(VERSION);
             EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
             Wire.setClock(400000);
