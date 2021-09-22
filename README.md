@@ -24,8 +24,8 @@ We are defining two different Region of Interest (ROI) inside this grid. Then th
 However, the algorithm is very sensitive to the slightest modification of the ROI, regarding both its size and its positioning inside the grid.
 
 ST Microelectronics define the values for the parameters as default like this:
-- `ROI_width = 8 //min 4`
-- `ROI_height = 16 //min 4`
+- `roi_width_ = 8 //min 4`
+- `roi_height_ = 16 //min 4`
 - `center = {167,231}`
 
 The center of the ROI you set is based on the table below and the optical center has to be set as the pad above and to the right of your exact center:
