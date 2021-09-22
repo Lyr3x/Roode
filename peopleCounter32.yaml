@@ -38,6 +38,7 @@ roode:
   id: roode_platform
   address: 0x29
   update_interval: 100ms
+  update_interval: 60s
   calibration: true
   roi_height: 16
   roi_width: 6
@@ -110,7 +111,6 @@ text_sensor:
   - platform: roode
     entry_exit_event:
       name: $friendly_name last direction
-
   - platform: template
     name: $friendly_name Uptime Human Readable
     id: uptime_human

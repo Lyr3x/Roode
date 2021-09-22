@@ -51,8 +51,7 @@ namespace esphome
     class Roode : public PollingComponent
     {
     public:
-      Roode() : PollingComponent(5000) {}
-      void dump_config() override;
+      Roode() : PollingComponent(60000) {}
       void setup() override;
       void update() override;
 
@@ -111,7 +110,7 @@ namespace esphome
       bool invert_direction_{false};
       bool restore_values_{false};
       uint64_t threshold_percentage_{85};
-      uint64_t update_interval_;
+      uint64_t update_interval_{60000};
       float sum_zone_0 = 0;
       float sum_zone_1 = 0;
       int number_attempts = 20;

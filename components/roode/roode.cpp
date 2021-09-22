@@ -4,18 +4,10 @@ namespace esphome
 {
     namespace roode
     {
-        void Roode::dump_config()
-        {
-            // LOG_SENSOR("", "ROODE", this);
-            // LOG_I2C_DEVICE(this);
-        }
-
         void Roode::setup()
         {
-            ESP_LOGD("Roode setup", "restore_values_: %d", restore_values_);
-            ESP_LOGD("Roode setup", "invert_direction_: %d", invert_direction_);
+            ESP_LOGI("Roode setup", "Booting Roode %d", VERSION);
             EEPROM.begin(EEPROM_SIZE);
-            version_sensor->publish_state(VERSION);
             Wire.begin();
             Wire.setClock(400000);
             if (Roode::invert_direction_ == true)
@@ -32,7 +24,7 @@ namespace esphome
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
             {
-                ESP_LOGI("Roode setup", "Failed to detect and initialize sensor!");
+                ESP_LOGE("Roode setup", "Failed to detect and initialize sensor!");
                 while (1)
                     ;
             }
@@ -47,7 +39,7 @@ namespace esphome
             }
             if (restore_values_)
             {
-                ESP_LOGI("Roode setup", "Restoring last count value");
+                ESP_LOGI("Roode setup", "Restoring last count value...");
                 peopleCounter = EEPROM.read(100);
                 ESP_LOGD("Roode setup", "last value: %d", peopleCounter);
             }
