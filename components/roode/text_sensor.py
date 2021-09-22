@@ -7,9 +7,10 @@ from . import Roode, CONF_ROODE_ID
 DEPENDENCIES = ["roode"]
 
 VERSION = "version"
+ENTRY_EXIT_EVENT = "entry_exit_event"
 
 
-TYPES = [VERSION]
+TYPES = [VERSION, ENTRY_EXIT_EVENT]
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -17,6 +18,12 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(VERSION): text_sensor.TEXT_SENSOR_SCHEMA.extend(
             {   
                 cv.Optional(CONF_ICON, default="mdi:git"): text_sensor.icon,
+                cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
+            }
+        ),
+        cv.Optional(ENTRY_EXIT_EVENT): text_sensor.TEXT_SENSOR_SCHEMA.extend(
+            {   
+                cv.Optional(CONF_ICON, default="mdi:sign-direction"): text_sensor.icon,
                 cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
             }
         ),

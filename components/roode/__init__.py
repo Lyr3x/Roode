@@ -20,11 +20,14 @@ CONF_CALIBRATION = "calibration"
 CONF_ROI_CALIBRATION = "roi_calibration"
 CONF_INVERT_DIRECTION = "invert_direction"
 CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
+CONF_RESTORE_VALUES = "restore_values"
 SETTERS = {
     CONF_THRESHOLD_PERCENTAGE: "set_threshold_percentage",
     CONF_OPTICAL_CENTER: 'set_optical_center',
     CONF_ROI_HEIGHT: 'set_roi_height',
     CONF_ROI_WIDTH: 'set_roi_width',
+    CONF_RESTORE_VALUES: 'set_restore_values',
+    CONF_INVERT_DIRECTION: 'set_invert_direction', 
 }
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -36,6 +39,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_CALIBRATION, default='true'): cv.boolean,
             cv.Optional(CONF_ROI_CALIBRATION, default='false'): cv.boolean,
             cv.Optional(CONF_INVERT_DIRECTION, default='false'): cv.boolean,
+            cv.Optional(CONF_RESTORE_VALUES, default='false'): cv.boolean,
             cv.Optional(CONF_DIST_THRESHOLD, default=[1500, 1500]): cv.All([cv.int_range(min=0, max=0xFFFF, max_included=False)], cv.Length(min=2, max=2)),
         }
     )

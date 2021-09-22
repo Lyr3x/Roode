@@ -12,6 +12,9 @@ namespace esphome
 
         void Roode::setup()
         {
+            ESP_LOGD("Roode setup", "restore_values_: %d", restore_values_);
+            ESP_LOGD("Roode setup", "invert_direction_: %d", invert_direction_);
+            EEPROM.begin(EEPROM_SIZE);
             version_sensor->publish_state(VERSION);
             Wire.begin();
             Wire.setClock(400000);
@@ -30,7 +33,7 @@ namespace esphome
             // Wire.setClock(400000);
             // if (id(SENSOR_I2C) != 0)
             // {
-            //     ESP_LOGI("VL53L1X custom sensor", "Setting custom I2C address");
+            //     ESP_LOGI("Roode", "Setting custom I2C address");
             //     distanceSensor.setAddress(id(SENSOR_I2C));
             // }
 
@@ -43,14 +46,20 @@ namespace esphome
             }
             if (calibration_)
             {
-                calibration_boot(distanceSensor);
+                calibration(distanceSensor);
             }
             else
             {
                 DIST_THRESHOLD_MAX[0] = 800;
                 DIST_THRESHOLD_MAX[1] = 800;
             }
-            // distanceSensor.setROISize(roi_width_, roi_height_); //Make dynamic ROI configurable otherwise set to 7,16
+            if (restore_values_)
+            {
+                ESP_LOGI("Roode setup", "Restoring last count value");
+                peopleCounter = EEPROM.read(100);
+                ESP_LOGD("Roode setup", "last value: %d", peopleCounter);
+            }
+            sendCounter(peopleCounter);
         }
 
         void Roode::update()
@@ -99,7 +108,7 @@ namespace esphome
                 presence_sensor->publish_state(true);
             }
             else
-            {   
+            {
                 // Nobody is in the sensing area
                 presence_sensor->publish_state(false);
             }
@@ -175,8 +184,9 @@ namespace esphome
                             if (peopleCounter > 0)
                             {
                                 peopleCounter--;
-                                sendCounter();
+                                sendCounter(peopleCounter);
                                 ESP_LOGD("Roode pathTracking", "Exit detected.");
+                                entry_exit_event_sensor->publish_state("Exit");
                             }
 
                             right = 1;
@@ -187,8 +197,9 @@ namespace esphome
                             // This an entry
                             //peopleCounter ++;
                             peopleCounter++;
-                            sendCounter();
+                            sendCounter(peopleCounter);
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
+                            entry_exit_event_sensor->publish_state("Entry");
                             left = 1;
                             left = 0;
                         }
@@ -211,12 +222,18 @@ namespace esphome
             }
         }
 
-        void Roode::sendCounter()
+        void Roode::sendCounter(uint16_t counter)
         {
-            ESP_LOGI("VL53L1X custom sensor", "Sending people count: %d", peopleCounter);
-            people_counter_sensor->publish_state(Roode::peopleCounter);
+            ESP_LOGI("Roode", "Sending people count: %d", counter);
+            people_counter_sensor->publish_state(counter);
+            if (restore_values_)
+            {
+                EEPROM.write(100, counter);
+                EEPROM.commit();
+            }
         }
-        void Roode::recalibration(){
+        void Roode::recalibration()
+        {
             calibration(distanceSensor);
         }
         void Roode::roi_calibration(VL53L1X distanceSensor)
@@ -322,11 +339,11 @@ namespace esphome
             }
             average_zone_0 = sum_zone_0 / number_attempts;
             average_zone_1 = sum_zone_1 / number_attempts;
-            EEPROM.write(3, ROI_size);
+            EEPROM.write(13, ROI_size);
         }
 
         void Roode::calibration(VL53L1X distanceSensor)
-        {   
+        {
             sum_zone_0 = 0;
             sum_zone_1 = 0;
             average_zone_0 = 0;
@@ -395,68 +412,13 @@ namespace esphome
             threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
             roi_height_sensor->publish_state(roi_height_);
             roi_width_sensor->publish_state(roi_width_);
-            // we now save the values into the EEPROM memory
             int hundred_threshold_zone_0 = threshold_zone_0 / 100;
             int hundred_threshold_zone_1 = threshold_zone_1 / 100;
             int unit_threshold_zone_0 = threshold_zone_0 - 100 * hundred_threshold_zone_0;
             int unit_threshold_zone_1 = threshold_zone_1 - 100 * hundred_threshold_zone_1;
-            ESP_LOGI("VL53L1X custom sensor", "Threshold zone1: %d", threshold_zone_0);
-            ESP_LOGI("VL53L1X custom sensor", "Threshold zone2: %d", threshold_zone_1);
+            ESP_LOGI("Roode", "Threshold zone0: %dmm", DIST_THRESHOLD_MAX[0]);
+            ESP_LOGI("Roode", "Threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
             delay(2000);
-
-            EEPROM.write(0, 1);
-            EEPROM.write(1, center[0]);
-            EEPROM.write(2, center[1]);
-            EEPROM.write(4, hundred_threshold_zone_0);
-            EEPROM.write(5, unit_threshold_zone_0);
-            EEPROM.write(6, hundred_threshold_zone_1);
-            EEPROM.write(7, unit_threshold_zone_1);
-            EEPROM.commit();
-        }
-
-        void Roode::calibration_boot(VL53L1X distanceSensor)
-        {
-            ESP_LOGI("Calibration", "#### calibration started ####");
-            if (save_calibration_result)
-            {
-                // if possible, we take the old values of the zones contained in the EEPROM memory
-                if (EEPROM.read(0) == 1)
-                {
-                    // we have data in the EEPROM
-                    ESP_LOGI("Calibration", "EEPROM is not empty");
-                    center[0] = EEPROM.read(1);
-                    center[1] = EEPROM.read(2);
-                    Roode::roi_height_ = EEPROM.read(3);
-                    Roode::roi_width_ = EEPROM.read(3);
-                    DIST_THRESHOLD_MAX[0] = EEPROM.read(4) * 100 + EEPROM.read(5);
-                    DIST_THRESHOLD_MAX[1] = EEPROM.read(6) * 100 + EEPROM.read(7);
-
-                    // if the distance measured is small, then we can use the short range mode of the sensor
-                    if (min(DIST_THRESHOLD_MAX[0], DIST_THRESHOLD_MAX[1]) <= short_distance_threshold)
-                    {
-                        time_budget_in_ms = time_budget_in_ms_short;
-                        delay_between_measurements = delay_between_measurements_short;
-                        distanceSensor.setDistanceMode(VL53L1X::Short);
-                        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-                    }
-                    else
-                    {
-                        time_budget_in_ms = time_budget_in_ms_long;
-                        delay_between_measurements = delay_between_measurements_long;
-                        distanceSensor.setDistanceMode(VL53L1X::Long);
-                        distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-                    }
-                    //   client.publish(mqtt_serial_publish_distance_ch, "All values updated");
-                }
-                else
-                {
-                    // there are no data in the EEPROM memory
-                    calibration(distanceSensor);
-                }
-            }
-            else
-                calibration(distanceSensor);
-            ESP_LOGI("VL53L1X custom sensor", "#### calibration done ####");
         }
 
         class I2CComponentDummy : public i2c::I2CComponent

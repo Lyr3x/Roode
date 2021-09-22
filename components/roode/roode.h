@@ -16,7 +16,7 @@ namespace esphome
 #define NOBODY 0
 #define SOMEONE 1
 #define VERSION "v1.3-alpha1"
-
+#define EEPROM_SIZE 512
     static const char *TAG = "main";
     static int LEFT = 0;
     static int RIGHT = 1;
@@ -41,13 +41,7 @@ namespace esphome
 
     static int delay_between_measurements = 0;
     static int time_budget_in_ms = 0;
-
-    // this value has to be true if the sensor is oriented as in Duthdeffy's picture
     static bool advised_orientation_of_the_sensor = true;
-
-    // this value has to be true if you don't need to compute the threshold every time the device is turned on
-    static bool save_calibration_result = true;
-
     // parameters which define the time between two different measurements in longRange mode
     static int delay_between_measurements_long = 50;
     static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m
@@ -68,6 +62,7 @@ namespace esphome
       void set_roi_width(int width) { roi_width_ = width; }
       void set_address(uint64_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
+      void set_restore_values(bool val) { restore_values_ = val; }
       void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
@@ -77,12 +72,13 @@ namespace esphome
       void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
+      void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
       void checkCommands();
 
       void publishMQTT(int val);
 
       void getZoneDistance();
-      void sendCounter();
+      void sendCounter(uint16_t counter);
       void loop() override;
 
       void recalibration();
@@ -99,7 +95,6 @@ namespace esphome
     protected:
       void roi_calibration(VL53L1X distanceSensor);
       void calibration(VL53L1X distanceSensor);
-      void calibration_boot(VL53L1X distanceSensor);
       VL53L1X distanceSensor;
       sensor::Sensor *distance_sensor = new sensor::Sensor();
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
@@ -109,10 +104,12 @@ namespace esphome
       sensor::Sensor *roi_width_sensor = new sensor::Sensor();
       binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
       text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
+      text_sensor::TextSensor *entry_exit_event_sensor = new text_sensor::TextSensor();
       bool calibration_{true};
       bool roi_calibration_{false};
       uint64_t address_ = 0;
-      bool invert_direction_{true};
+      bool invert_direction_{false};
+      bool restore_values_{false};
       uint64_t threshold_percentage_{85};
       uint64_t update_interval_;
       float sum_zone_0 = 0;
