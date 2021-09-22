@@ -2,19 +2,16 @@ substitutions:
   devicename: roode8266
   friendly_name: $devicename
 external_components:
-  - source: components
+  - source:
+      type: git
+      url: https://github.com/Lyr3x/Roode
+      ref: master
 esphome:
   name: $devicename
   platform: ESP8266
   board: d1_mini
   libraries:
     - pololu/VL53L1X@^1.3.0
-  # on_boot:
-  #   priority: 600
-  #   then:
-  #     - sensor.template.publish:
-  #         id: $devicename
-  #         state: !lambda "return $devicename->peopleCounter;"
 
 <<: !include common/common.yaml
 
