@@ -91,7 +91,7 @@ sensor:
     distance_sensor:
       name: $friendly_name distance
       filters:
-        - delta: 100.0
+        - delta: 10.0
     threshold_zone0:
       name: $friendly_name Zone 0
     threshold_zone1:
