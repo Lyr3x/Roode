@@ -8,7 +8,7 @@ external_components:
       type: git
       url: https://github.com/Lyr3x/Roode
       ref: dev-1.3
-      
+
 esphome:
   name: $devicename
   platform: ESP8266
@@ -63,7 +63,7 @@ i2c:
 roode:
   id: roode_platform
   address: 0x29
-  update_interval: 1s
+  update_interval: 100ms
   calibration: true
   roi_height: 16
   roi_width: 6
