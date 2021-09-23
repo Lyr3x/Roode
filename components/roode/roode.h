@@ -122,6 +122,7 @@ namespace esphome
       double people, distance_avg;
       int short_distance_threshold = 1300;
       int long_distance_threshold = 3100;
+      bool status = false;
     };
 
   } // namespace roode

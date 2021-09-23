@@ -345,7 +345,6 @@ namespace esphome
         }
         void Roode::calibration(VL53L1X distanceSensor)
         {
-            bool status = false;
             sum_zone_0 = 0;
             sum_zone_1 = 0;
             average_zone_0 = 0;
