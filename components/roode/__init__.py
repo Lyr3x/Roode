@@ -14,6 +14,7 @@ Roode = roode_ns.class_("Roode", cg.PollingComponent, i2c.I2CDevice)
 
 CONF_ROI_HEIGHT= 'roi_height'
 CONF_ROI_WIDTH = 'roi_width'
+CONF_ADVISED_SENSOR_ORIENTATION = 'advised_sensor_orientation'
 CONF_CALIBRATION = "calibration"
 CONF_ROI_CALIBRATION = "roi_calibration"
 CONF_INVERT_DIRECTION = "invert_direction"
@@ -25,6 +26,7 @@ SETTERS = {
     CONF_ROI_WIDTH: 'set_roi_width',
     CONF_RESTORE_VALUES: 'set_restore_values',
     CONF_INVERT_DIRECTION: 'set_invert_direction', 
+    CONF_ADVISED_SENSOR_ORIENTATION: 'set_advised_sensor_orientation', 
 }
 CONFIG_SCHEMA = (
     cv.Schema(
@@ -37,6 +39,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_ROI_CALIBRATION, default='false'): cv.boolean,
             cv.Optional(CONF_INVERT_DIRECTION, default='false'): cv.boolean,
             cv.Optional(CONF_RESTORE_VALUES, default='false'): cv.boolean,
+            cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default='true'): cv.boolean,
         }
     )
     .extend(cv.polling_component_schema("100ms"))
