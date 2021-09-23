@@ -345,8 +345,8 @@ namespace esphome
             average_zone_0 = 0;
             average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
-            time_budget_in_ms = time_budget_in_ms_max_range;
-            delay_between_measurements = delay_between_measurements_max;
+            time_budget_in_ms = time_budget_in_ms_long;
+            delay_between_measurements = delay_between_measurements_long;
             distanceSensor.startContinuous(delay_between_measurements);
             distanceSensor.setDistanceMode(VL53L1X::Long);
             distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
@@ -399,7 +399,7 @@ namespace esphome
             average_zone_0 = sum_zone_0 / number_attempts;
             average_zone_1 = sum_zone_1 / number_attempts;
 
-            Roode::setCorrectDistanceSettings(average_zone_0, average_zone_1);
+            // setCorrectDistanceSettings(average_zone_0, average_zone_1);
 
             if (Roode::roi_calibration_)
             {
