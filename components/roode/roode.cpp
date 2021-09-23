@@ -56,20 +56,9 @@ namespace esphome
 
         void Roode::loop()
         {
-            checkCommands();
             getZoneDistance();
             zone++;
             zone = zone % 2;
-        }
-
-        void Roode::checkCommands()
-        {
-            if (recalibrate == 1)
-            {
-                ESP_LOGI("MQTTCommand", "Recalibration command received");
-                // calibration(sensor);
-                recalibrate = 0;
-            }
         }
 
         void Roode::getZoneDistance()
@@ -167,7 +156,6 @@ namespace esphome
                         if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2))
                         {
                             // This an exit
-                            //peopleCounter --;
                             if (peopleCounter > 0)
                             {
                                 peopleCounter--;
@@ -182,7 +170,6 @@ namespace esphome
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
                         {
                             // This an entry
-                            //peopleCounter ++;
                             peopleCounter++;
                             sendCounter(peopleCounter);
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
@@ -233,17 +220,11 @@ namespace esphome
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size;
-            if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
-            {
-                // we can use the short mode, which allows more precise measurements up to 1.3 meters
-                time_budget_in_ms = time_budget_in_ms_short;
-                delay_between_measurements = delay_between_measurements_short;
-                distanceSensor.setDistanceMode(VL53L1X::Short);
-            }
+
             delay(250);
 
             // now we set the position of the center of the two zones
-            if (advised_orientation_of_the_sensor)
+            if (advised_sensor_orientation_)
             {
 
                 switch (ROI_size)
@@ -330,7 +311,32 @@ namespace esphome
             average_zone_1 = sum_zone_1 / number_attempts;
             EEPROM.write(13, ROI_size);
         }
+        void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
+        {
+            if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
+            {
+                // we can use the short mode, which allows more precise measurements up to 1.3 meters
+                time_budget_in_ms = time_budget_in_ms_short;
+                delay_between_measurements = delay_between_measurements_short;
+                distanceSensor.setDistanceMode(VL53L1X::Short);
+            }
 
+            if ((average_zone_0 > short_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= long_distance_threshold))
+            {
+                // we can use the short mode, which allows more precise measurements up to 1.3 meters
+                time_budget_in_ms = time_budget_in_ms_long;
+                delay_between_measurements = delay_between_measurements_long;
+                distanceSensor.setDistanceMode(VL53L1X::Long);
+            }
+
+            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            {
+                // we can use the short mode, which allows more precise measurements up to 1.3 meters
+                time_budget_in_ms = time_budget_in_ms_max_range;
+                delay_between_measurements = delay_between_measurements_long;
+                distanceSensor.setDistanceMode(VL53L1X::Long);
+            }
+        }
         void Roode::calibration(VL53L1X distanceSensor)
         {
             sum_zone_0 = 0;
@@ -338,12 +344,12 @@ namespace esphome
             average_zone_0 = 0;
             average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
-            time_budget_in_ms = time_budget_in_ms_long;
+            time_budget_in_ms = time_budget_in_ms_max_range;
             delay_between_measurements = delay_between_measurements_long;
             distanceSensor.startContinuous(delay_between_measurements);
             distanceSensor.setDistanceMode(VL53L1X::Long);
             distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-            if (advised_orientation_of_the_sensor)
+            if (advised_sensor_orientation_)
             {
                 center[0] = 167;
                 center[1] = 231;
@@ -352,6 +358,10 @@ namespace esphome
             {
                 center[0] = 195;
                 center[1] = 60;
+                uint16_t roi_width_temp = roi_width_;
+                uint16_t roi_height_temp = roi_height_;
+                roi_width_ = roi_height_;
+                roi_height_ = roi_width_;
             }
 
             delay(500);
@@ -361,6 +371,7 @@ namespace esphome
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 1
+
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
                 distanceSensor.startContinuous(delay_between_measurements);
@@ -386,6 +397,8 @@ namespace esphome
             // after we have computed the sum for each zone, we can compute the average distance of each zone
             average_zone_0 = sum_zone_0 / number_attempts;
             average_zone_1 = sum_zone_1 / number_attempts;
+
+            Roode::setCorrectDistanceSettings(average_zone_0, average_zone_1);
 
             if (Roode::roi_calibration_)
             {

@@ -41,12 +41,13 @@ namespace esphome
 
     static int delay_between_measurements = 0;
     static int time_budget_in_ms = 0;
-    static bool advised_orientation_of_the_sensor = true;
-    // parameters which define the time between two different measurements in longRange mode
+
+    // parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
     static int delay_between_measurements_long = 50;
-    static int time_budget_in_ms_long = 33; // Works up to 3.1m increase to 140ms for 4m
+    static int time_budget_in_ms_short = 15;      // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_long = 33;       // Works up to 3.1m increase to 140ms for 4m
+    static int time_budget_in_ms_max_range = 200; // Works up to 4m in the dark on a white chart
     static int delay_between_measurements_short = 25;
-    static int time_budget_in_ms_short = 15;
 
     class Roode : public PollingComponent
     {
@@ -54,6 +55,7 @@ namespace esphome
       Roode() : PollingComponent(60000) {}
       void setup() override;
       void update() override;
+      void loop() override;
 
       void set_calibration(bool val) { calibration_ = val; }
       void set_threshold_percentage(int val) { threshold_percentage_ = val; }
@@ -62,6 +64,7 @@ namespace esphome
       void set_address(uint64_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
+      void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
@@ -72,28 +75,19 @@ namespace esphome
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
-      void checkCommands();
-
-      void publishMQTT(int val);
-
-      void getZoneDistance();
-      void sendCounter(uint16_t counter);
-      void loop() override;
-
-      void recalibration();
-
       void set_i2c_parent(i2c::I2CComponent *parent);
       void set_i2c_address(uint8_t address);
+      void getZoneDistance();
+      void sendCounter(uint16_t counter);
+      void recalibration();
+
       uint16_t distance = 0;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // treshold of the two zones
-      int roi_width_{6};
-      int roi_height_{16};
+      int roi_width_{6};                  // width of the ROI
+      int roi_height_{16};                // height of the ROI
       uint64_t peopleCounter{0};
-      uint64_t recalibrate{0};
 
     protected:
-      void roi_calibration(VL53L1X distanceSensor);
-      void calibration(VL53L1X distanceSensor);
       VL53L1X distanceSensor;
       sensor::Sensor *distance_sensor = new sensor::Sensor();
       sensor::Sensor *people_counter_sensor = new sensor::Sensor();
@@ -104,8 +98,14 @@ namespace esphome
       binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
       text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
       text_sensor::TextSensor *entry_exit_event_sensor = new text_sensor::TextSensor();
+
+      void roi_calibration(VL53L1X distanceSensor);
+      void calibration(VL53L1X distanceSensor);
+      void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
+
       bool calibration_{true};
       bool roi_calibration_{false};
+      bool advised_sensor_orientation_{true};
       uint64_t address_ = 0;
       bool invert_direction_{false};
       bool restore_values_{false};
@@ -118,10 +118,9 @@ namespace esphome
       float average_zone_1 = 0;
       int left = 0, right = 0, oldcnt;
       boolean lastTrippedState = 0;
-      //static int num_timeouts = 0;
       double people, distance_avg;
-      // value which defines the threshold which activates the short distance mode (the sensor supports it only up to a distance of 1300 mm)
       int short_distance_threshold = 1300;
+      int long_distance_threshold = 3100;
     };
 
   } // namespace roode
