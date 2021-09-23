@@ -337,9 +337,15 @@ namespace esphome
                 delay_between_measurements = delay_between_measurements_max;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
             }
+            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            if (!status)
+            {
+                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+            }
         }
         void Roode::calibration(VL53L1X distanceSensor)
         {
+            bool status = false;
             sum_zone_0 = 0;
             sum_zone_1 = 0;
             average_zone_0 = 0;
@@ -349,7 +355,11 @@ namespace esphome
             delay_between_measurements = delay_between_measurements_long;
             distanceSensor.startContinuous(delay_between_measurements);
             distanceSensor.setDistanceMode(VL53L1X::Long);
-            distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            if (!status)
+            {
+                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+            }
             if (advised_sensor_orientation_)
             {
                 center[0] = 167;
