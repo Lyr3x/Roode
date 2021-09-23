@@ -6,7 +6,7 @@ namespace esphome
     {
         void Roode::setup()
         {
-            ESP_LOGI("Roode setup", "Booting Roode %d", VERSION);
+            ESP_LOGI("Roode setup", "Booting Roode %s", VERSION);
             version_sensor->publish_state(VERSION);
             EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
@@ -333,7 +333,7 @@ namespace esphome
             {
                 // we can use the short mode, which allows more precise measurements up to 1.3 meters
                 time_budget_in_ms = time_budget_in_ms_max_range;
-                delay_between_measurements = delay_between_measurements_long;
+                delay_between_measurements = delay_between_measurements_max;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
             }
         }
@@ -345,7 +345,7 @@ namespace esphome
             average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_max_range;
-            delay_between_measurements = delay_between_measurements_long;
+            delay_between_measurements = delay_between_measurements_max;
             distanceSensor.startContinuous(delay_between_measurements);
             distanceSensor.setDistanceMode(VL53L1X::Long);
             distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
