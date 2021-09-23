@@ -350,8 +350,8 @@ namespace esphome
             average_zone_0 = 0;
             average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
-            time_budget_in_ms = time_budget_in_ms_long;
-            delay_between_measurements = delay_between_measurements_long;
+            time_budget_in_ms = time_budget_in_ms_max_range;
+            delay_between_measurements = delay_between_measurements_max;
             distanceSensor.startContinuous(delay_between_measurements);
             distanceSensor.setDistanceMode(VL53L1X::Long);
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);

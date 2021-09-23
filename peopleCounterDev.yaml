@@ -51,7 +51,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: INFO
 
 #status_led:
 #  pin:
