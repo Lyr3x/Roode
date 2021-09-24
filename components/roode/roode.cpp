@@ -437,7 +437,7 @@ namespace esphome
                 ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_MIN[0]);
                 ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_MIN[1]);
                 min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[0]);
-                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[1]);
+                min_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MIN[1]);
             }
 
             roi_height_sensor->publish_state(roi_height_);
