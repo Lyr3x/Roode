@@ -4,6 +4,13 @@ namespace esphome
 {
     namespace roode
     {
+        void Roode::dump_config()
+        {
+            ESP_LOGCONFIG(TAG, "ROODE:");
+            LOG_I2C_DEVICE(this);
+
+            LOG_UPDATE_INTERVAL(this);
+        }
         void Roode::setup()
         {
             ESP_LOGI("Roode setup", "Booting Roode %s", VERSION);
