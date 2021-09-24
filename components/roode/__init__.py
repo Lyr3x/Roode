@@ -18,10 +18,13 @@ CONF_ADVISED_SENSOR_ORIENTATION = 'advised_sensor_orientation'
 CONF_CALIBRATION = "calibration"
 CONF_ROI_CALIBRATION = "roi_calibration"
 CONF_INVERT_DIRECTION = "invert_direction"
+CONF_MAX_THRESHOLD_PERCENTAGE = "max_threshold_percentage"
+CONF_MIN_THRESHOLD_PERCENTAGE = "min_threshold_percentage"
 CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
 CONF_RESTORE_VALUES = "restore_values"
 SETTERS = {
-    CONF_THRESHOLD_PERCENTAGE: "set_threshold_percentage",
+    CONF_MAX_THRESHOLD_PERCENTAGE: "set_max_threshold_percentage",
+    CONF_MIN_THRESHOLD_PERCENTAGE: "set_min_threshold_percentage",
     CONF_ROI_HEIGHT: 'set_roi_height',
     CONF_ROI_WIDTH: 'set_roi_width',
     CONF_RESTORE_VALUES: 'set_restore_values',
@@ -34,7 +37,8 @@ CONFIG_SCHEMA = (
             cv.GenerateID(): cv.declare_id(Roode),
             cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(min=4, max=16),
             cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(min=4, max=16),
-            cv.Optional(CONF_THRESHOLD_PERCENTAGE, default=85): cv.int_range(min=50, max=100),
+            cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85): cv.int_range(min=50, max=100),
+            cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0): cv.int_range(min=0, max=100),
             cv.Optional(CONF_CALIBRATION, default='true'): cv.boolean,
             cv.Optional(CONF_ROI_CALIBRATION, default='false'): cv.boolean,
             cv.Optional(CONF_INVERT_DIRECTION, default='false'): cv.boolean,

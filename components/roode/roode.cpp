@@ -86,7 +86,7 @@ namespace esphome
             distance = distanceSensor.read();
             distanceSensor.stopContinuous();
 
-            if (distance < DIST_THRESHOLD_MAX[zone] && distance > MIN_DISTANCE[zone])
+            if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
@@ -401,7 +401,7 @@ namespace esphome
                 zone = zone % 2;
 
                 // increase sum of values in Zone 2
-                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+                distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
                 distanceSensor.startContinuous(delay_between_measurements);
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
@@ -418,26 +418,34 @@ namespace esphome
 
             setCorrectDistanceSettings(average_zone_0, average_zone_1);
 
-            if (Roode::roi_calibration_)
+            if (roi_calibration_)
             {
                 roi_calibration(distanceSensor);
             }
 
-            float threshold_zone_0 = average_zone_0 * Roode::threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-            float threshold_zone_1 = average_zone_1 * Roode::threshold_percentage_ / 100;
+            DIST_THRESHOLD_MAX[0] = average_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+            DIST_THRESHOLD_MAX[1] = average_zone_1 * max_threshold_percentage_ / 100;
+            ESP_LOGI("Roode", "Max threshold zone0: %dmm", DIST_THRESHOLD_MAX[0]);
+            ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
+            max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
+            max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
+            if (min_threshold_percentage_ != 0)
+            {
+                DIST_THRESHOLD_MIN[0] = average_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+                DIST_THRESHOLD_MIN[1] = average_zone_1 * min_threshold_percentage_ / 100;
+                ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_MIN[0]);
+                ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_MIN[1]);
+                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
+                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
+            }
 
-            DIST_THRESHOLD_MAX[0] = threshold_zone_0;
-            DIST_THRESHOLD_MAX[1] = threshold_zone_1;
-            threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
-            threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
             roi_height_sensor->publish_state(roi_height_);
             roi_width_sensor->publish_state(roi_width_);
-            int hundred_threshold_zone_0 = threshold_zone_0 / 100;
-            int hundred_threshold_zone_1 = threshold_zone_1 / 100;
-            int unit_threshold_zone_0 = threshold_zone_0 - 100 * hundred_threshold_zone_0;
-            int unit_threshold_zone_1 = threshold_zone_1 - 100 * hundred_threshold_zone_1;
-            ESP_LOGI("Roode", "Threshold zone0: %dmm", DIST_THRESHOLD_MAX[0]);
-            ESP_LOGI("Roode", "Threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
+            int hundred_threshold_zone_0 = DIST_THRESHOLD_MAX[0] / 100;
+            int hundred_threshold_zone_1 = DIST_THRESHOLD_MAX[1] / 100;
+            int unit_threshold_zone_0 = DIST_THRESHOLD_MAX[0] - 100 * hundred_threshold_zone_0;
+            int unit_threshold_zone_1 = DIST_THRESHOLD_MAX[1] - 100 * hundred_threshold_zone_1;
+
             delay(2000);
         }
 

@@ -30,7 +30,8 @@ roode:
 - **update_interval (Optional, Time)**: The interval to check the sensor. Defaults to `100ms`.
 - **roi_height (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
 - **roi_width (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
-- **threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `50` Max: `100`. Defaults to `85`.
+- **max_threshold_percentage (Optional, int)**: The maxium threshold in % which needs to be reached to detect a person. Min: `50` Max: `100`. Defaults to `85`.
+- **min_threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `0` Max: `100`. Defaults to `0`.
 - **calibration (Optional, bool)**: Enables automatic zone calibration (experimental). Defaults to `true`.
 - **roi_calibration (Optional, bool)**: Enables automatic ROI calibration (experimental). Defaults to `false`.
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
@@ -189,7 +190,21 @@ lower right.
 
 Another crucial choice is the one corresponding to the threshold. Indeed a movement is detected whenever the distance read by the sensor is below this value. The code contains a vector as threshold, as one (as myself) might need a different threshold for each zone.
 
-The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `threshold_percentage`
+The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `max_threshold_percentage` and `min_threshold_percentage`.
+
+If you install the sensor e.g 20cm over a door you dont want to count the door open and closing. In this case you should set the `min_threshold_percentage` to about `10`.
+
+Example:
+
+```
+Mounting height:    2200mm
+Door height:        2000mm
+Person height:      1800mm
+max_threshold_percentage: 85% = 1760
+min_threshold_percentage: 10% = 200
+
+All distances smaller then 200mm and greater then 17600mm will be ignored.
+```
 
 ## Hardware
 

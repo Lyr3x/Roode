@@ -15,8 +15,10 @@ DEPENDENCIES = ["roode"]
 
 CONF_DISTANCE = 'distance_sensor'
 CONF_PEOPLE_COUNTER = 'people_counter_sensor'
-CONF_THRESHOLD_ZONE0 = 'threshold_zone0'
-CONF_THRESHOLD_ZONE1 = 'threshold_zone1'
+CONF_MAX_THRESHOLD_ZONE0 = 'max_threshold_zone0'
+CONF_MAX_THRESHOLD_ZONE1 = 'max_threshold_zone1'
+CONF_MIN_THRESHOLD_ZONE0 = 'min_threshold_zone0'
+CONF_MIN_THRESHOLD_ZONE1 = 'min_threshold_zone1'
 CONF_ROI_HEIGHT = 'roi_height' 
 CONF_ROI_WIDTH = 'roi_width'
 CONFIG_SCHEMA = sensor.sensor_schema().extend(
@@ -33,13 +35,25 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend(
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-        cv.Optional(CONF_THRESHOLD_ZONE0): sensor.sensor_schema(
+        cv.Optional(CONF_MAX_THRESHOLD_ZONE0): sensor.sensor_schema(
                 icon="mdi:map-marker-distance",
                 unit_of_measurement="mm",
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             ),
-        cv.Optional(CONF_THRESHOLD_ZONE1): sensor.sensor_schema(
+        cv.Optional(CONF_MAX_THRESHOLD_ZONE1): sensor.sensor_schema(
+                icon="mdi:map-marker-distance",
+                unit_of_measurement="mm",
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+        cv.Optional(CONF_MIN_THRESHOLD_ZONE0): sensor.sensor_schema(
+                icon="mdi:map-marker-distance",
+                unit_of_measurement="mm",
+                accuracy_decimals=0,
+                state_class=STATE_CLASS_MEASUREMENT,
+            ),
+        cv.Optional(CONF_MIN_THRESHOLD_ZONE1): sensor.sensor_schema(
                 icon="mdi:map-marker-distance",
                 unit_of_measurement="mm",
                 accuracy_decimals=0,
@@ -70,12 +84,18 @@ async def to_code(config):
     if CONF_PEOPLE_COUNTER in config:
         count = await sensor.new_sensor(config[CONF_PEOPLE_COUNTER])
         cg.add(var.set_people_counter_sensor(count))
-    if CONF_THRESHOLD_ZONE0 in config:
-        count = await sensor.new_sensor(config[CONF_THRESHOLD_ZONE0])
-        cg.add(var.set_threshold_zone0_sensor(count))
-    if CONF_THRESHOLD_ZONE1 in config:
-        count = await sensor.new_sensor(config[CONF_THRESHOLD_ZONE1])
-        cg.add(var.set_threshold_zone1_sensor(count))
+    if CONF_MAX_THRESHOLD_ZONE0 in config:
+        count = await sensor.new_sensor(config[CONF_MAX_THRESHOLD_ZONE0])
+        cg.add(var.set_max_threshold_zone0_sensor(count))
+    if CONF_MAX_THRESHOLD_ZONE1 in config:
+        count = await sensor.new_sensor(config[CONF_MAX_THRESHOLD_ZONE1])
+        cg.add(var.set_max_threshold_zone1_sensor(count))
+    if CONF_MIN_THRESHOLD_ZONE0 in config:
+        count = await sensor.new_sensor(config[CONF_MIN_THRESHOLD_ZONE0])
+        cg.add(var.set_min_threshold_zone0_sensor(count))
+    if CONF_MIN_THRESHOLD_ZONE1 in config:
+        count = await sensor.new_sensor(config[CONF_MIN_THRESHOLD_ZONE1])
+        cg.add(var.set_min_threshold_zone1_sensor(count))
     if CONF_ROI_HEIGHT in config:
         count = await sensor.new_sensor(config[CONF_ROI_HEIGHT])
         cg.add(var.set_roi_height_sensor(count))

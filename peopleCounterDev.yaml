@@ -69,7 +69,7 @@ roode:
   calibration: true
   roi_height: 16
   roi_width: 6
-  threshold_percentage: 80
+  max_threshold_percentage: 80
   roi_calibration: false
   invert_direction: true
   restore_values: true
@@ -94,10 +94,14 @@ sensor:
       name: $friendly_name distance
       filters:
         - delta: 10.0
-    threshold_zone0:
-      name: $friendly_name Zone 0
-    threshold_zone1:
-      name: $friendly_name Zone 1
+    max_threshold_zone0:
+      name: $friendly_name max zone 0
+    max_threshold_zone1:
+      name: $friendly_name max zone 1
+    min_threshold_zone0:
+      name: $friendly_name max zone 0
+    min_threshold_zone1:
+      name: $friendly_name max zone 1
     roi_height:
       name: $friendly_name ROI height
     roi_width:
@@ -110,7 +114,7 @@ sensor:
   - platform: uptime
     name: Uptime Sensor
     id: uptime_sensor
-    update_interval: 60
+    update_interval: 60s
     internal: true
     on_raw_value:
       then:
