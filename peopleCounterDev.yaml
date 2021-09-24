@@ -58,8 +58,6 @@ logger:
 #    number: D0
 #    inverted: True
 
-
-
 i2c:
   sda: 4
   scl: 5
@@ -67,7 +65,7 @@ i2c:
 roode:
   id: roode_platform
   address: 0x29
-  update_interval: 1s
+  update_interval: 10ms
   calibration: true
   roi_height: 16
   roi_width: 6
@@ -112,7 +110,7 @@ sensor:
   - platform: uptime
     name: Uptime Sensor
     id: uptime_sensor
-    update_interval: 120s
+    update_interval: 60
     internal: true
     on_raw_value:
       then:

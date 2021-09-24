@@ -5,10 +5,10 @@ substitutions:
 external_components:
   refresh: always
   source:
-      type: git
-      url: https://github.com/Lyr3x/Roode
-      ref: dev-1.3
-  
+    type: git
+    url: https://github.com/Lyr3x/Roode
+    ref: dev-1.3
+
 esphome:
   name: $devicename
   platform: ESP32
@@ -42,10 +42,10 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-        
+
 ota:
   password: !secret ota_password
-  
+
 web_server:
   port: 80
   auth:
@@ -63,7 +63,7 @@ i2c:
 roode:
   id: roode_platform
   address: 0x29
-  update_interval: 100ms
+  update_interval: 10ms
   calibration: true
   roi_height: 16
   roi_width: 6
@@ -108,7 +108,7 @@ sensor:
   - platform: uptime
     name: Uptime Sensor
     id: uptime_sensor
-    update_interval: 120s
+    update_interval: 60s
     internal: true
     on_raw_value:
       then:
