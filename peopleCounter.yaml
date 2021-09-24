@@ -97,9 +97,9 @@ sensor:
     max_threshold_zone1:
       name: $friendly_name max zone 1
     min_threshold_zone0:
-      name: $friendly_name max zone 0
+      name: $friendly_name min zone 0
     min_threshold_zone1:
-      name: $friendly_name max zone 1
+      name: $friendly_name min zone 1
     roi_height:
       name: $friendly_name ROI height
     roi_width:
