@@ -429,14 +429,15 @@ namespace esphome
             ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
             max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
             max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
+            delay(100);
             if (min_threshold_percentage_ != 0)
             {
                 DIST_THRESHOLD_MIN[0] = average_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
                 DIST_THRESHOLD_MIN[1] = average_zone_1 * min_threshold_percentage_ / 100;
                 ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_MIN[0]);
                 ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_MIN[1]);
-                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
-                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
+                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[0]);
+                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[1]);
             }
 
             roi_height_sensor->publish_state(roi_height_);
