@@ -67,7 +67,6 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
-      void set_update_interval(uint32_t update_interval) { this->update_interval_ = update_interval; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_threshold_zone0_sensor(sensor::Sensor *threshold_zone0_sensor_) { threshold_zone0_sensor = threshold_zone0_sensor_; }
@@ -112,7 +111,6 @@ namespace esphome
       bool invert_direction_{false};
       bool restore_values_{false};
       uint64_t threshold_percentage_{85};
-      uint64_t update_interval_{60000};
       float sum_zone_0 = 0;
       float sum_zone_1 = 0;
       int number_attempts = 20;
