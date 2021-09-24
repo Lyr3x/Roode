@@ -4,9 +4,10 @@ namespace esphome
 {
     namespace roode
     {
+        static const char *const TAG = "Roode";
         void Roode::dump_config()
         {
-            ESP_LOGCONFIG(TAG, "ROODE:");
+            ESP_LOGCONFIG(TAG, "dump config:");
             LOG_I2C_DEVICE(this);
 
             LOG_UPDATE_INTERVAL(this);

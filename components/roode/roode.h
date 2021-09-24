@@ -53,7 +53,6 @@ namespace esphome
     class Roode : public PollingComponent
     {
     public:
-      Roode() : PollingComponent(1000) {}
       void setup() override;
       void update() override;
       void loop() override;
