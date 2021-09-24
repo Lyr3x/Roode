@@ -67,10 +67,10 @@ namespace esphome
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
-      void set_max_threshold_zone0_sensor(sensor::Sensor *threshold_zone0_sensor_) { max_threshold_zone0_sensor = threshold_zone0_sensor_; }
-      void set_max_threshold_zone1_sensor(sensor::Sensor *threshold_zone1_sensor_) { max_threshold_zone1_sensor = threshold_zone1_sensor_; }
-      void set_min_threshold_zone0_sensor(sensor::Sensor *threshold_zone0_sensor_) { min_threshold_zone0_sensor = threshold_zone0_sensor_; }
-      void set_min_threshold_zone1_sensor(sensor::Sensor *threshold_zone1_sensor_) { min_threshold_zone1_sensor = threshold_zone1_sensor_; }
+      void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
+      void set_max_threshold_zone1_sensor(sensor::Sensor *max_threshold_zone1_sensor_) { max_threshold_zone1_sensor = max_threshold_zone1_sensor_; }
+      void set_min_threshold_zone0_sensor(sensor::Sensor *min_threshold_zone0_sensor_) { min_threshold_zone0_sensor = min_threshold_zone0_sensor_; }
+      void set_min_threshold_zone1_sensor(sensor::Sensor *min_threshold_zone1_sensor_) { min_threshold_zone1_sensor = min_threshold_zone1_sensor_; }
       void set_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { roi_height_sensor = roi_height_sensor_; }
       void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
@@ -84,7 +84,7 @@ namespace esphome
 
       uint16_t distance = 0;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
-      int DIST_THRESHOLD_MIN[2] = {0, 0}; // max treshold of the two zones
+      int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
       int roi_height_{16};                // height of the ROI
       uint64_t peopleCounter{0};
