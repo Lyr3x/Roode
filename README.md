@@ -4,6 +4,29 @@ People counter working with any smart home system which supports ESPHome and the
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
 
+## Wiring
+The sensors from Pololu, Adafruit and the GY-53 can also be connected to the 5v pin (VIN) as they have an voltage regulator
+
+### ESP32
+
+```
+                    ESP32   VL53L1X board
+-------------------------   -------------
+                      3V3 - VIN
+                      GND - GND
+     SDA (pin 42, GPIO21) - SDA
+     SCL (pin 39, GPIO22) - SCL
+```
+
+### ESP8266
+```
+                  ESP8266   VL53L1X board
+-------------------------   -------------
+                      3V3 - VIN
+                      GND - GND
+              D2 (GPIO 4) - SDA
+              D1 (GPIO 5) - SCL
+```
 ## Configuration
 
 Roode is provided as an external_component which means it is easy to setup in any ESPHome sensor configuration file.
