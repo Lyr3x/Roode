@@ -5,7 +5,12 @@ People counter working with any smart home system which supports ESPHome and the
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
 
 ## Wiring
-The sensors from Pololu, Adafruit and the GY-53 can also be connected to the 5v pin (VIN) as they have an voltage regulator
+The sensors from Pololu, Adafruit and the GY-53 can also be connected to the 5v pin (VIN) as they have an voltage regulator.
+
+If you use a GY-53 you need to connect GND the PS (Ps=0) pin. 
+
+Ps=1 (default): Serial port UART mode, Pin3 is TX, Pin4 is RX, TTL level, PWM output works.
+Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by himself. The module owns the MCU and does not operate the chip. The PWM output does not work.
 
 ### ESP32
 
