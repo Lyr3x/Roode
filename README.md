@@ -1,6 +1,6 @@
 # RooDe
 
-People counter working with any smart home system which supports ESPHome and therefore Home Assistamt. All necessary entities are created automatically.
+People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
 
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
@@ -9,8 +9,8 @@ People counter working with any smart home system which supports ESPHome and the
 ![Roode](Roode.png)
 
 ## Algorithm
-The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. ST implemented a nice and efficient way to track the path from one to the other direction. I migrated the algorigthm with some changes into the Roode project. 
-The concept of path tracking is the detecion of a human:
+The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. ST implemented a nice and efficient way to track the path from one to the other direction. I migrated the algorithm with some changes into the Roode project. 
+The concept of path tracking is the detection of a human:
 * In the first zone only
 * In both zones 
 * In the second zone only
@@ -89,7 +89,7 @@ Another crucial choice is the one corresponding to the threshold. Indeed a movem
 
 The SparkFun library also supports more formats for the threshold: for example one can set that a movement is detected whenever the distance is between two values. However, more information for the interested reader can be found on the corresponding page.
 
-With the updated code (however only for esp32 at the moment) the threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `threshold_percentage`
+With the updated code (however only for esp32 at the moment) the threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the threshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `threshold_percentage`
 
 The calibration of the threshold can also be triggered by a MQTT message. An example for doing so is in the file `integration_with_home_assistant.md`.
 
@@ -106,21 +106,21 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
 * Optional HC-SR501
 * Optional 128x32 OLED
 * Power Supply
-* Encolsure (see .stl files) - will be updated soon!
+* Enclosure (see .stl files) - will be updated soon!
 Pins:
 SDA_PIN D2 or 21 (ESP32)
 SCL_PIN D1 or 22 (ESP32)
 
 ## Configuration
 ### ESPHome
-Configue at least the secrets.yaml with your wifi SSID and password to connect. Check the peopleCounter.yaml to adapt the exposed sensors to your needs.
+Configure at least the secrets.yaml with your wifi SSID and password to connect. Check the peopleCounter.yaml to adapt the exposed sensors to your needs.
 
 ### Entry/Exit inverted:
 Set INVERT_DIRECTION to true or false to invert the direction.
 
 
 ## Configuration
-Be sure to configure your wifi credentials and adapt the global variables to set everyhting to your needs.
+Be sure to configure your wifi credentials and adapt the global variables to set everything to your needs.
 The most important config part is the calibration mode. You have two different calibration modes available:
 Calibration v1 calibrates the distance for one zone and calculates the standard deviation and uses that value for both zones. 
 Calibration v2 calibrates both zones individually (thanks to @andrea-fox). 
@@ -130,12 +130,12 @@ Calibration v2 calibrates both zones individually (thanks to @andrea-fox).
 #### Additions and Breaking Changes
 * ESPHome (thanks to @diplix)
 * Removes legacy support which includes
-   * Arduino plattform
-   * MySensors plattform
+   * Arduino platform
+   * MySensors platform
    * **Non** VL53L1X-Sensors
 * VL531L1X TOF Sensor with configurable ROI zones for one-sensor-solution
 * Counting people entering and leaving a room with path tracking for improved accuracy
-* Sensor threhsold calibration for each zone
+* Sensor threshold calibration for each zone
 * Receiving commands from the the controller e.g softreset
 * OLED support (coming in 1.1)
 * Sleep mode with Motion Sensor support (coming in 1.1)
@@ -148,7 +148,7 @@ Calibration v2 calibrates both zones individually (thanks to @andrea-fox).
 * Added OLED brightness config option
 * Updated to MySensors@2.3.1
 #### Bugfixes and other changes
-* measruing speed improvements 
+* Measuring speed improvements 
 * Fixed receiving and sending message issues
 * General bug fixes and improvements
 * Changed default PA_LEVEL to HIGH
@@ -168,5 +168,5 @@ Calibration v2 calibrates both zones individually (thanks to @andrea-fox).
 * changed IR-calibration hardcoded value to THRESHOLD_X 
 * CALIBRATION_VAL to 4000
 ### Changelog v.0.9.4-release
-* Added standard deviation threhsold calculation
+* Added standard deviation threshold calculation
 * Removed constant THRESHOLD_X
