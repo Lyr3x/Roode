@@ -1,0 +1,6 @@
+{
+	"recommendations": [
+		"esphome.esphome-vscode",
+        "ms-vscode.cpptools"
+	]
+}
