@@ -1,6 +1,6 @@
 # RooDe
 
-People counter working with any smart home system which supports ESPHome and therefore Home Assistamt. All necessary entities are created automatically.
+People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
 
@@ -149,6 +149,7 @@ The concept of path tracking is the detecion of a human:
 - In the second zone only
 - In no zone
 
+
 That way we can ensure the direction of movement.
 
 The sensor creates a 16x16 grid and the final distance is computed by taking the average of the distance of the values of the grid.
@@ -220,6 +221,7 @@ Another crucial choice is the one corresponding to the threshold. Indeed a movem
 
 The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `max_threshold_percentage` and `min_threshold_percentage`.
 
+
 If you install the sensor e.g 20cm over a door you dont want to count the door open and closing. In this case you should set the `min_threshold_percentage` to about `10`.
 
 Example:
@@ -245,7 +247,7 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
   Pins:
   SDA_PIN 4 or 21 (ESP32)
   SCL_PIN 5 or 22 (ESP32)
-
+  
 ## Configuration
 
 ### ESPHome
