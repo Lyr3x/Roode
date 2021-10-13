@@ -57,6 +57,7 @@ namespace esphome
       void dump_config() override;
 
       void set_calibration(bool val) { calibration_ = val; }
+      void set_roi_calibration(bool val) { roi_calibration_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
       void set_roi_height(int height) { roi_height_ = height; }

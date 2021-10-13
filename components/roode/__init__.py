@@ -30,6 +30,8 @@ SETTERS = {
     CONF_RESTORE_VALUES: 'set_restore_values',
     CONF_INVERT_DIRECTION: 'set_invert_direction', 
     CONF_ADVISED_SENSOR_ORIENTATION: 'set_advised_sensor_orientation', 
+    CONF_CALIBRATION: 'set_calibration', 
+    CONF_ROI_CALIBRATION: 'set_roi_calibration'
 }
 CONFIG_SCHEMA = (
     cv.Schema(
