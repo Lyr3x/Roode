@@ -228,7 +228,7 @@ namespace esphome
             delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
-            Roode::roi_height_ = ROI_size;
+            Roode::roi_height_ = ROI_size*2;
 
             delay(250);
 
