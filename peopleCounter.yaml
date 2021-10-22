@@ -60,7 +60,7 @@ i2c:
 
 roode:
   id: roode_platform
-  address: 0x29
+  i2c_address: 0x29
   update_interval: 10ms
   calibration: true
   roi_height: 16

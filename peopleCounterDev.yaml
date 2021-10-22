@@ -13,7 +13,6 @@ esp32:
   board: wemos_d1_mini32
   framework:
     type: arduino
-    platform_version: 3.2.0
     
 wifi:
   networks:
@@ -60,7 +59,7 @@ i2c:
 
 roode:
   id: roode_platform
-  address: 0x29
+  i2c_address: 0x29
   update_interval: 10ms
   calibration: true
   roi_height: 16

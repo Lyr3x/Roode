@@ -62,7 +62,7 @@ namespace esphome
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
       void set_roi_height(int height) { roi_height_ = height; }
       void set_roi_width(int width) { roi_width_ = width; }
-      void set_address(uint64_t address) { this->address_ = address; }
+      void set_i2c_address(uint8_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
@@ -77,8 +77,6 @@ namespace esphome
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
-      void set_i2c_address(uint8_t address);
-      void set_i2c_bus (i2c::I2CBus *bus);
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
@@ -111,7 +109,7 @@ namespace esphome
       bool calibration_{true};
       bool roi_calibration_{false};
       bool advised_sensor_orientation_{true};
-      uint64_t address_ = 0;
+      uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};

@@ -20,6 +20,10 @@ namespace esphome
             Wire.begin();
             Wire.setClock(400000);
             distanceSensor.setBus(&Wire);
+            if (distanceSensor.getAddress() != address_)
+            {
+                distanceSensor.setAddress(address_);
+            }
             if (Roode::invert_direction_ == true)
             {
                 LEFT = 1;
@@ -450,18 +454,6 @@ namespace esphome
 
             delay(2000);
         }
-
-        // The i2c cg needs to be removed and the adress needs to be passed as a config parameter
-        void Roode::set_i2c_bus(i2c::I2CBus *bus)
-        {
-        }
-
-        void Roode::set_i2c_address(uint8_t address)
-        {
-            if (distanceSensor.getAddress() != address)
-            {
-                distanceSensor.setAddress(address);
-            }
-        }
+        
     }
 }
