@@ -77,8 +77,8 @@ namespace esphome
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
-      void set_i2c_parent(i2c::I2CComponent *parent);
       void set_i2c_address(uint8_t address);
+      void set_i2c_bus (i2c::I2CBus *bus);
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();

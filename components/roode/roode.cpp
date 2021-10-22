@@ -450,16 +450,10 @@ namespace esphome
             delay(2000);
         }
 
-        class I2CComponentDummy : public i2c::I2CComponent
-        {
-        public:
-            TwoWire *get_wire() const { return this->wire_; }
-        };
-
         // sets
-        void Roode::set_i2c_parent(i2c::I2CComponent *parent)
+        void Roode::set_i2c_bus(i2c::I2CBus *bus)
         {
-            distanceSensor.setBus(static_cast<I2CComponentDummy *>(parent)->get_wire());
+            distanceSensor.setBus(&Wire);
         }
 
         void Roode::set_i2c_address(uint8_t address)
