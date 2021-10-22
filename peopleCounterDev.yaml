@@ -8,8 +8,6 @@ external_components:
 
 esphome:
   name: $devicename
-  libraries:
-    - pololu/VL53L1X@^1.3.0
     
 esp32:
   board: wemos_d1_mini32

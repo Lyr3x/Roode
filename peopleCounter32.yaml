@@ -13,8 +13,6 @@ esphome:
   name: $devicename
   platform: ESP32
   board: wemos_d1_mini32
-  libraries:
-    - pololu/VL53L1X@^1.3.0
 
 wifi:
   networks:

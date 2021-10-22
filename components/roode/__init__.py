@@ -56,6 +56,9 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await i2c.register_i2c_device(var, config)
+    cg.add_library("EEPROM", None)
+    cg.add_library("Wire", None)
+    cg.add_library("pololu", "1.3.0", "VL53L1X")
     for key, setter in SETTERS.items():
         if key in config:
             cg.add(getattr(var, setter)(config[key]))
