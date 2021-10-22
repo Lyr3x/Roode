@@ -19,6 +19,7 @@ namespace esphome
             EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
             Wire.setClock(400000);
+            distanceSensor.setBus(&Wire);
             if (Roode::invert_direction_ == true)
             {
                 LEFT = 1;
@@ -228,7 +229,7 @@ namespace esphome
             delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
-            Roode::roi_height_ = ROI_size*2;
+            Roode::roi_height_ = ROI_size * 2;
 
             delay(250);
 
@@ -453,7 +454,6 @@ namespace esphome
         // sets
         void Roode::set_i2c_bus(i2c::I2CBus *bus)
         {
-            distanceSensor.setBus(&Wire);
         }
 
         void Roode::set_i2c_address(uint8_t address)
