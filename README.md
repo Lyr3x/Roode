@@ -54,7 +54,7 @@ roode:
 
 ### Configuration variables
 
-- **address (Optional, integer)**: The I²C address of the sensor. Defaults to `0x29`.
+- **i2c_address (Optional, integer)**: The I²C address of the sensor. Defaults to `0x29`.
 - **update_interval (Optional, Time)**: The interval to check the sensor. Defaults to `100ms`.
 - **roi_height (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
 - **roi_width (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
