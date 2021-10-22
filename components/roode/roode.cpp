@@ -451,7 +451,7 @@ namespace esphome
             delay(2000);
         }
 
-        // sets
+        // The i2c cg needs to be removed and the adress needs to be passed as a config parameter
         void Roode::set_i2c_bus(i2c::I2CBus *bus)
         {
         }
