@@ -19,6 +19,11 @@ namespace esphome
             EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
             Wire.setClock(400000);
+            distanceSensor.setBus(&Wire);
+            if (distanceSensor.getAddress() != address_)
+            {
+                distanceSensor.setAddress(address_);
+            }
             if (Roode::invert_direction_ == true)
             {
                 LEFT = 1;
@@ -228,7 +233,7 @@ namespace esphome
             delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
-            Roode::roi_height_ = ROI_size*2;
+            Roode::roi_height_ = ROI_size * 2;
 
             delay(250);
 
@@ -449,25 +454,6 @@ namespace esphome
 
             delay(2000);
         }
-
-        class I2CComponentDummy : public i2c::I2CComponent
-        {
-        public:
-            TwoWire *get_wire() const { return this->wire_; }
-        };
-
-        // sets
-        void Roode::set_i2c_parent(i2c::I2CComponent *parent)
-        {
-            distanceSensor.setBus(static_cast<I2CComponentDummy *>(parent)->get_wire());
-        }
-
-        void Roode::set_i2c_address(uint8_t address)
-        {
-            if (distanceSensor.getAddress() != address)
-            {
-                distanceSensor.setAddress(address);
-            }
-        }
+        
     }
 }
