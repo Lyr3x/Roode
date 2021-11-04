@@ -230,10 +230,10 @@ Example:
 Mounting height:    2200mm
 Door height:        2000mm
 Person height:      1800mm
-max_threshold_percentage: 85% = 1760
+max_threshold_percentage: 80% = 1760
 min_threshold_percentage: 10% = 200
 
-All distances smaller then 200mm and greater then 17600mm will be ignored.
+All distances smaller then 200mm and greater then 1760mm will be ignored.
 ```
 
 ## Hardware
