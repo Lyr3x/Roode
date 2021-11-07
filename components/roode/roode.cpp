@@ -88,6 +88,7 @@ namespace esphome
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
             uint16_t MinDistance;
+            uint8_t i;
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
