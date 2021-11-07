@@ -201,10 +201,9 @@ namespace esphome
                                 sendCounter(peopleCounter);
                                 ESP_LOGD("Roode pathTracking", "Exit detected.");
                                 entry_exit_event_sensor->publish_state("Exit");
+                                DistancesTableSize[0] = 0;
+                                DistancesTableSize[1] = 0;
                             }
-
-                            right = 1;
-                            right = 0;
                         }
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
                         {
@@ -213,8 +212,14 @@ namespace esphome
                             sendCounter(peopleCounter);
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
                             entry_exit_event_sensor->publish_state("Entry");
-                            left = 1;
-                            left = 0;
+                            DistancesTableSize[0] = 0;
+                            DistancesTableSize[1] = 0;
+                        }
+                        else
+                        {
+                            // reset the table filling size also in case of unexpected path
+                            DistancesTableSize[0] = 0;
+                            DistancesTableSize[1] = 0;
                         }
                     }
 
