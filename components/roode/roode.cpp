@@ -76,8 +76,6 @@ namespace esphome
         }
 
         void Roode::getZoneDistance()
-        {
-            uint16_t DISTANCES_ARRAY_SIZE = 10;
             static int PathTrack[] = {0, 0, 0, 0};
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
             static int LeftPreviousStatus = NOBODY;
