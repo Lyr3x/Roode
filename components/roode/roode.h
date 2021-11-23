@@ -15,13 +15,11 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.3.2"
+#define VERSION "v1.3.3"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
-    // MQTT Commands
-    static int resetCounter = 0;
-    static int forceSetValue = -1;
+    static const uint16_t DISTANCES_ARRAY_SIZE = 10;
 
     /*
     ##### CALIBRATION ##### 
@@ -42,7 +40,7 @@ namespace esphome
 
     // parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
     static int time_budget_in_ms_short = 15;      // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_long = 33;       // Works up to 3.1m increase to 140ms for 4m
+    static int time_budget_in_ms_long = 33;       // Works up to 3.1m increase to minimum of 140ms for 4m
     static int time_budget_in_ms_max_range = 200; // Works up to 4m in the dark on a white chart
     static int delay_between_measurements_short = 25;
     static int delay_between_measurements_long = 50;

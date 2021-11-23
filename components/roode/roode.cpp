@@ -81,17 +81,42 @@ namespace esphome
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
             static int LeftPreviousStatus = NOBODY;
             static int RightPreviousStatus = NOBODY;
-
+            static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            static uint8_t DistancesTableSize[2] = {0, 0};
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-
+            uint16_t MinDistance;
+            uint8_t i;
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
             distanceSensor.stopContinuous();
 
-            if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
+            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
+            {
+                Distances[zone][DistancesTableSize[zone]] = distance;
+                DistancesTableSize[zone]++;
+            }
+            else
+            {
+                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+                    Distances[zone][i - 1] = Distances[zone][i];
+                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+            }
+
+            // pick up the min distance
+            MinDistance = Distances[zone][0];
+            if (DistancesTableSize[zone] >= 2)
+            {
+                for (i = 1; i < DistancesTableSize[zone]; i++)
+                {
+                    if (Distances[zone][i] < MinDistance)
+                        MinDistance = Distances[zone][i];
+                }
+            }
+
+            if (MinDistance < DIST_THRESHOLD_MAX[zone] && MinDistance > DIST_THRESHOLD_MIN[zone])
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
@@ -176,10 +201,9 @@ namespace esphome
                                 sendCounter(peopleCounter);
                                 ESP_LOGD("Roode pathTracking", "Exit detected.");
                                 entry_exit_event_sensor->publish_state("Exit");
+                                DistancesTableSize[0] = 0;
+                                DistancesTableSize[1] = 0;
                             }
-
-                            right = 1;
-                            right = 0;
                         }
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
                         {
@@ -188,8 +212,14 @@ namespace esphome
                             sendCounter(peopleCounter);
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
                             entry_exit_event_sensor->publish_state("Entry");
-                            left = 1;
-                            left = 0;
+                            DistancesTableSize[0] = 0;
+                            DistancesTableSize[1] = 0;
+                        }
+                        else
+                        {
+                            // reset the table filling size also in case of unexpected path
+                            DistancesTableSize[0] = 0;
+                            DistancesTableSize[1] = 0;
                         }
                     }
 
@@ -454,6 +484,6 @@ namespace esphome
 
             delay(2000);
         }
-        
+
     }
 }
