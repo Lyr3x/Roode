@@ -15,14 +15,14 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.3.3"
+#define VERSION "v1.3.4"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
     static const uint16_t DISTANCES_ARRAY_SIZE = 10;
 
     /*
-    ##### CALIBRATION ##### 
+    ##### CALIBRATION #####
     */
     static int center[2] = {0, 0}; /* center of the two zones */
     static int zone = 0;
@@ -31,7 +31,7 @@ namespace esphome
     Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
     33, 50, 100, 200, 500]. This function must be called after VL53L1X_SetDistanceMode.
     Note: 15 ms only works with Short distance mode. 100 ms is the default value.
-    The TB can be adjusted to improve the standard deviation (SD) of the measurement. 
+    The TB can be adjusted to improve the standard deviation (SD) of the measurement.
     Increasing the TB, decreases the SD but increases the power consumption.
     */
 
@@ -75,6 +75,7 @@ namespace esphome
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
+      void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
@@ -103,9 +104,11 @@ namespace esphome
       void roi_calibration(VL53L1X distanceSensor);
       void calibration(VL53L1X distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
+      void setSensorMode();
 
       bool calibration_{true};
       bool roi_calibration_{false};
+      int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};

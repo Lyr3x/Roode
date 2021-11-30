@@ -48,6 +48,7 @@ namespace esphome
             }
             else
             {
+                setSensorMode();
                 DIST_THRESHOLD_MAX[0] = 800;
                 DIST_THRESHOLD_MAX[1] = 800;
             }
@@ -354,6 +355,30 @@ namespace esphome
             average_zone_0 = sum_zone_0 / number_attempts;
             average_zone_1 = sum_zone_1 / number_attempts;
             EEPROM.write(13, ROI_size);
+        }
+        void Roode::setSensorMode()
+        {
+
+            switch (sensor_mode)
+            {
+            case 0: // short mode
+                time_budget_in_ms = time_budget_in_ms_short;
+                delay_between_measurements = delay_between_measurements_short;
+                distanceSensor.setDistanceMode(VL53L1X::Short);
+                break;
+            case 1: // long mode
+                time_budget_in_ms = time_budget_in_ms_long;
+                delay_between_measurements = delay_between_measurements_long;
+                distanceSensor.setDistanceMode(VL53L1X::Long);
+                break;
+            case 2: // max mode
+                time_budget_in_ms = time_budget_in_ms_max_range;
+                delay_between_measurements = delay_between_measurements_max;
+                distanceSensor.setDistanceMode(VL53L1X::Long);
+                break;
+            default:
+                break;
+            }
         }
         void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
         {

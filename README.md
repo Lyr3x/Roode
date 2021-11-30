@@ -5,9 +5,10 @@ People counter working with any smart home system which supports ESPHome and the
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
 
 ## Wiring
+
 The sensors from Pololu, Adafruit and the GY-53 can also be connected to the 5v pin (VIN) as they have an voltage regulator.
 
-If you use a GY-53 you need to connect GND the PS (Ps=0) pin. 
+If you use a GY-53 you need to connect GND the PS (Ps=0) pin.
 
 Ps=1 (default): Serial port UART mode, Pin3 is TX, Pin4 is RX, TTL level, PWM output works.
 Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by himself. The module owns the MCU and does not operate the chip. The PWM output does not work.
@@ -24,6 +25,7 @@ Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by 
 ```
 
 ### ESP8266
+
 ```
                   ESP8266   VL53L1X board
 -------------------------   -------------
@@ -32,6 +34,7 @@ Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by 
               D2 (GPIO 4) - SDA
               D1 (GPIO 5) - SCL
 ```
+
 ## Configuration
 
 Roode is provided as an external_component which means it is easy to setup in any ESPHome sensor configuration file.
@@ -65,6 +68,7 @@ roode:
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
 - **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Inverts the detection orientation of the sensor. Defaults to `true`.
+- **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
 
 ### Sensor
 
@@ -149,7 +153,6 @@ The concept of path tracking is the detecion of a human:
 - In the second zone only
 - In no zone
 
-
 That way we can ensure the direction of movement.
 
 The sensor creates a 16x16 grid and the final distance is computed by taking the average of the distance of the values of the grid.
@@ -221,7 +224,6 @@ Another crucial choice is the one corresponding to the threshold. Indeed a movem
 
 The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `max_threshold_percentage` and `min_threshold_percentage`.
 
-
 If you install the sensor e.g 20cm over a door you dont want to count the door open and closing. In this case you should set the `min_threshold_percentage` to about `10`.
 
 Example:
@@ -247,7 +249,7 @@ There will be a specific Hardware setup (recommended brands etc.) soon!
   Pins:
   SDA_PIN 4 or 21 (ESP32)
   SCL_PIN 5 or 22 (ESP32)
-  
+
 ## Configuration
 
 ### ESPHome
