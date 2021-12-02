@@ -19,61 +19,68 @@ CONF_MAX_THRESHOLD_ZONE0 = 'max_threshold_zone0'
 CONF_MAX_THRESHOLD_ZONE1 = 'max_threshold_zone1'
 CONF_MIN_THRESHOLD_ZONE0 = 'min_threshold_zone0'
 CONF_MIN_THRESHOLD_ZONE1 = 'min_threshold_zone1'
-CONF_ROI_HEIGHT = 'roi_height' 
+CONF_ROI_HEIGHT = 'roi_height'
 CONF_ROI_WIDTH = 'roi_width'
-CONFIG_SCHEMA = sensor.sensor_schema().extend(
-    {
-        cv.Optional(CONF_DISTANCE): sensor.sensor_schema(
-                icon=ICON_RULER,
-                unit_of_measurement=UNIT_EMPTY,
-                accuracy_decimals=2,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_PEOPLE_COUNTER): sensor.sensor_schema(
-                icon=ICON_COUNTER,
-                unit_of_measurement=UNIT_EMPTY,
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_MAX_THRESHOLD_ZONE0): sensor.sensor_schema(
-                icon="mdi:map-marker-distance",
-                unit_of_measurement="mm",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_MAX_THRESHOLD_ZONE1): sensor.sensor_schema(
-                icon="mdi:map-marker-distance",
-                unit_of_measurement="mm",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_MIN_THRESHOLD_ZONE0): sensor.sensor_schema(
-                icon="mdi:map-marker-distance",
-                unit_of_measurement="mm",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_MIN_THRESHOLD_ZONE1): sensor.sensor_schema(
-                icon="mdi:map-marker-distance",
-                unit_of_measurement="mm",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_ROI_HEIGHT): sensor.sensor_schema(
-                icon="mdi:table-row-height",
-                unit_of_measurement="px",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.Optional(CONF_ROI_WIDTH): sensor.sensor_schema(
-                icon="mdi:table-column-width",
-                unit_of_measurement="px",
-                accuracy_decimals=0,
-                state_class=STATE_CLASS_MEASUREMENT,
-            ),
-        cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
-    }
-)
+CONFIG_SCHEMA = sensor.sensor_schema().extend({
+    cv.Optional(CONF_DISTANCE):
+    sensor.sensor_schema(
+        icon=ICON_RULER,
+        unit_of_measurement=UNIT_EMPTY,
+        accuracy_decimals=2,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_PEOPLE_COUNTER):
+    sensor.sensor_schema(
+        icon=ICON_COUNTER,
+        unit_of_measurement=UNIT_EMPTY,
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_MAX_THRESHOLD_ZONE0):
+    sensor.sensor_schema(
+        icon="mdi:map-marker-distance",
+        unit_of_measurement="mm",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_MAX_THRESHOLD_ZONE1):
+    sensor.sensor_schema(
+        icon="mdi:map-marker-distance",
+        unit_of_measurement="mm",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_MIN_THRESHOLD_ZONE0):
+    sensor.sensor_schema(
+        icon="mdi:map-marker-distance",
+        unit_of_measurement="mm",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_MIN_THRESHOLD_ZONE1):
+    sensor.sensor_schema(
+        icon="mdi:map-marker-distance",
+        unit_of_measurement="mm",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_ROI_HEIGHT):
+    sensor.sensor_schema(
+        icon="mdi:table-row-height",
+        unit_of_measurement="px",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.Optional(CONF_ROI_WIDTH):
+    sensor.sensor_schema(
+        icon="mdi:table-column-width",
+        unit_of_measurement="px",
+        accuracy_decimals=0,
+        state_class=STATE_CLASS_MEASUREMENT,
+    ),
+    cv.GenerateID(CONF_ROODE_ID):
+    cv.use_id(Roode),
+})
 
 
 async def to_code(config):

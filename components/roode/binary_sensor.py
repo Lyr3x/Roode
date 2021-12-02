@@ -5,7 +5,6 @@ from esphome.const import (
     CONF_ID,
     CONF_DEVICE_CLASS,
     DEVICE_CLASS_OCCUPANCY,
-
 )
 from . import Roode, CONF_ROODE_ID
 
@@ -14,16 +13,16 @@ DEPENDENCIES = ["roode"]
 CONF_PRESENCE = 'presence_sensor'
 TYPES = [CONF_PRESENCE]
 
-CONFIG_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
-        cv.Optional(CONF_PRESENCE): binary_sensor.BINARY_SENSOR_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),
-            }
-        ),
-    }
-)
+CONFIG_SCHEMA = cv.Schema({
+    cv.GenerateID(CONF_ROODE_ID):
+    cv.use_id(Roode),
+    cv.Optional(CONF_PRESENCE):
+    binary_sensor.BINARY_SENSOR_SCHEMA.extend({
+        cv.GenerateID():
+        cv.declare_id(binary_sensor.BinarySensor),
+    }),
+})
+
 
 async def setup_conf(config, key, hub):
     if key in config:
