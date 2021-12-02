@@ -40,6 +40,16 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
+    - service: set_max_threshold
+      variables:
+        newThreshold: int
+      then:
+        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
+    - service: set_min_threshold
+      variables:
+        newThreshold: int
+      then:
+        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
