@@ -62,7 +62,7 @@ roode:
   i2c_address: 0x29
   update_interval: 10ms
   calibration:
-    max_threshold_percentage: 75
+    max_threshold_percentage: 85
     min_threshold_percentage: 5
     roi_calibration: true
   # manual:
