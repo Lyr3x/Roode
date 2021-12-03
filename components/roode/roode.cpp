@@ -379,6 +379,11 @@ namespace esphome
             default:
                 break;
             }
+            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            if (!status)
+            {
+                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+            }
         }
 
         void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
