@@ -26,6 +26,8 @@ CONF_RESTORE_VALUES = "restore_values"
 CONF_I2C_ADDRESS = "i2c_address"
 CONF_SENSOR_MODE = "sensor_mode"
 CONF_MANUAL = "manual"
+CONF_MANUAL_ACTIVE = "manual_active"
+CONF_CALIBRATION_ACTIVE = "calibration_active"
 TYPES = [
     CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS
@@ -41,8 +43,11 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,
-    cv.Exclusive(CONF_CALIBRATION, "mode", f"{CONF_MANUAL} or {CONF_CALIBRATION}"):
+    cv.Exclusive(
+        CONF_CALIBRATION, "mode", f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable"):
     cv.Schema({
+        cv.Optional(CONF_CALIBRATION_ACTIVE, default='true'):
+        cv.boolean,
         cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85):
         cv.int_range(min=50, max=100),
         cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0):
@@ -50,8 +55,11 @@ CONFIG_SCHEMA = (cv.Schema({
         cv.Optional(CONF_ROI_CALIBRATION, default='false'):
         cv.boolean,
     }),
-    cv.Exclusive(CONF_MANUAL, "mode", f"{CONF_MANUAL} or {CONF_CALIBRATION}"):
+    cv.Exclusive(
+        CONF_MANUAL, "mode", f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable"):
     cv.Schema({
+        cv.Optional(CONF_MANUAL_ACTIVE, default='true'):
+        cv.boolean,
         cv.Inclusive(
             CONF_SENSOR_MODE,
             "manual_mode",
@@ -97,6 +105,10 @@ def setup_manual_mode(config, hub):
 
 def setup_calibration_mode(config, hub):
     calibration = config[CONF_CALIBRATION]
+    if CONF_CALIBRATION_ACTIVE in calibration:
+        cg.add(
+            getattr(hub, f"set_{CONF_CALIBRATION_ACTIVE}")(
+                calibration[CONF_CALIBRATION_ACTIVE]))
     if CONF_MAX_THRESHOLD_PERCENTAGE in calibration:
         cg.add(
             getattr(hub, f"set_{CONF_MAX_THRESHOLD_PERCENTAGE}")(
@@ -109,6 +121,7 @@ def setup_calibration_mode(config, hub):
         cg.add(
             getattr(hub, f"set_{CONF_ROI_CALIBRATION}")(
                 calibration[CONF_ROI_CALIBRATION]))
+
 
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])

@@ -44,7 +44,6 @@ namespace esphome
     static int delay_between_measurements_short = 25;
     static int delay_between_measurements_long = 50;
     static int delay_between_measurements_max = 220;
-    
 
     class Roode : public PollingComponent
     {
@@ -54,7 +53,8 @@ namespace esphome
       void loop() override;
       void dump_config() override;
 
-      void set_calibration(bool val) { calibration_ = val; }
+      void set_calibration_active(bool val) { calibration_active_ = val; }
+      void set_manual_active(bool val) { manual_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
@@ -107,7 +107,8 @@ namespace esphome
       void setSensorMode(int sensor_mode);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
-      bool calibration_{false};
+      bool calibration_active_{false};
+      bool manual_active_{false};
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
