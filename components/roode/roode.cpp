@@ -365,16 +365,19 @@ namespace esphome
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = delay_between_measurements_short;
                 distanceSensor.setDistanceMode(VL53L1X::Short);
+                ESP_LOGI("Setup", "Short mode set");
                 break;
             case 1: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
+                ESP_LOGI("Setup", "Long mode set");
                 break;
             case 2: // max mode
                 time_budget_in_ms = time_budget_in_ms_max_range;
                 delay_between_measurements = delay_between_measurements_max;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
+                ESP_LOGI("Setup", "Max range mode set");
                 break;
             default:
                 break;
@@ -382,7 +385,7 @@ namespace esphome
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             if (!status)
             {
-                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE("Setup", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
         }
 
