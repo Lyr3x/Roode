@@ -19,11 +19,11 @@ People counter working with any smart home system which supports ESPHome and the
 
 ## Hardware Recommendation
 - ESP8266 or ESP32 
-  - **Wemos D1 Mini ESP32**
+  - **Wemos D1 Mini ESP32** <-- Recommended
   - Wemos D1 mini (ESP8266)
   - NodeMCU V2
 - 1x VL53L1X 
-  - **Pololu**
+  - **Pololu** <-- Recommended
   - GY-53 
   - Black PCB chinese sensor
 - 1A Power Supply **Do not use an USB port of your computer!**
