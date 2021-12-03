@@ -5,15 +5,16 @@ People counter working with any smart home system which supports ESPHome and the
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
 
-- Hardware Recommendation](#hardware-recommendation)
-  * [Wiring](#wiring)
-    + [ESP32](#esp32)
-    + [ESP8266](#esp8266)
-  * [Configuration](#configuration)
-    + [Configuration variables](#configuration-variables)
-    + [Sensor](#sensor)
-    + [Threshold distance](#threshold-distance)
-  * [Algorithm](#algorithm)
+- [Hardware Recommendation](#hardware-recommendation)
+- [Wiring](#wiring)
+  * [ESP32](#esp32)
+  * [ESP8266](#esp8266)
+- [Configuration](#configuration)
+  * [Configuration variables](#configuration-variables)
+  * [Sensor](#sensor)
+  * [Threshold distance](#threshold-distance)
+- [Algorithm](#algorithm)
+- [FAQ/Troubleshoot](#faq-troubleshoot)
   
 
 ## Hardware Recommendation
