@@ -104,7 +104,7 @@ namespace esphome
       void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
-      void setSensorMode();
+      void setSensorMode(int sensor_mode);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
       bool calibration_{true};
