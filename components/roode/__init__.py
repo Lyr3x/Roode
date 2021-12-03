@@ -24,19 +24,13 @@ CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
 CONF_RESTORE_VALUES = "restore_values"
 CONF_I2C_ADDRESS = "i2c_address"
 CONF_SENSOR_MODE = "sensor_mode"
-SETTERS = {
-    CONF_MAX_THRESHOLD_PERCENTAGE: "set_max_threshold_percentage",
-    CONF_MIN_THRESHOLD_PERCENTAGE: "set_min_threshold_percentage",
-    CONF_ROI_HEIGHT: 'set_roi_height',
-    CONF_ROI_WIDTH: 'set_roi_width',
-    CONF_RESTORE_VALUES: 'set_restore_values',
-    CONF_INVERT_DIRECTION: 'set_invert_direction',
-    CONF_ADVISED_SENSOR_ORIENTATION: 'set_advised_sensor_orientation',
-    CONF_CALIBRATION: 'set_calibration',
-    CONF_ROI_CALIBRATION: 'set_roi_calibration',
-    CONF_I2C_ADDRESS: "set_i2c_address",
-    CONF_SENSOR_MODE: "set_sensor_mode"
-}
+
+TYPES = [
+    CONF_MAX_THRESHOLD_PERCENTAGE, CONF_MIN_THRESHOLD_PERCENTAGE,
+    CONF_ROI_HEIGHT, CONF_ROI_WIDTH, CONF_RESTORE_VALUES,
+    CONF_INVERT_DIRECTION, CONF_ADVISED_SENSOR_ORIENTATION, CONF_CALIBRATION,
+    CONF_ROI_CALIBRATION, CONF_I2C_ADDRESS, CONF_SENSOR_MODE
+]
 CONFIG_SCHEMA = (cv.Schema({
     cv.GenerateID():
     cv.declare_id(Roode),
@@ -65,12 +59,16 @@ CONFIG_SCHEMA = (cv.Schema({
 }).extend(cv.polling_component_schema("100ms")))
 
 
+async def setup_conf(config, key, hub):
+    if key in config:
+        cg.add(getattr(hub, f"set_{key}")(config[key]))
+
+
 async def to_code(config):
-    var = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(var, config)
+    hub = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(hub, config)
     cg.add_library("EEPROM", None)
     cg.add_library("Wire", None)
     cg.add_library("pololu", "1.3.0", "VL53L1X")
-    for key, setter in SETTERS.items():
-        if key in config:
-            cg.add(getattr(var, setter)(config[key]))
+    for key in TYPES:
+        await setup_conf(config, key, hub)
