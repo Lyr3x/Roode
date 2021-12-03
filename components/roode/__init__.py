@@ -34,16 +34,34 @@ TYPES = [
 CONFIG_SCHEMA = (cv.Schema({
     cv.GenerateID():
     cv.declare_id(Roode),
-    cv.Optional(CONF_ROI_HEIGHT, default=16):
+    cv.Exclusive(
+        CONF_CALIBRATION,
+        "calibration",
+        f"{CONF_CALIBRATION} and {CONF_SENSOR_MODE} can't be used together",
+    ):
+    cv.boolean,
+    cv.Exclusive(
+        CONF_SENSOR_MODE,
+        "calibration",
+        f"{CONF_CALIBRATION} and {CONF_SENSOR_MODE} can't be used together",
+    ):
+    cv.int_range(min=-1, max=2),
+    cv.Inclusive(
+        CONF_ROI_HEIGHT,
+        "roi_size",
+        f"{CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must both be set",
+    ):
     cv.int_range(min=4, max=16),
-    cv.Optional(CONF_ROI_WIDTH, default=6):
+    cv.Inclusive(
+        CONF_ROI_WIDTH,
+        "roi_size",
+        f"{CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must both be set",
+    ):
     cv.int_range(min=4, max=16),
     cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85):
     cv.int_range(min=50, max=100),
     cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0):
     cv.int_range(min=0, max=100),
-    cv.Optional(CONF_CALIBRATION, default='true'):
-    cv.boolean,
     cv.Optional(CONF_ROI_CALIBRATION, default='false'):
     cv.boolean,
     cv.Optional(CONF_INVERT_DIRECTION, default='false'):
@@ -54,9 +72,31 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,
-    cv.Optional(CONF_SENSOR_MODE, default=-1):
-    cv.int_range(min=-1, max=2),
 }).extend(cv.polling_component_schema("100ms")))
+
+
+def validate_roode(config):
+    if CONF_CALIBRATION not in config and CONF_SENSOR_MODE not in config:
+        raise cv.Invalid(
+            f" {CONF_SENSOR_MODE} is a required property if '{CONF_CALIBRATION}:' isn't used"
+        )
+    if CONF_CALIBRATION not in config and CONF_ROI_CALIBRATION in config:
+        raise cv.Invalid(
+            f" {CONF_CALIBRATION} is a required property if '{CONF_ROI_CALIBRATION}:' isn't used"
+        )
+    if CONF_CALIBRATION not in config and CONF_MAX_THRESHOLD_PERCENTAGE in config:
+        raise cv.Invalid(
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}:' isn't used"
+        )
+    if CONF_CALIBRATION not in config and CONF_MIN_THRESHOLD_PERCENTAGE in config:
+        raise cv.Invalid(
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}:' isn't used"
+        )
+    if CONF_CALIBRATION not in config and CONF_SENSOR_MODE not in config:
+        raise cv.Invalid(
+            f" {CONF_SENSOR_MODE} is a required property if '{CONF_CALIBRATION}:' isn't used"
+        )
+    return config
 
 
 async def setup_conf(config, key, hub):
@@ -65,6 +105,7 @@ async def setup_conf(config, key, hub):
 
 
 async def to_code(config):
+    validate_roode(config)
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
     cg.add_library("EEPROM", None)
