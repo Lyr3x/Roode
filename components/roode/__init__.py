@@ -1,3 +1,4 @@
+from re import I
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
@@ -24,42 +25,16 @@ CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
 CONF_RESTORE_VALUES = "restore_values"
 CONF_I2C_ADDRESS = "i2c_address"
 CONF_SENSOR_MODE = "sensor_mode"
-
+CONF_MANUAL = "manual"
+CONF_MANUAL_ACTIVE = "manual_active"
+CONF_CALIBRATION_ACTIVE = "calibration_active"
 TYPES = [
-    CONF_MAX_THRESHOLD_PERCENTAGE, CONF_MIN_THRESHOLD_PERCENTAGE,
-    CONF_ROI_HEIGHT, CONF_ROI_WIDTH, CONF_RESTORE_VALUES,
-    CONF_INVERT_DIRECTION, CONF_ADVISED_SENSOR_ORIENTATION, CONF_CALIBRATION,
-    CONF_ROI_CALIBRATION, CONF_I2C_ADDRESS, CONF_SENSOR_MODE
+    CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
+    CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS
 ]
 CONFIG_SCHEMA = (cv.Schema({
     cv.GenerateID():
     cv.declare_id(Roode),
-    cv.Optional(CONF_CALIBRATION, default='true'):
-    cv.boolean,
-    cv.Inclusive(
-        CONF_SENSOR_MODE,
-        "manual_mode",
-        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
-    ):
-    cv.int_range(min=-1, max=2),
-    cv.Inclusive(
-        CONF_ROI_HEIGHT,
-        "manual_mode",
-        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
-    ):
-    cv.int_range(min=4, max=16),
-    cv.Inclusive(
-        CONF_ROI_WIDTH,
-        "manual_mode",
-        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
-    ):
-    cv.int_range(min=4, max=16),
-    cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85):
-    cv.int_range(min=50, max=100),
-    cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0):
-    cv.int_range(min=0, max=100),
-    cv.Optional(CONF_ROI_CALIBRATION, default='false'):
-    cv.boolean,
     cv.Optional(CONF_INVERT_DIRECTION, default='false'):
     cv.boolean,
     cv.Optional(CONF_RESTORE_VALUES, default='false'):
@@ -68,49 +43,87 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,
+    cv.Exclusive(
+        CONF_CALIBRATION, "mode", f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable"):
+    cv.Schema({
+        cv.Optional(CONF_CALIBRATION_ACTIVE, default='true'):
+        cv.boolean,
+        cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85):
+        cv.int_range(min=50, max=100),
+        cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0):
+        cv.int_range(min=0, max=100),
+        cv.Optional(CONF_ROI_CALIBRATION, default='false'):
+        cv.boolean,
+    }),
+    cv.Exclusive(
+        CONF_MANUAL, "mode", f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable"):
+    cv.Schema({
+        cv.Optional(CONF_MANUAL_ACTIVE, default='true'):
+        cv.boolean,
+        cv.Inclusive(
+            CONF_SENSOR_MODE,
+            "manual_mode",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+        ):
+        cv.int_range(min=-1, max=2),
+        cv.Inclusive(
+            CONF_ROI_HEIGHT,
+            "manual_mode",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+        ):
+        cv.int_range(min=4, max=16),
+        cv.Inclusive(
+            CONF_ROI_WIDTH,
+            "manual_mode",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+        ):
+        cv.int_range(min=4, max=16),
+    }),
 }).extend(cv.polling_component_schema("100ms")))
 
 
-def validate_roode(config):
-    if CONF_CALIBRATION not in config and CONF_SENSOR_MODE not in config:
-        raise cv.Invalid(
-            f" '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'are required if '{CONF_CALIBRATION}:' isn't used"
-        )
-    if CONF_CALIBRATION not in config and CONF_ROI_CALIBRATION in config:
-        raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_ROI_CALIBRATION}' is used"
-        )
-    if CONF_CALIBRATION not in config or config[
-            CONF_CALIBRATION] == False and CONF_MAX_THRESHOLD_PERCENTAGE in config:
-        raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}' is configured"
-        )
-    if CONF_CALIBRATION not in config or config[
-            CONF_CALIBRATION] == False and CONF_MIN_THRESHOLD_PERCENTAGE in config:
-        raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}' is configured"
-        )
-    if config[CONF_CALIBRATION] == False and (CONF_ROI_HEIGHT not in config
-                                              or CONF_ROI_WIDTH not in config):
-        raise cv.Invalid(
-            f" If {CONF_CALIBRATION} is set to false you need to specify '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'"
-        )
-    if config[CONF_CALIBRATION] == True and (CONF_ROI_HEIGHT in config
-                                             or CONF_ROI_WIDTH in config
-                                             or CONF_SENSOR_MODE in config):
-        raise cv.Invalid(
-            f" If {CONF_CALIBRATION} is set to true you cant specify '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'"
-        )
-    return config
-
-
 async def setup_conf(config, key, hub):
+
     if key in config:
         cg.add(getattr(hub, f"set_{key}")(config[key]))
+    if CONF_MANUAL in config:
+        setup_manual_mode(config, hub)
+    if CONF_CALIBRATION in config:
+        setup_calibration_mode(config, hub)
+
+
+def setup_manual_mode(config, hub):
+    manual = config[CONF_MANUAL]
+    if CONF_SENSOR_MODE in manual:
+        cg.add(
+            getattr(hub, f"set_{CONF_SENSOR_MODE}")(manual[CONF_SENSOR_MODE]))
+    if CONF_ROI_HEIGHT in manual:
+        cg.add(getattr(hub, f"set_{CONF_ROI_HEIGHT}")(manual[CONF_ROI_HEIGHT]))
+    if CONF_ROI_WIDTH in manual:
+        cg.add(getattr(hub, f"set_{CONF_ROI_WIDTH}")(manual[CONF_ROI_WIDTH]))
+
+
+def setup_calibration_mode(config, hub):
+    calibration = config[CONF_CALIBRATION]
+    if CONF_CALIBRATION_ACTIVE in calibration:
+        cg.add(
+            getattr(hub, f"set_{CONF_CALIBRATION_ACTIVE}")(
+                calibration[CONF_CALIBRATION_ACTIVE]))
+    if CONF_MAX_THRESHOLD_PERCENTAGE in calibration:
+        cg.add(
+            getattr(hub, f"set_{CONF_MAX_THRESHOLD_PERCENTAGE}")(
+                calibration[CONF_MAX_THRESHOLD_PERCENTAGE]))
+    if CONF_MIN_THRESHOLD_PERCENTAGE in calibration:
+        cg.add(
+            getattr(hub, f"set_{CONF_MIN_THRESHOLD_PERCENTAGE}")(
+                calibration[CONF_MIN_THRESHOLD_PERCENTAGE]))
+    if CONF_ROI_CALIBRATION in calibration:
+        cg.add(
+            getattr(hub, f"set_{CONF_ROI_CALIBRATION}")(
+                calibration[CONF_ROI_CALIBRATION]))
 
 
 async def to_code(config):
-    validate_roode(config)
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
     cg.add_library("EEPROM", None)

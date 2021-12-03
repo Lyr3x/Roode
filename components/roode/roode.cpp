@@ -42,7 +42,7 @@ namespace esphome
                 while (1)
                     ;
             }
-            if (calibration_)
+            if (calibration_active_)
             {
                 calibration(distanceSensor);
                 if (sensor_mode != -1)
@@ -50,7 +50,7 @@ namespace esphome
                     setSensorMode(sensor_mode);
                 }
             }
-            else
+            if (manual_active_)
             {
                 center[0] = 167;
                 center[1] = 231;
