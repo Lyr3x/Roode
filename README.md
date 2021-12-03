@@ -1,4 +1,3 @@
-
 # RooDe
 
 People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
@@ -7,24 +6,24 @@ People counter working with any smart home system which supports ESPHome and the
 
 - [Hardware Recommendation](#hardware-recommendation)
 - [Wiring](#wiring)
-  * [ESP32](#esp32)
-  * [ESP8266](#esp8266)
+  - [ESP32](#esp32)
+  - [ESP8266](#esp8266)
 - [Configuration](#configuration)
-  * [Configuration variables](#configuration-variables)
-  * [Sensor](#sensor)
-  * [Threshold distance](#threshold-distance)
+  - [Configuration variables](#configuration-variables)
+  - [Sensor](#sensor)
+  - [Threshold distance](#threshold-distance)
 - [Algorithm](#algorithm)
 - [FAQ/Troubleshoot](#faqtroubleshoot)
-  
 
 ## Hardware Recommendation
-- ESP8266 or ESP32 
+
+- ESP8266 or ESP32
   - **Wemos D1 Mini ESP32** <-- Recommended
   - Wemos D1 mini (ESP8266)
   - NodeMCU V2
-- 1x VL53L1X 
+- 1x VL53L1X
   - **Pololu** <-- Recommended
-  - GY-53 
+  - GY-53
   - Black PCB chinese sensor
 - 1A Power Supply **Do not use an USB port of your computer!**
 - Encolsure (see .stl files) - will be updated soon!
@@ -72,32 +71,36 @@ Example configuration
 ```
 roode:
   id: roode_platform
-  address: 0x29
-  update_interval: 100ms
-  calibration: true
-  roi_height: 16
-  roi_width: 6
-  threshold_percentage: 80
-  roi_calibration: false
+  i2c_address: 0x29
+  update_interval: 10ms
+  calibration:
+    max_threshold_percentage: 85
+    min_threshold_percentage: 5
+    roi_calibration: true
+  # manual:
+  #   sensor_mode: 2
+  #   roi_height: 16
+  #   roi_width: 6
   invert_direction: true
-  restore_values: true
+  restore_values: false
 ```
 
 ### Configuration variables
 
 - **i2c_address (Optional, integer)**: The I²C address of the sensor. Defaults to `0x29`.
 - **update_interval (Optional, Time)**: The interval to check the sensor. Defaults to `100ms`.
-- **roi_height (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
-- **roi_width (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
-- **max_threshold_percentage (Optional, int)**: The maxium threshold in % which needs to be reached to detect a person. Min: `50` Max: `100`. Defaults to `85`.
-- **min_threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `0` Max: `100`. Defaults to `0`.
-- **calibration (Optional, bool)**: Enables automatic zone calibration (experimental). Defaults to `true`.
-- **roi_calibration (Optional, bool)**: Enables automatic ROI calibration (experimental). Defaults to `false`.
+- **calibration (Optional, exclusive-mode)**: Enables automatic zone calibration:
+  - **max_threshold_percentage (Optional, int)**: The maxium threshold in % which needs to be reached to detect a person. Min: `50` Max: `100`. Defaults to `85`.
+  - **min_threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `0` Max: `100`. Defaults to `0`.
+  - **roi_calibration (Optional, bool)**: Enables automatic ROI calibration (experimental). Defaults to `false`.
+- **manual (Optional, exclusiv-modee)**: Enables manual sensor setup:
+  - **roi_height (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
+  - **roi_width (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
+  - **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.
+    - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
 - **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Inverts the detection orientation of the sensor. Defaults to `true`.
-- **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.
-  - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
 
 ### Sensor
 
@@ -272,6 +275,7 @@ lower right.
 **Question:** Why is the Sensor not measuring the correct distances?
 
 **Answer:** This can happen in various scenarios. I try to list causes sorted by likelyhood
+
 1. You did not remove the protection film (most times its yellow)
 2. You did not connect the Sensor properly
 3. Light interference (You will see a lot of noise)
