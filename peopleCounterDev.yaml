@@ -51,7 +51,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: INFO
+  level: DEBUG
 
 i2c:
   sda: 21

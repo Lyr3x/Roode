@@ -44,6 +44,7 @@ namespace esphome
     static int delay_between_measurements_short = 25;
     static int delay_between_measurements_long = 50;
     static int delay_between_measurements_max = 220;
+    
 
     class Roode : public PollingComponent
     {
@@ -100,11 +101,12 @@ namespace esphome
       text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
       text_sensor::TextSensor *entry_exit_event_sensor = new text_sensor::TextSensor();
 
-      void roi_calibration(VL53L1X distanceSensor);
+      void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
       void setSensorMode();
-
+      int getOptimizedValues(int *values, int sum, int size);
+      int getSum(int *values, int size);
       bool calibration_{true};
       bool roi_calibration_{false};
       int sensor_mode{-1};
@@ -114,17 +116,15 @@ namespace esphome
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};
       uint64_t min_threshold_percentage_{0};
-      float sum_zone_0 = 0;
-      float sum_zone_1 = 0;
       int number_attempts = 20;
-      float average_zone_0 = 0;
-      float average_zone_1 = 0;
       int left = 0, right = 0, oldcnt;
       boolean lastTrippedState = 0;
       double people, distance_avg;
       int short_distance_threshold = 1300;
       int long_distance_threshold = 3100;
       bool status = false;
+      int optimized_zone_0;
+      int optimized_zone_1;
     };
 
   } // namespace roode

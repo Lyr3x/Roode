@@ -257,10 +257,10 @@ namespace esphome
         {
             calibration(distanceSensor);
         }
-        void Roode::roi_calibration(VL53L1X distanceSensor)
+        void Roode::roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1)
         {
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
-            int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(average_zone_0, average_zone_1) / 1000)));
+            int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
             delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
@@ -325,8 +325,8 @@ namespace esphome
             delay(2000);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
-            sum_zone_0 = 0;
-            sum_zone_1 = 0;
+            int values_zone_0[number_attempts] = {};
+            int values_zone_1[number_attempts] = {};
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
@@ -336,7 +336,7 @@ namespace esphome
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
                 distanceSensor.stopContinuous();
-                sum_zone_0 = sum_zone_0 + distance;
+                values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
 
@@ -347,13 +347,13 @@ namespace esphome
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
                 distanceSensor.stopContinuous();
-                sum_zone_1 = sum_zone_1 + distance;
+                values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
                 yield();
             }
-            average_zone_0 = sum_zone_0 / number_attempts;
-            average_zone_1 = sum_zone_1 / number_attempts;
+            optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
+            optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
             EEPROM.write(13, ROI_size);
         }
         void Roode::setSensorMode()
@@ -380,6 +380,7 @@ namespace esphome
                 break;
             }
         }
+
         void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
         {
             if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
@@ -411,12 +412,35 @@ namespace esphome
                 ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
         }
+        int Roode::getSum(int *array, int size)
+        {
+            int sum = 0;
+            for (int i = 0; i < size; i++)
+            {
+                sum = sum + array[i];
+            }
+            return sum;
+        }
+        int Roode::getOptimizedValues(int *values, int sum, int size)
+        {
+            int sum_squared = 0;
+            int variance = 0;
+            int sd = 0;
+            int avg = sum / size;
+
+            for (int i = 0; i < size; i++)
+            {
+                sum_squared = sum_squared + (values[i] * values[i]);
+            }
+            variance = sum_squared / size - (avg * avg);
+            sd = sqrt(variance);
+            ESP_LOGD("Calibration", "Zone AVG: %d", avg);
+            ESP_LOGD("Calibration", "Zone 0 SD: %d", sd);
+            return avg - sd;
+        }
+
         void Roode::calibration(VL53L1X distanceSensor)
         {
-            sum_zone_0 = 0;
-            sum_zone_1 = 0;
-            average_zone_0 = 0;
-            average_zone_1 = 0;
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_max_range;
             delay_between_measurements = delay_between_measurements_max;
@@ -446,9 +470,11 @@ namespace esphome
 
             zone = 0;
 
+            int values_zone_0[number_attempts] = {};
+            int values_zone_1[number_attempts] = {};
             for (int i = 0; i < number_attempts; i++)
             {
-                // increase sum of values in Zone 1
+                // increase sum of values in Zone 0
 
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
@@ -456,35 +482,37 @@ namespace esphome
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
                 distanceSensor.stopContinuous();
-                sum_zone_0 = sum_zone_0 + distance;
+                values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
 
-                // increase sum of values in Zone 2
+                // increase sum of values in Zone 1
                 distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
                 distanceSensor.startContinuous(delay_between_measurements);
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
                 distanceSensor.stopContinuous();
-                sum_zone_1 = sum_zone_1 + distance;
+                values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
                 yield();
             }
-            // after we have computed the sum for each zone, we can compute the average distance of each zone
-            average_zone_0 = sum_zone_0 / number_attempts;
-            average_zone_1 = sum_zone_1 / number_attempts;
 
-            setCorrectDistanceSettings(average_zone_0, average_zone_1);
+            // after we have computed the sum for each zone, we can compute the average distance of each zone
+
+            optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
+            optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
+
+            setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
 
             if (roi_calibration_)
             {
-                roi_calibration(distanceSensor);
+                roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
             }
 
-            DIST_THRESHOLD_MAX[0] = average_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-            DIST_THRESHOLD_MAX[1] = average_zone_1 * max_threshold_percentage_ / 100;
+            DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+            DIST_THRESHOLD_MAX[1] = optimized_zone_1 * max_threshold_percentage_ / 100;
             ESP_LOGI("Roode", "Max threshold zone0: %dmm", DIST_THRESHOLD_MAX[0]);
             ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
             max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
@@ -492,8 +520,8 @@ namespace esphome
             delay(100);
             if (min_threshold_percentage_ != 0)
             {
-                DIST_THRESHOLD_MIN[0] = average_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-                DIST_THRESHOLD_MIN[1] = average_zone_1 * min_threshold_percentage_ / 100;
+                DIST_THRESHOLD_MIN[0] = optimized_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+                DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_MIN[0]);
                 ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_MIN[1]);
                 min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[0]);
