@@ -45,10 +45,17 @@ namespace esphome
             if (calibration_)
             {
                 calibration(distanceSensor);
+                if (sensor_mode != -1)
+                {
+                    setSensorMode(sensor_mode);
+                }
             }
             else
             {
-                setSensorMode();
+                center[0] = 167;
+                center[1] = 231;
+                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+                setSensorMode(sensor_mode);
                 DIST_THRESHOLD_MAX[0] = 800;
                 DIST_THRESHOLD_MAX[1] = 800;
             }
@@ -356,28 +363,27 @@ namespace esphome
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
             EEPROM.write(13, ROI_size);
         }
-        void Roode::setSensorMode()
+        void Roode::setSensorMode(int sensor_mode)
         {
-
             switch (sensor_mode)
             {
             case 0: // short mode
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = delay_between_measurements_short;
                 distanceSensor.setDistanceMode(VL53L1X::Short);
-                ESP_LOGI("Setup", "Short mode set");
+                ESP_LOGI("Setup", "Manually set short mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 1: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
-                ESP_LOGI("Setup", "Long mode set");
+                ESP_LOGI("Setup", "Manually set long mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 2: // max mode
                 time_budget_in_ms = time_budget_in_ms_max_range;
                 delay_between_measurements = delay_between_measurements_max;
                 distanceSensor.setDistanceMode(VL53L1X::Long);
-                ESP_LOGI("Setup", "Max range mode set");
+                ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             default:
                 break;
