@@ -107,7 +107,7 @@ namespace esphome
       void setSensorMode(int sensor_mode);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
-      bool calibration_{true};
+      bool calibration_{false};
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
