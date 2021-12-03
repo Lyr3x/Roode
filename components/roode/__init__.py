@@ -92,10 +92,16 @@ def validate_roode(config):
         raise cv.Invalid(
             f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}:' is configured"
         )
-    if config[
-            CONF_CALIBRATION] == False and CONF_ROI_HEIGHT not in config or CONF_ROI_WIDTH not in config:
+    if config[CONF_CALIBRATION] == False and (CONF_ROI_HEIGHT not in config
+                                              or CONF_ROI_WIDTH not in config):
         raise cv.Invalid(
             f" If {CONF_CALIBRATION} is set to false you need to specify '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'"
+        )
+    if config[CONF_CALIBRATION] == True and (CONF_ROI_HEIGHT in config
+                                             or CONF_ROI_WIDTH in config
+                                             or CONF_SENSOR_MODE in config):
+        raise cv.Invalid(
+            f" If {CONF_CALIBRATION} is set to true you cant specify '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'"
         )
     return config
 
