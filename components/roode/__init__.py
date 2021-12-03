@@ -34,28 +34,24 @@ TYPES = [
 CONFIG_SCHEMA = (cv.Schema({
     cv.GenerateID():
     cv.declare_id(Roode),
-    cv.Exclusive(
-        CONF_CALIBRATION,
-        "calibration",
-        f"{CONF_CALIBRATION} and {CONF_SENSOR_MODE} can't be used together",
-    ):
+    cv.Optional(CONF_CALIBRATION, default='true'):
     cv.boolean,
-    cv.Exclusive(
+    cv.Inclusive(
         CONF_SENSOR_MODE,
-        "calibration",
-        f"{CONF_CALIBRATION} and {CONF_SENSOR_MODE} can't be used together",
+        "manual_mode",
+        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
     ):
     cv.int_range(min=-1, max=2),
     cv.Inclusive(
         CONF_ROI_HEIGHT,
-        "roi_size",
-        f"{CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must both be set",
+        "manual_mode",
+        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
     ):
     cv.int_range(min=4, max=16),
     cv.Inclusive(
         CONF_ROI_WIDTH,
-        "roi_size",
-        f"{CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must both be set",
+        "manual_mode",
+        f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
     ):
     cv.int_range(min=4, max=16),
     cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85):
@@ -84,13 +80,15 @@ def validate_roode(config):
         raise cv.Invalid(
             f" {CONF_CALIBRATION} is a required property if '{CONF_ROI_CALIBRATION}' is used"
         )
-    if CONF_CALIBRATION not in config and CONF_MAX_THRESHOLD_PERCENTAGE in config:
+    if CONF_CALIBRATION not in config or config[
+            CONF_CALIBRATION] == False and CONF_MAX_THRESHOLD_PERCENTAGE in config:
         raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}:' is configured"
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}' is configured"
         )
-    if CONF_CALIBRATION not in config and CONF_MIN_THRESHOLD_PERCENTAGE in config:
+    if CONF_CALIBRATION not in config or config[
+            CONF_CALIBRATION] == False and CONF_MIN_THRESHOLD_PERCENTAGE in config:
         raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}:' is configured"
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}' is configured"
         )
     if config[CONF_CALIBRATION] == False and (CONF_ROI_HEIGHT not in config
                                               or CONF_ROI_WIDTH not in config):
