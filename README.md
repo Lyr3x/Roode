@@ -96,7 +96,8 @@ roode:
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
 - **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Inverts the detection orientation of the sensor. Defaults to `true`.
-- **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
+- **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.
+  - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
 
 ### Sensor
 
