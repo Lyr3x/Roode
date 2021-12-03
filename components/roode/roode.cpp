@@ -332,8 +332,8 @@ namespace esphome
             delay(2000);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
-            int values_zone_0[number_attempts] = {0};
-            int values_zone_1[number_attempts] = {0};
+            int *values_zone_0 = new int[number_attempts];
+            int *values_zone_1 = new int[number_attempts];
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
@@ -484,8 +484,8 @@ namespace esphome
 
             zone = 0;
 
-            int values_zone_0[number_attempts] = {0};
-            int values_zone_1[number_attempts] = {0};
+            int *values_zone_0 = new int[number_attempts];
+            int *values_zone_1 = new int[number_attempts];
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
