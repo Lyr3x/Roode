@@ -73,6 +73,7 @@ CONFIG_SCHEMA = (cv.Schema({
     }),
 }).extend(cv.polling_component_schema("100ms")))
 
+
 async def setup_conf(config, key, hub):
 
     if key in config:
@@ -81,6 +82,7 @@ async def setup_conf(config, key, hub):
         setup_manual_mode(config, hub)
     if CONF_CALIBRATION in config:
         setup_calibration_mode(config, hub)
+
 
 def setup_manual_mode(config, hub):
     manual = config[CONF_MANUAL]
@@ -108,7 +110,6 @@ def setup_calibration_mode(config, hub):
             getattr(hub, f"set_{CONF_ROI_CALIBRATION}")(
                 calibration[CONF_ROI_CALIBRATION]))
 
-
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
@@ -117,4 +118,3 @@ async def to_code(config):
     cg.add_library("pololu", "1.3.0", "VL53L1X")
     for key in TYPES:
         await setup_conf(config, key, hub)
-    validate_roode(config)

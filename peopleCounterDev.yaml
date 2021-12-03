@@ -65,10 +65,10 @@ roode:
     max_threshold_percentage: 75
     min_threshold_percentage: 5
     roi_calibration: true
-  manual:
-    sensor_mode: 2
-    roi_height: 16
-    roi_width: 6
+  # manual:
+  #   sensor_mode: 2
+  #   roi_height: 16
+  #   roi_width: 6
   invert_direction: true
   restore_values: false
 
