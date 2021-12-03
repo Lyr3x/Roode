@@ -78,23 +78,24 @@ CONFIG_SCHEMA = (cv.Schema({
 def validate_roode(config):
     if CONF_CALIBRATION not in config and CONF_SENSOR_MODE not in config:
         raise cv.Invalid(
-            f" {CONF_SENSOR_MODE} is a required property if '{CONF_CALIBRATION}:' isn't used"
+            f" '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'are required if '{CONF_CALIBRATION}:' isn't used"
         )
     if CONF_CALIBRATION not in config and CONF_ROI_CALIBRATION in config:
         raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_ROI_CALIBRATION}:' isn't used"
+            f" {CONF_CALIBRATION} is a required property if '{CONF_ROI_CALIBRATION}' is used"
         )
     if CONF_CALIBRATION not in config and CONF_MAX_THRESHOLD_PERCENTAGE in config:
         raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}:' isn't used"
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MAX_THRESHOLD_PERCENTAGE}:' is configured"
         )
     if CONF_CALIBRATION not in config and CONF_MIN_THRESHOLD_PERCENTAGE in config:
         raise cv.Invalid(
-            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}:' isn't used"
+            f" {CONF_CALIBRATION} is a required property if '{CONF_MIN_THRESHOLD_PERCENTAGE}:' is configured"
         )
-    if CONF_CALIBRATION not in config and CONF_SENSOR_MODE not in config:
+    if config[
+            CONF_CALIBRATION] == False and CONF_ROI_HEIGHT not in config or CONF_ROI_WIDTH not in config:
         raise cv.Invalid(
-            f" {CONF_SENSOR_MODE} is a required property if '{CONF_CALIBRATION}:' isn't used"
+            f" If {CONF_CALIBRATION} is set to false you need to specify '{CONF_ROI_HEIGHT}', '{CONF_ROI_WIDTH}' and '{CONF_SENSOR_MODE}'"
         )
     return config
 
