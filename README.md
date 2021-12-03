@@ -1,8 +1,35 @@
+
 # RooDe
 
 People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
+
+- Hardware Recommendation](#hardware-recommendation)
+  * [Wiring](#wiring)
+    + [ESP32](#esp32)
+    + [ESP8266](#esp8266)
+  * [Configuration](#configuration)
+    + [Configuration variables](#configuration-variables)
+    + [Sensor](#sensor)
+    + [Threshold distance](#threshold-distance)
+  * [Algorithm](#algorithm)
+  
+
+## Hardware Recommendation
+- ESP8266 or ESP32 
+  - **Wemos D1 Mini ESP32**
+  - Wemos D1 mini (ESP8266)
+  - NodeMCU V2
+- 1x VL53L1X 
+  - **Pololu**
+  - GY-53 
+  - Black PCB chinese sensor
+- 1A Power Supply **Do not use an USB port of your computer!**
+- Encolsure (see .stl files) - will be updated soon!
+  Pins:
+  SDA_PIN 4 (ESP8266) or 21 (ESP32)
+  SCL_PIN 5 (ESP8266) or 22 (ESP32)
 
 ## Wiring
 
@@ -143,6 +170,26 @@ text_sensor:
     icon: mdi:clock-start
 ```
 
+### Threshold distance
+
+Another crucial choice is the one corresponding to the threshold. Indeed a movement is detected whenever the distance read by the sensor is below this value. The code contains a vector as threshold, as one (as myself) might need a different threshold for each zone.
+
+The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `max_threshold_percentage` and `min_threshold_percentage`.
+
+If you install the sensor e.g 20cm over a door you dont want to count the door open and closing. In this case you should set the `min_threshold_percentage` to about `10`.
+
+Example:
+
+```
+Mounting height:    2200mm
+Door height:        2000mm
+Person height:      1800mm
+max_threshold_percentage: 80% = 1760
+min_threshold_percentage: 10% = 200
+
+All distances smaller then 200mm and greater then 1760mm will be ignored.
+```
+
 ## Algorithm
 
 The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. ST implemented a nice and efficient way to track the path from one to the other direction. I migrated the algorigthm with some changes into the Roode project.
@@ -218,40 +265,12 @@ However, note that the lens inside the VL53L1X inverts the image it sees
 sense objects toward the upper left, you should pick a center SPAD in the
 lower right.
 
-#### Threshold distance
+## FAQ/Troubleshoot
 
-Another crucial choice is the one corresponding to the threshold. Indeed a movement is detected whenever the distance read by the sensor is below this value. The code contains a vector as threshold, as one (as myself) might need a different threshold for each zone.
+**Question:** Why is the Sensor not measuring the correct distances?
 
-The threshold is automatically calculated by the sensor. To do so it is necessary to position the sensor and, after turning it on, wait for 10 seconds without passing under it. After this time, the average of the measures for each zone will be computed and the thereshold for each ROI will correspond to 80% of the average value. Also the value of 80% can be modified in the code, by editing the variable `max_threshold_percentage` and `min_threshold_percentage`.
-
-If you install the sensor e.g 20cm over a door you dont want to count the door open and closing. In this case you should set the `min_threshold_percentage` to about `10`.
-
-Example:
-
-```
-Mounting height:    2200mm
-Door height:        2000mm
-Person height:      1800mm
-max_threshold_percentage: 80% = 1760
-min_threshold_percentage: 10% = 200
-
-All distances smaller then 200mm and greater then 1760mm will be ignored.
-```
-
-## Hardware
-
-There will be a specific Hardware setup (recommended brands etc.) soon!
-
-- ESP8266 or ESP32 (Wemos D1 mini case will be available)
-- 1x VL53L1X (Pololu, GY-53 and cheap chinese sensors)
-- Power Supply
-- Encolsure (see .stl files) - will be updated soon!
-  Pins:
-  SDA_PIN 4 or 21 (ESP32)
-  SCL_PIN 5 or 22 (ESP32)
-
-## Configuration
-
-### ESPHome
-
-Configue at least the secrets.yaml with your wifi SSID and password to connect. Check the peopleCounter.yaml or peopleCounter32.yaml to adapt the exposed sensors to your needs.
+**Answer:** This can happen in various scenarios. I try to list causes sorted by likelyhood
+1. You did not remove the protection film (most times its yellow)
+2. You did not connect the Sensor properly
+3. Light interference (You will see a lot of noise)
+4. Bad connections
