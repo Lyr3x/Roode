@@ -14,7 +14,7 @@ People counter working with any smart home system which supports ESPHome and the
   * [Sensor](#sensor)
   * [Threshold distance](#threshold-distance)
 - [Algorithm](#algorithm)
-- [FAQ/Troubleshoot](#faq-troubleshoot)
+- [FAQ/Troubleshoot](#faqtroubleshoot)
   
 
 ## Hardware Recommendation
