@@ -38,9 +38,7 @@ namespace esphome
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
             {
-                ESP_LOGE("Roode setup", "Failed to detect and initialize sensor!");
-                while (1)
-                    ;
+                ESP_LOGE("Setup", "Failed to detect and initialize sensor!");
             }
             if (calibration_active_)
             {
@@ -52,8 +50,8 @@ namespace esphome
                 center[1] = 231;
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 setSensorMode(sensor_mode);
-                DIST_THRESHOLD_MAX[0] = 800;
-                DIST_THRESHOLD_MAX[1] = 800;
+                DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
+                DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
                 publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
             }
             if (restore_values_)
@@ -395,7 +393,7 @@ namespace esphome
                 }
                 ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 3: // max mode
+            case 3: // custom mode
                 time_budget_in_ms = timing_budget;
                 delay_between_measurements = delay_between_measurements_max;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
@@ -403,7 +401,7 @@ namespace esphome
                 {
                     ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
                 }
-                ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI("Setup", "Manually set custom range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             default:
                 break;

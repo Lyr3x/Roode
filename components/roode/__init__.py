@@ -21,6 +21,7 @@ CONF_ROI_CALIBRATION = "roi_calibration"
 CONF_INVERT_DIRECTION = "invert_direction"
 CONF_MAX_THRESHOLD_PERCENTAGE = "max_threshold_percentage"
 CONF_MIN_THRESHOLD_PERCENTAGE = "min_threshold_percentage"
+CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
 CONF_RESTORE_VALUES = "restore_values"
 CONF_I2C_ADDRESS = "i2c_address"
@@ -66,21 +67,27 @@ CONFIG_SCHEMA = (cv.Schema({
         cv.Inclusive(
             CONF_SENSOR_MODE,
             "manual_mode",
-            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
         ):
         cv.int_range(min=-1, max=2),
         cv.Inclusive(
             CONF_ROI_HEIGHT,
             "manual_mode",
-            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
         ):
         cv.int_range(min=4, max=16),
         cv.Inclusive(
             CONF_ROI_WIDTH,
             "manual_mode",
-            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT} and {CONF_ROI_WIDTH} must be used together",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
         ):
         cv.int_range(min=4, max=16),
+        cv.Inclusive(
+            CONF_MANUAL_THRESHOLD,
+            "manual_mode",
+            f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
+        ):
+        cv.int_range(min=40, max=4000),
     }),
 }).extend(cv.polling_component_schema("100ms")))
 

@@ -57,6 +57,7 @@ namespace esphome
       void set_manual_active(bool val) { manual_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
       void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
+      void set_manual_threshold(int val) { manual_threshold_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
       void set_roi_height(int height) { roi_height_ = height; }
@@ -119,6 +120,7 @@ namespace esphome
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};
       uint64_t min_threshold_percentage_{0};
+      uint64_t manual_threshold_{0};
       int number_attempts = 20;
       int timing_budget_{-1};
       int left = 0, right = 0, oldcnt;
