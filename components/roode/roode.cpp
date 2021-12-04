@@ -96,6 +96,7 @@ namespace esphome
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
+            yield();
             distanceSensor.stopContinuous();
 
             if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
@@ -499,7 +500,7 @@ namespace esphome
                 roi_height_ = roi_width_;
             }
 
-            delay(500);
+            yield();
 
             zone = 0;
 
@@ -518,7 +519,7 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-
+                yield();
                 // increase sum of values in Zone 1
                 distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
@@ -536,12 +537,13 @@ namespace esphome
 
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
-
+            yield();
             setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
-
+            yield();
             if (roi_calibration_)
             {
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
+                yield();
             }
 
             DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
@@ -557,8 +559,6 @@ namespace esphome
                 DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
             }
-
-            delay(2000);
         }
 
         void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
