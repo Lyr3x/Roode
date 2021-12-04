@@ -28,6 +28,7 @@ CONF_SENSOR_MODE = "sensor_mode"
 CONF_MANUAL = "manual"
 CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
+CONF_TIMING_BUDGET = "timing_budget"
 TYPES = [
     CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS
@@ -60,6 +61,8 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.Schema({
         cv.Optional(CONF_MANUAL_ACTIVE, default='true'):
         cv.boolean,
+        cv.Optional(CONF_TIMING_BUDGET, default=10):
+        cv.int_range(min=10, max=1000),
         cv.Inclusive(
             CONF_SENSOR_MODE,
             "manual_mode",
@@ -83,44 +86,20 @@ CONFIG_SCHEMA = (cv.Schema({
 
 
 async def setup_conf(config, key, hub):
-
     if key in config:
         cg.add(getattr(hub, f"set_{key}")(config[key]))
-    if CONF_MANUAL in config:
-        setup_manual_mode(config, hub)
-    if CONF_CALIBRATION in config:
-        setup_calibration_mode(config, hub)
 
 
 def setup_manual_mode(config, hub):
     manual = config[CONF_MANUAL]
-    if CONF_SENSOR_MODE in manual:
-        cg.add(
-            getattr(hub, f"set_{CONF_SENSOR_MODE}")(manual[CONF_SENSOR_MODE]))
-    if CONF_ROI_HEIGHT in manual:
-        cg.add(getattr(hub, f"set_{CONF_ROI_HEIGHT}")(manual[CONF_ROI_HEIGHT]))
-    if CONF_ROI_WIDTH in manual:
-        cg.add(getattr(hub, f"set_{CONF_ROI_WIDTH}")(manual[CONF_ROI_WIDTH]))
+    for key in manual:
+        cg.add(getattr(hub, f"set_{key}")(manual[key]))
 
 
 def setup_calibration_mode(config, hub):
     calibration = config[CONF_CALIBRATION]
-    if CONF_CALIBRATION_ACTIVE in calibration:
-        cg.add(
-            getattr(hub, f"set_{CONF_CALIBRATION_ACTIVE}")(
-                calibration[CONF_CALIBRATION_ACTIVE]))
-    if CONF_MAX_THRESHOLD_PERCENTAGE in calibration:
-        cg.add(
-            getattr(hub, f"set_{CONF_MAX_THRESHOLD_PERCENTAGE}")(
-                calibration[CONF_MAX_THRESHOLD_PERCENTAGE]))
-    if CONF_MIN_THRESHOLD_PERCENTAGE in calibration:
-        cg.add(
-            getattr(hub, f"set_{CONF_MIN_THRESHOLD_PERCENTAGE}")(
-                calibration[CONF_MIN_THRESHOLD_PERCENTAGE]))
-    if CONF_ROI_CALIBRATION in calibration:
-        cg.add(
-            getattr(hub, f"set_{CONF_ROI_CALIBRATION}")(
-                calibration[CONF_ROI_CALIBRATION]))
+    for key in calibration:
+        cg.add(getattr(hub, f"set_{key}")(calibration[key]))
 
 
 async def to_code(config):
@@ -131,3 +110,7 @@ async def to_code(config):
     cg.add_library("pololu", "1.3.0", "VL53L1X")
     for key in TYPES:
         await setup_conf(config, key, hub)
+    if CONF_MANUAL in config:
+        setup_manual_mode(config, hub)
+    if CONF_CALIBRATION in config:
+        setup_calibration_mode(config, hub)
