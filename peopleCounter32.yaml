@@ -7,7 +7,7 @@ external_components:
   source:
     type: git
     url: https://github.com/Lyr3x/Roode
-    ref: master
+    ref: v.1.3.4
 
 esphome:
   name: $devicename
@@ -43,6 +43,16 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
+    - service: set_max_threshold
+      variables:
+        newThreshold: int
+      then:
+        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
+    - service: set_min_threshold
+      variables:
+        newThreshold: int
+      then:
+        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
@@ -64,14 +74,19 @@ i2c:
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
-  calibration: true
-  roi_height: 16
-  roi_width: 6
-  max_threshold_percentage: 80
-  roi_calibration: false
+  update_interval: 100ms
+  calibration:
+    max_threshold_percentage: 85
+    min_threshold_percentage: 5
+    roi_calibration: true
+  # manual:
+  #   sensor_mode: 2
+  #   roi_height: 16
+  #   roi_width: 6
+  #   manual_threshold: 1300
+  #   timing_budget: 100
   invert_direction: true
-  restore_values: true
+  restore_values: false
 
 switch:
   - platform: restart

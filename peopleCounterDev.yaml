@@ -8,12 +8,12 @@ external_components:
 
 esphome:
   name: $devicename
-    
+
 esp32:
   board: wemos_d1_mini32
   framework:
     type: arduino
-    
+
 wifi:
   networks:
     - ssid: !secret ssid1
@@ -51,7 +51,7 @@ web_server:
 
 # Enable logging
 logger:
-  level: INFO
+  level: DEBUG
 
 i2c:
   sda: 21
@@ -60,14 +60,17 @@ i2c:
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
-  calibration: true
-  roi_height: 16
-  roi_width: 6
-  max_threshold_percentage: 75
-  min_threshold_percentage: 5
-
-  roi_calibration: true
+  update_interval: 100ms
+  calibration:
+    max_threshold_percentage: 85
+    min_threshold_percentage: 5
+    roi_calibration: true
+  # manual:
+  #   sensor_mode: 2
+  #   roi_height: 16
+  #   roi_width: 6
+  #   manual_threshold: 1300
+  #   timing_budget: 100
   invert_direction: true
   restore_values: false
 
