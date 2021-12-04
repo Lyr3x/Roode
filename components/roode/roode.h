@@ -14,7 +14,7 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.3.4"
+#define VERSION "v1.4.0-alpha"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
@@ -56,6 +56,7 @@ namespace esphome
       void set_calibration_active(bool val) { calibration_active_ = val; }
       void set_manual_active(bool val) { manual_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
+      void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
       void set_roi_height(int height) { roi_height_ = height; }
@@ -104,7 +105,8 @@ namespace esphome
       void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
-      void setSensorMode(int sensor_mode);
+      void setSensorMode(int sensor_mode, int timing_budget = 0);
+      void publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
       bool calibration_active_{false};
@@ -118,6 +120,7 @@ namespace esphome
       uint64_t max_threshold_percentage_{85};
       uint64_t min_threshold_percentage_{0};
       int number_attempts = 20;
+      int timing_budget_{-1};
       int left = 0, right = 0, oldcnt;
       boolean lastTrippedState = 0;
       double people, distance_avg;

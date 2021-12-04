@@ -45,10 +45,6 @@ namespace esphome
             if (calibration_active_)
             {
                 calibration(distanceSensor);
-                if (sensor_mode != -1)
-                {
-                    setSensorMode(sensor_mode);
-                }
             }
             if (manual_active_)
             {
@@ -58,6 +54,7 @@ namespace esphome
                 setSensorMode(sensor_mode);
                 DIST_THRESHOLD_MAX[0] = 800;
                 DIST_THRESHOLD_MAX[1] = 800;
+                publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
             }
             if (restore_values_)
             {
@@ -363,26 +360,48 @@ namespace esphome
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
             EEPROM.write(13, ROI_size);
         }
-        void Roode::setSensorMode(int sensor_mode)
+        void Roode::setSensorMode(int sensor_mode, int timing_budget)
         {
             switch (sensor_mode)
             {
             case 0: // short mode
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = delay_between_measurements_short;
-                distanceSensor.setDistanceMode(VL53L1X::Short);
+                status = distanceSensor.setDistanceMode(VL53L1X::Short);
+                if (!status)
+                {
+                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Short);
+                }
                 ESP_LOGI("Setup", "Manually set short mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 1: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
-                distanceSensor.setDistanceMode(VL53L1X::Long);
+                status = distanceSensor.setDistanceMode(VL53L1X::Long);
+                if (!status)
+                {
+                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                }
                 ESP_LOGI("Setup", "Manually set long mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 2: // max mode
                 time_budget_in_ms = time_budget_in_ms_max_range;
                 delay_between_measurements = delay_between_measurements_max;
-                distanceSensor.setDistanceMode(VL53L1X::Long);
+                status = distanceSensor.setDistanceMode(VL53L1X::Long);
+                if (!status)
+                {
+                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                }
+                ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 3: // max mode
+                time_budget_in_ms = timing_budget;
+                delay_between_measurements = delay_between_measurements_max;
+                status = distanceSensor.setDistanceMode(VL53L1X::Long);
+                if (!status)
+                {
+                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                }
                 ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             default:
@@ -527,30 +546,41 @@ namespace esphome
 
             DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
             DIST_THRESHOLD_MAX[1] = optimized_zone_1 * max_threshold_percentage_ / 100;
-            ESP_LOGI("Roode", "Max threshold zone0: %dmm", DIST_THRESHOLD_MAX[0]);
-            ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_MAX[1]);
-            max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MAX[0]);
-            max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MAX[1]);
-            delay(100);
-            if (min_threshold_percentage_ != 0)
-            {
-                DIST_THRESHOLD_MIN[0] = optimized_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-                DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
-                ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_MIN[0]);
-                ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_MIN[1]);
-                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_MIN[0]);
-                min_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_MIN[1]);
-            }
-
-            roi_height_sensor->publish_state(roi_height_);
-            roi_width_sensor->publish_state(roi_width_);
             int hundred_threshold_zone_0 = DIST_THRESHOLD_MAX[0] / 100;
             int hundred_threshold_zone_1 = DIST_THRESHOLD_MAX[1] / 100;
             int unit_threshold_zone_0 = DIST_THRESHOLD_MAX[0] - 100 * hundred_threshold_zone_0;
             int unit_threshold_zone_1 = DIST_THRESHOLD_MAX[1] - 100 * hundred_threshold_zone_1;
+            publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
+            if (min_threshold_percentage_ != 0)
+            {
+                DIST_THRESHOLD_MIN[0] = optimized_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
+                DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
+                publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
+            }
 
             delay(2000);
         }
 
+        void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
+        {
+            if (isMax)
+            {
+                ESP_LOGI("Roode", "Max threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
+                max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                delay(100);
+            }
+            else
+            {
+                ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
+                min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                min_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+            }
+
+            roi_height_sensor->publish_state(roi_height_);
+            roi_width_sensor->publish_state(roi_width_);
+        }
     }
 }
