@@ -126,11 +126,6 @@ namespace esphome
                 CurrentZoneStatus = SOMEONE;
                 presence_sensor->publish_state(true);
             }
-            else
-            {
-                // Nobody is in the sensing area
-                presence_sensor->publish_state(false);
-            }
 
             // left zone
             if (zone == LEFT)
@@ -177,6 +172,12 @@ namespace esphome
                     // remember for next time
                     RightPreviousStatus = CurrentZoneStatus;
                 }
+            }
+
+            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
+            {
+                // nobody is in the sensing area
+                presence_sensor->publish_state(false);
             }
 
             // if an event has occured
@@ -450,6 +451,7 @@ namespace esphome
             for (int i = 0; i < size; i++)
             {
                 sum = sum + array[i];
+                yield();
             }
             return sum;
         }
@@ -463,6 +465,7 @@ namespace esphome
             for (int i = 0; i < size; i++)
             {
                 sum_squared = sum_squared + (values[i] * values[i]);
+                yield();
             }
             variance = sum_squared / size - (avg * avg);
             sd = sqrt(variance);
@@ -497,7 +500,6 @@ namespace esphome
                 roi_width_ = roi_height_;
                 roi_height_ = roi_width_;
             }
-
             yield();
 
             zone = 0;
@@ -513,31 +515,29 @@ namespace esphome
                 distanceSensor.startContinuous(delay_between_measurements);
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
+                yield();
                 distanceSensor.stopContinuous();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-                yield();
                 // increase sum of values in Zone 1
                 distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
                 distanceSensor.startContinuous(delay_between_measurements);
                 distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.read();
+                yield();
                 distanceSensor.stopContinuous();
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
-                yield();
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone
 
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
-            yield();
             setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
-            yield();
             if (roi_calibration_)
             {
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
@@ -567,7 +567,7 @@ namespace esphome
                 ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
                 max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
                 max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
-                delay(100);
+                yield();
             }
             else
             {
@@ -575,10 +575,11 @@ namespace esphome
                 ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
                 min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
                 min_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                yield();
             }
-
             roi_height_sensor->publish_state(roi_height_);
             roi_width_sensor->publish_state(roi_width_);
+            yield();
         }
     }
 }
