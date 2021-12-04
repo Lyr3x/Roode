@@ -120,7 +120,7 @@ namespace esphome
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};
       uint64_t min_threshold_percentage_{0};
-      uint64_t manual_threshold_{0};
+      uint64_t manual_threshold_{2000};
       int number_attempts = 20;
       int timing_budget_{-1};
       int left = 0, right = 0, oldcnt;

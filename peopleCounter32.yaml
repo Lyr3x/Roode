@@ -71,10 +71,10 @@ i2c:
   sda: 21
   scl: 22
 
-roode:
+  roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
+  update_interval: 100ms
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -83,6 +83,8 @@ roode:
   #   sensor_mode: 2
   #   roi_height: 16
   #   roi_width: 6
+  #   manual_threshold: 1300
+  #   timing_budget: 100
   invert_direction: true
   restore_values: false
 

@@ -72,7 +72,7 @@ Example configuration
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
+  update_interval: 200ms
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -81,6 +81,8 @@ roode:
   #   sensor_mode: 2
   #   roi_height: 16
   #   roi_width: 6
+  #   manual_threshold: 1300
+  #   timing_budget: 100
   invert_direction: true
   restore_values: false
 ```
@@ -94,10 +96,12 @@ roode:
   - **min_threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `0` Max: `100`. Defaults to `0`.
   - **roi_calibration (Optional, bool)**: Enables automatic ROI calibration (experimental). Defaults to `false`.
 - **manual (Optional, exclusiv-modee)**: Enables manual sensor setup:
-  - **roi_height (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
-  - **roi_width (Optional, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
-  - **sensor_mode(Optional, int)**: Sets the distance mode of the sensor if `calibration=false`.
+  - **manual_threshold (required, int)**: The threshold for both zones. Min: `40` Max: `4000`. Defaults to `2000`.
+  - **roi_height (required, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
+  - **roi_width (required, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
+  - **sensor_mode(required, int)**: Sets the distance mode of the sensor if `calibration=false`.
     - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
+  - **timing_budget (optional, int)**: The timing budget for the sensor. Increasing this slows down detection but increases accuracy. Min: `10ms` Max: `1000s`. Defaults to `10ms`.
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
 - **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Inverts the detection orientation of the sensor. Defaults to `true`.
