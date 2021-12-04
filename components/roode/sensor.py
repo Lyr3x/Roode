@@ -1,14 +1,9 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
-from esphome.const import (
-    ICON_ARROW_EXPAND_VERTICAL,
-    ICON_COUNTER,
-    ICON_NEW_BOX,
-    ICON_RULER,
-    STATE_CLASS_MEASUREMENT,
-    UNIT_EMPTY,
-)
+from esphome.const import (ICON_ARROW_EXPAND_VERTICAL, ICON_COUNTER,
+                           ICON_NEW_BOX, ICON_RULER, STATE_CLASS_MEASUREMENT,
+                           UNIT_EMPTY, ENTITY_CATEGORY_DIAGNOSTIC)
 from . import Roode, CONF_ROODE_ID
 
 DEPENDENCIES = ["roode"]
@@ -28,6 +23,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement=UNIT_EMPTY,
         accuracy_decimals=2,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_PEOPLE_COUNTER):
     sensor.sensor_schema(
@@ -35,6 +31,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement=UNIT_EMPTY,
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_MAX_THRESHOLD_ZONE0):
     sensor.sensor_schema(
@@ -42,6 +39,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="mm",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_MAX_THRESHOLD_ZONE1):
     sensor.sensor_schema(
@@ -49,6 +47,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="mm",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_MIN_THRESHOLD_ZONE0):
     sensor.sensor_schema(
@@ -56,6 +55,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="mm",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_MIN_THRESHOLD_ZONE1):
     sensor.sensor_schema(
@@ -63,6 +63,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="mm",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_ROI_HEIGHT):
     sensor.sensor_schema(
@@ -70,6 +71,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="px",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_ROI_WIDTH):
     sensor.sensor_schema(
@@ -77,6 +79,7 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement="px",
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.GenerateID(CONF_ROODE_ID):
     cv.use_id(Roode),
