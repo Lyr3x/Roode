@@ -23,7 +23,6 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement=UNIT_EMPTY,
         accuracy_decimals=2,
         state_class=STATE_CLASS_MEASUREMENT,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_PEOPLE_COUNTER):
     sensor.sensor_schema(
@@ -31,7 +30,6 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
         unit_of_measurement=UNIT_EMPTY,
         accuracy_decimals=0,
         state_class=STATE_CLASS_MEASUREMENT,
-        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     cv.Optional(CONF_MAX_THRESHOLD_ZONE0):
     sensor.sensor_schema(
