@@ -18,7 +18,7 @@ namespace esphome
             LOG_I2C_DEVICE(this);
             LOG_UPDATE_INTERVAL(this);
         }
-        
+
         void Roode::setup()
         {
             ESP_LOGI("Roode setup", "Booting Roode %s", VERSION);
@@ -537,7 +537,6 @@ namespace esphome
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone
-
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
             setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
