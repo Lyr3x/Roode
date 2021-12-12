@@ -4,6 +4,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
+#include "esphome/core/application.h"
 #include "EEPROM.h"
 #include <VL53L1X.h>
 #include <math.h>
@@ -14,7 +15,7 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.4.0-alpha"
+#define VERSION "v1.4.0-alpha-2"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;

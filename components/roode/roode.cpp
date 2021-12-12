@@ -174,12 +174,6 @@ namespace esphome
                 }
             }
 
-            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
-            {
-                // nobody is in the sensing area
-                presence_sensor->publish_state(false);
-            }
-
             // if an event has occured
             if (AnEventHasOccured)
             {
@@ -243,6 +237,11 @@ namespace esphome
                     PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
                 }
             }
+            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
+            {
+                // nobody is in the sensing area
+                presence_sensor->publish_state(false);
+            }
         }
 
         void Roode::sendCounter(uint16_t counter)
@@ -265,13 +264,9 @@ namespace esphome
         {
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
-            delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size * 2;
-
-            delay(250);
-
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -326,7 +321,6 @@ namespace esphome
                     break;
                 }
             }
-            delay(2000);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
@@ -354,7 +348,7 @@ namespace esphome
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
-                yield();
+                App.feed_wdt();
             }
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
@@ -541,7 +535,6 @@ namespace esphome
             if (roi_calibration_)
             {
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
-                yield();
             }
 
             DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
