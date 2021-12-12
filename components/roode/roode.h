@@ -4,6 +4,7 @@
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
+#include "esphome/core/application.h"
 #include "EEPROM.h"
 #include <VL53L1X.h>
 #include <math.h>
