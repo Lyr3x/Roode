@@ -30,6 +30,7 @@ CONF_MANUAL = "manual"
 CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
+CONF_SAMPLE_SIZE = "sample_size"
 TYPES = [
     CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS
@@ -45,6 +46,8 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,
+    cv.Optional(CONF_SAMPLE_SIZE, default=10):
+    cv.int_range(min=1, max=20),
     cv.Exclusive(
         CONF_CALIBRATION, "mode", f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable"):
     cv.Schema({
