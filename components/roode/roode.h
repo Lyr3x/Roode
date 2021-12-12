@@ -14,11 +14,11 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.4.0-alpha-2"
+#define VERSION "v1.4.0-alpha"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
-    static const uint16_t DISTANCES_ARRAY_SIZE = 20;
+    static const uint16_t DISTANCES_ARRAY_SIZE = 10;
 
     /*
     ##### CALIBRATION #####
@@ -65,7 +65,6 @@ namespace esphome
       void set_i2c_address(uint8_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
-      void set_sample_size(int val) { sample_size_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
@@ -79,7 +78,7 @@ namespace esphome
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
-      int getZoneDistance();
+      void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
 
@@ -117,7 +116,6 @@ namespace esphome
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       uint8_t address_ = 0x29;
-      int sample_size_{10};
       bool invert_direction_{false};
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};

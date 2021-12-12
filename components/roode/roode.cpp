@@ -1,25 +1,17 @@
 #include "esphome/core/log.h"
-#include "esphome/core/application.h"
 #include "roode.h"
 namespace esphome
 {
     namespace roode
     {
         static const char *const TAG = "Roode";
-        static int PathTrack[] = {0, 0, 0, 0};
-        static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
-        static int LeftPreviousStatus = NOBODY;
-        static int RightPreviousStatus = NOBODY;
-        static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
-        static uint8_t DistancesTableSize[2] = {0, 0};
-
         void Roode::dump_config()
         {
             ESP_LOGCONFIG(TAG, "dump config:");
             LOG_I2C_DEVICE(this);
+
             LOG_UPDATE_INTERVAL(this);
         }
-
         void Roode::setup()
         {
             ESP_LOGI("Roode setup", "Booting Roode %s", VERSION);
@@ -28,12 +20,10 @@ namespace esphome
             Wire.begin();
             Wire.setClock(400000);
             distanceSensor.setBus(&Wire);
-            yield();
             if (distanceSensor.getAddress() != address_)
             {
                 distanceSensor.setAddress(address_);
             }
-
             if (Roode::invert_direction_ == true)
             {
                 LEFT = 1;
@@ -44,6 +34,7 @@ namespace esphome
                 LEFT = 0;
                 RIGHT = 1;
             }
+
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
             {
@@ -87,8 +78,14 @@ namespace esphome
             yield();
         }
 
-        int Roode::getZoneDistance()
+        void Roode::getZoneDistance()
         {
+            static int PathTrack[] = {0, 0, 0, 0};
+            static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
+            static int LeftPreviousStatus = NOBODY;
+            static int RightPreviousStatus = NOBODY;
+            static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            static uint8_t DistancesTableSize[2] = {0, 0};
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
@@ -100,16 +97,16 @@ namespace esphome
             yield();
             distanceSensor.stopContinuous();
 
-            if (DistancesTableSize[zone] < sample_size_)
+            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             {
                 Distances[zone][DistancesTableSize[zone]] = distance;
                 DistancesTableSize[zone]++;
             }
             else
             {
-                for (i = 1; i < sample_size_; i++)
+                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
                     Distances[zone][i - 1] = Distances[zone][i];
-                Distances[zone][sample_size_ - 1] = distance;
+                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
             }
 
             // pick up the min distance
@@ -122,10 +119,6 @@ namespace esphome
                         MinDistance = Distances[zone][i];
                 }
             }
-            else
-            {
-                return 0;
-            }
 
             if (MinDistance < DIST_THRESHOLD_MAX[zone] && MinDistance > DIST_THRESHOLD_MIN[zone])
             {
@@ -133,9 +126,11 @@ namespace esphome
                 CurrentZoneStatus = SOMEONE;
                 presence_sensor->publish_state(true);
             }
+
             // left zone
             if (zone == LEFT)
             {
+
                 if (CurrentZoneStatus != LeftPreviousStatus)
                 {
                     // event in left zone has occured
@@ -158,6 +153,7 @@ namespace esphome
             // right zone
             else
             {
+
                 if (CurrentZoneStatus != RightPreviousStatus)
                 {
 
@@ -176,6 +172,12 @@ namespace esphome
                     // remember for next time
                     RightPreviousStatus = CurrentZoneStatus;
                 }
+            }
+
+            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
+            {
+                // nobody is in the sensing area
+                presence_sensor->publish_state(false);
             }
 
             // if an event has occured
@@ -206,7 +208,6 @@ namespace esphome
                                 entry_exit_event_sensor->publish_state("Exit");
                                 DistancesTableSize[0] = 0;
                                 DistancesTableSize[1] = 0;
-                                return 1;
                             }
                         }
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
@@ -218,7 +219,6 @@ namespace esphome
                             entry_exit_event_sensor->publish_state("Entry");
                             DistancesTableSize[0] = 0;
                             DistancesTableSize[1] = 0;
-                            return 1;
                         }
                         else
                         {
@@ -227,6 +227,7 @@ namespace esphome
                             DistancesTableSize[1] = 0;
                         }
                     }
+
                     PathTrackFillingSize = 1;
                 }
                 else
@@ -242,12 +243,6 @@ namespace esphome
                     PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
                 }
             }
-            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
-            {
-                // nobody is in the sensing area
-                presence_sensor->publish_state(false);
-            }
-            return 1;
         }
 
         void Roode::sendCounter(uint16_t counter)
@@ -268,13 +263,15 @@ namespace esphome
         }
         void Roode::roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1)
         {
-            // We need to feed the watchdog to prevent a crash
-            App.feed_wdt();
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
+            delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size * 2;
+
+            delay(250);
+
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -329,6 +326,7 @@ namespace esphome
                     break;
                 }
             }
+            delay(2000);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
@@ -345,6 +343,7 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
+
                 // increase sum of values in Zone 1
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
@@ -501,6 +500,7 @@ namespace esphome
                 roi_width_ = roi_height_;
                 roi_height_ = roi_width_;
             }
+            yield();
 
             zone = 0;
 
@@ -534,13 +534,14 @@ namespace esphome
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone
+
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
             setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
             if (roi_calibration_)
             {
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
-                App.feed_wdt();
+                yield();
             }
 
             DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
