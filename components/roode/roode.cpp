@@ -1,4 +1,5 @@
 #include "esphome/core/log.h"
+#include "esphome/core/application.h"
 #include "roode.h"
 namespace esphome
 {
@@ -27,6 +28,7 @@ namespace esphome
             Wire.begin();
             Wire.setClock(400000);
             distanceSensor.setBus(&Wire);
+            yield();
             if (distanceSensor.getAddress() != address_)
             {
                 distanceSensor.setAddress(address_);
@@ -266,15 +268,13 @@ namespace esphome
         }
         void Roode::roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1)
         {
+            // We need to feed the watchdog to prevent a crash
+            App.feed_wdt();
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
-            delay(1000);
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size * 2;
-
-            delay(250);
-
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -329,7 +329,6 @@ namespace esphome
                     break;
                 }
             }
-            delay(2000);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
@@ -346,7 +345,6 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-
                 // increase sum of values in Zone 1
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
@@ -503,7 +501,6 @@ namespace esphome
                 roi_width_ = roi_height_;
                 roi_height_ = roi_width_;
             }
-            yield();
 
             zone = 0;
 
@@ -543,7 +540,7 @@ namespace esphome
             if (roi_calibration_)
             {
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
-                yield();
+                App.feed_wdt();
             }
 
             DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
