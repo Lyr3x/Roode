@@ -78,7 +78,6 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
-            yield();
         }
 
         void Roode::getZoneDistance()
