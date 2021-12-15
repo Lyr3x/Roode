@@ -16,5 +16,5 @@
         "ostream": "cpp",
         "istream": "cpp"
     },
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "black"
 }
