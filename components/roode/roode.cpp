@@ -124,7 +124,10 @@ namespace esphome
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
-                presence_sensor->publish_state(true);
+                if (set_use_presence_sensor_)
+                {
+                    presence_sensor->publish_state(true);
+                }
             }
 
             // left zone
@@ -237,10 +240,14 @@ namespace esphome
                     PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
                 }
             }
-            if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
+            if (set_use_presence_sensor_)
             {
-                // nobody is in the sensing area
-                presence_sensor->publish_state(false);
+                if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY)
+                {
+                    // nobody is in the sensing area
+
+                    presence_sensor->publish_state(false);
+                }
             }
         }
 

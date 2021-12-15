@@ -30,6 +30,7 @@ CONF_MANUAL = "manual"
 CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
+CONF_USE_PRESENCE = 'use_presence_sensor'
 TYPES = [
     CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS
@@ -88,6 +89,8 @@ CONFIG_SCHEMA = (cv.Schema({
             f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
         ):
         cv.int_range(min=40, max=4000),
+        cv.Optional(CONF_USE_PRESENCE, default='false'):
+        cv.boolean,
     }),
 }).extend(cv.polling_component_schema("100ms")))
 
