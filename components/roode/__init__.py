@@ -31,9 +31,10 @@ CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
 CONF_USE_PRESENCE = 'use_presence_sensor'
+CONF_USE_DISTANCE = 'use_distance_sensor'
 TYPES = [
     CONF_RESTORE_VALUES, CONF_INVERT_DIRECTION,
-    CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS, CONF_USE_PRESENCE
+    CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS, CONF_USE_PRESENCE, CONF_USE_DISTANCE
 ]
 CONFIG_SCHEMA = (cv.Schema({
     cv.GenerateID():
@@ -45,6 +46,8 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default='true'):
     cv.boolean,
     cv.Optional(CONF_USE_PRESENCE, default='false'):
+    cv.boolean,
+    cv.Optional(CONF_USE_DISTANCE, default='false'):
     cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,

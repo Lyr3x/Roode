@@ -67,7 +67,10 @@ namespace esphome
 
         void Roode::update()
         {
-            distance_sensor->publish_state(distance);
+            if (set_use_distance_sensor_)
+            {
+                distance_sensor->publish_state(distance);
+            }
         }
 
         void Roode::loop()

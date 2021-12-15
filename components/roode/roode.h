@@ -68,6 +68,7 @@ namespace esphome
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_use_presence_sensor(bool val) { set_use_presence_sensor_ = val; }
+      void set_use_distance_sensor(bool val) { set_use_distance_sensor_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
@@ -118,6 +119,7 @@ namespace esphome
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       bool set_use_presence_sensor_{false};
+      bool set_use_distance_sensor_{false};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
