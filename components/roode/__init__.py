@@ -44,6 +44,8 @@ CONFIG_SCHEMA = (cv.Schema({
     cv.boolean,
     cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default='true'):
     cv.boolean,
+    cv.Optional(CONF_USE_PRESENCE, default='false'):
+    cv.boolean,
     cv.Optional(CONF_I2C_ADDRESS, default=0x29):
     cv.uint8_t,
     cv.Exclusive(
@@ -89,8 +91,6 @@ CONFIG_SCHEMA = (cv.Schema({
             f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
         ):
         cv.int_range(min=40, max=4000),
-        cv.Optional(CONF_USE_PRESENCE, default='false'):
-        cv.boolean,
     }),
 }).extend(cv.polling_component_schema("100ms")))
 
