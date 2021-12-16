@@ -67,8 +67,6 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
-      void set_use_presence_sensor(bool val) { set_use_presence_sensor_ = val; }
-      void set_use_distance_sensor(bool val) { set_use_distance_sensor_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
@@ -90,21 +88,21 @@ namespace esphome
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
       int roi_height_{16};                // height of the ROI
-      uint64_t peopleCounter{0};
+      uint16_t peopleCounter{0};
 
     protected:
       VL53L1X distanceSensor;
-      sensor::Sensor *distance_sensor = new sensor::Sensor();
-      sensor::Sensor *people_counter_sensor = new sensor::Sensor();
-      sensor::Sensor *max_threshold_zone0_sensor = new sensor::Sensor();
-      sensor::Sensor *max_threshold_zone1_sensor = new sensor::Sensor();
-      sensor::Sensor *min_threshold_zone0_sensor = new sensor::Sensor();
-      sensor::Sensor *min_threshold_zone1_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_height_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_width_sensor = new sensor::Sensor();
-      binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
-      text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
-      text_sensor::TextSensor *entry_exit_event_sensor = new text_sensor::TextSensor();
+      sensor::Sensor *distance_sensor;
+      sensor::Sensor *people_counter_sensor;
+      sensor::Sensor *max_threshold_zone0_sensor;
+      sensor::Sensor *max_threshold_zone1_sensor;
+      sensor::Sensor *min_threshold_zone0_sensor;
+      sensor::Sensor *min_threshold_zone1_sensor;
+      sensor::Sensor *roi_height_sensor;
+      sensor::Sensor *roi_width_sensor;
+      binary_sensor::BinarySensor *presence_sensor;
+      text_sensor::TextSensor *version_sensor;
+      text_sensor::TextSensor *entry_exit_event_sensor;
 
       void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);
@@ -118,8 +116,6 @@ namespace esphome
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
-      bool set_use_presence_sensor_{false};
-      bool set_use_distance_sensor_{false};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
