@@ -19,7 +19,7 @@ namespace esphome
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
-    static const uint16_t DISTANCES_ARRAY_SIZE = 10;
+    static const uint16_t DISTANCES_ARRAY_SIZE = 5;
 
     /*
     ##### CALIBRATION #####
