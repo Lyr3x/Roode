@@ -78,9 +78,13 @@ namespace esphome
 
         void Roode::loop()
         {
+            // unsigned long start = micros();
             getZoneDistance();
             zone++;
             zone = zone % 2;
+            // unsigned long end = micros();
+            // unsigned long delta = end - start;
+            // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
         }
 
         void Roode::getZoneDistance()
@@ -99,30 +103,33 @@ namespace esphome
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.readSingle();
 
-            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
-            {
-                Distances[zone][DistancesTableSize[zone]] = distance;
-                DistancesTableSize[zone]++;
-            }
-            else
-            {
-                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-                    Distances[zone][i - 1] = Distances[zone][i];
-                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-            }
+            // if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
+            // {
+            //     Distances[zone][DistancesTableSize[zone]] = distance;
+            //     DistancesTableSize[zone]++;
+            //     // ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
+            // }
+            // else
+            // {
+            //     for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+            //         Distances[zone][i - 1] = Distances[zone][i];
+            //     Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+            //     // ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+            // }
+            // // ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+            // // ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+            // // pick up the min distance
+            // MinDistance = Distances[zone][0];
+            // if (DistancesTableSize[zone] >= 2)
+            // {
+            //     for (i = 1; i < DistancesTableSize[zone]; i++)
+            //     {
+            //         if (Distances[zone][i] < MinDistance)
+            //             MinDistance = Distances[zone][i];
+            //     }
+            // }
 
-            // pick up the min distance
-            MinDistance = Distances[zone][0];
-            if (DistancesTableSize[zone] >= 2)
-            {
-                for (i = 1; i < DistancesTableSize[zone]; i++)
-                {
-                    if (Distances[zone][i] < MinDistance)
-                        MinDistance = Distances[zone][i];
-                }
-            }
-
-            if (MinDistance < DIST_THRESHOLD_MAX[zone] && MinDistance > DIST_THRESHOLD_MIN[zone])
+            if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
