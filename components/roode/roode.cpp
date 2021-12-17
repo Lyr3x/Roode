@@ -46,6 +46,7 @@ namespace esphome
             if (calibration_active_)
             {
                 calibration(distanceSensor);
+                App.feed_wdt();
             }
             if (manual_active_)
             {
