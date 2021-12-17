@@ -82,6 +82,7 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
+            App.feed_wdt();
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -513,7 +514,6 @@ namespace esphome
                 roi_width_ = roi_height_;
                 roi_height_ = roi_width_;
             }
-            yield();
 
             zone = 0;
 
@@ -530,6 +530,7 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
+                App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
@@ -557,6 +558,7 @@ namespace esphome
             int unit_threshold_zone_0 = DIST_THRESHOLD_MAX[0] - 100 * hundred_threshold_zone_0;
             int unit_threshold_zone_1 = DIST_THRESHOLD_MAX[1] - 100 * hundred_threshold_zone_1;
             publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
+            App.feed_wdt();
             if (min_threshold_percentage_ != 0)
             {
                 DIST_THRESHOLD_MIN[0] = optimized_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
