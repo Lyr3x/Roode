@@ -84,6 +84,7 @@ namespace esphome
             zone++;
             zone = zone % 2;
             App.feed_wdt();
+            delay(delay_between_measurements);
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -104,7 +105,6 @@ namespace esphome
             uint8_t i;
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.readSingle();
-
             // if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             // {
             //     Distances[zone][DistancesTableSize[zone]] = distance;
@@ -351,21 +351,19 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
+            distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
-                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
-                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.readSingle();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
 
                 // increase sum of values in Zone 1
-                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
-                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.readSingle();
                 values_zone_1[i] = distance;
                 zone++;
@@ -520,22 +518,21 @@ namespace esphome
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
+            distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
 
-                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
                 distanceSensor.setROICenter(center[zone]);
-                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+
                 distance = distanceSensor.readSingle();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
                 App.feed_wdt();
                 // increase sum of values in Zone 1
-                distanceSensor.setROISize(roi_width_, roi_height_);
                 distanceSensor.setROICenter(center[zone]);
-                distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
                 distance = distanceSensor.readSingle();
                 values_zone_1[i] = distance;
                 zone++;
