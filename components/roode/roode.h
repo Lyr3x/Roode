@@ -15,11 +15,11 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.4.0-alpha-2"
+#define VERSION "v1.4.0-beta"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
-    static const uint16_t DISTANCES_ARRAY_SIZE = 10;
+    static const uint16_t DISTANCES_ARRAY_SIZE = 2;
 
     /*
     ##### CALIBRATION #####
@@ -38,13 +38,18 @@ namespace esphome
     static int delay_between_measurements = 0;
     static int time_budget_in_ms = 0;
 
-    // parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
-    static int time_budget_in_ms_short = 15;      // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_long = 33;       // Works up to 3.1m increase to minimum of 140ms for 4m
-    static int time_budget_in_ms_max_range = 100; // Works up to 4m in the dark on a white chart
+    /*
+    Parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
+    The timing budget and inter-measurement period should not be called when the sensor is
+    ranging. The user has to stop the ranging, change these parameters, and restart ranging
+    The minimum inter-measurement period must be longer than the timing budget + 4 ms.
+    */
+    static int time_budget_in_ms_short = 15;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_medium = 33; // Works up to 3.1m increase to minimum of 140ms for 4m
+    static int time_budget_in_ms_long = 140;  // Works up to 4m in the dark on a white chart
     static int delay_between_measurements_short = 25;
-    static int delay_between_measurements_long = 50;
-    static int delay_between_measurements_max = 220;
+    static int delay_between_measurements_medium = 40;
+    static int delay_between_measurements_long = 150;
 
     class Roode : public PollingComponent
     {
@@ -67,6 +72,7 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
+      void set_use_sampling(bool val) { use_sampling_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
@@ -88,21 +94,21 @@ namespace esphome
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
       int roi_height_{16};                // height of the ROI
-      uint64_t peopleCounter{0};
+      uint16_t peopleCounter{0};
 
     protected:
       VL53L1X distanceSensor;
-      sensor::Sensor *distance_sensor = new sensor::Sensor();
-      sensor::Sensor *people_counter_sensor = new sensor::Sensor();
-      sensor::Sensor *max_threshold_zone0_sensor = new sensor::Sensor();
-      sensor::Sensor *max_threshold_zone1_sensor = new sensor::Sensor();
-      sensor::Sensor *min_threshold_zone0_sensor = new sensor::Sensor();
-      sensor::Sensor *min_threshold_zone1_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_height_sensor = new sensor::Sensor();
-      sensor::Sensor *roi_width_sensor = new sensor::Sensor();
-      binary_sensor::BinarySensor *presence_sensor = new binary_sensor::BinarySensor();
-      text_sensor::TextSensor *version_sensor = new text_sensor::TextSensor();
-      text_sensor::TextSensor *entry_exit_event_sensor = new text_sensor::TextSensor();
+      sensor::Sensor *distance_sensor;
+      sensor::Sensor *people_counter_sensor;
+      sensor::Sensor *max_threshold_zone0_sensor;
+      sensor::Sensor *max_threshold_zone1_sensor;
+      sensor::Sensor *min_threshold_zone0_sensor;
+      sensor::Sensor *min_threshold_zone1_sensor;
+      sensor::Sensor *roi_height_sensor;
+      sensor::Sensor *roi_width_sensor;
+      binary_sensor::BinarySensor *presence_sensor;
+      text_sensor::TextSensor *version_sensor;
+      text_sensor::TextSensor *entry_exit_event_sensor;
 
       void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);
@@ -116,6 +122,7 @@ namespace esphome
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
+      bool use_sampling_{false};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
@@ -124,11 +131,8 @@ namespace esphome
       uint64_t manual_threshold_{2000};
       int number_attempts = 20;
       int timing_budget_{-1};
-      int left = 0, right = 0, oldcnt;
-      boolean lastTrippedState = 0;
-      double people, distance_avg;
       int short_distance_threshold = 1300;
-      int long_distance_threshold = 3100;
+      int medium_distance_threshold = 3100;
       bool status = false;
       int optimized_zone_0;
       int optimized_zone_1;
