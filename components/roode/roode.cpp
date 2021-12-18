@@ -83,7 +83,7 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
-            App.feed_wdt();
+            // App.feed_wdt();
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -99,6 +99,7 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
+            delay(10);
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.read();
 
@@ -357,7 +358,6 @@ namespace esphome
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-            delay(100);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
@@ -523,7 +523,7 @@ namespace esphome
             {
                 // increase sum of values in Zone 0
                 distanceSensor.setROICenter(center[zone]);
-                delay(1);
+                delay(10);
                 distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
@@ -531,7 +531,7 @@ namespace esphome
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                delay(1);
+                delay(10);
                 distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
