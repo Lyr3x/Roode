@@ -99,7 +99,9 @@ namespace esphome
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
             distanceSensor.setROICenter(center[zone]);
+            distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             if (use_sampling_)
             {
                 ESP_LOGD(SETUP, "Using sampling");
@@ -355,7 +357,7 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
             distanceSensor.startContinuous(delay_between_measurements);
             for (int i = 0; i < number_attempts; i++)
@@ -379,7 +381,7 @@ namespace esphome
         }
         void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             switch (sensor_mode)
             {
             case 0: // short mode
@@ -485,7 +487,7 @@ namespace esphome
 
         void Roode::calibration(VL53L1X distanceSensor)
         {
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_medium;
             delay_between_measurements = delay_between_measurements_medium;
@@ -558,7 +560,7 @@ namespace esphome
                 DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
             }
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
         }
 
         void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
