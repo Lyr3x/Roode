@@ -98,7 +98,9 @@ namespace esphome
             uint16_t MinDistance;
             uint8_t i;
             distanceSensor.setROICenter(center[zone]);
+            distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
 
             if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             {
@@ -336,9 +338,10 @@ namespace esphome
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
 
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
             distanceSensor.startContinuous(delay_between_measurements);
+
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
@@ -363,7 +366,7 @@ namespace esphome
         }
         void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             switch (sensor_mode)
             {
             case 0: // short mode
@@ -541,7 +544,7 @@ namespace esphome
                 DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
             }
-            distanceSensor.stopContinuous();
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
         }
 
         void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
