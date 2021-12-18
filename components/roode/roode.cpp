@@ -102,6 +102,7 @@ namespace esphome
             delay(10);
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.read();
+            ESP_LOGD("Roode", "center: %d", distanceSensor.getROICenter());
 
             if (use_sampling_)
             {
@@ -379,7 +380,7 @@ namespace esphome
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
         }
-        void Roode::setSensorMode(int sensor_mode, int timing_budget)
+        void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
             distanceSensor.stopContinuous();
             switch (sensor_mode)
@@ -402,7 +403,7 @@ namespace esphome
                 {
                     ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Medium);
                 }
-                ESP_LOGI("Setup", "Set long mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI("Setup", "Set medium mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 2: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
@@ -412,10 +413,10 @@ namespace esphome
                 {
                     ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
                 }
-                ESP_LOGI("Setup", "Set max range mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI("Setup", "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 3: // custom mode
-                time_budget_in_ms = timing_budget;
+                time_budget_in_ms = new_timing_budget;
                 delay_between_measurements = delay_between_measurements_long;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
@@ -449,7 +450,7 @@ namespace esphome
 
             if (average_zone_0 > medium_distance_threshold || average_zone_1 > medium_distance_threshold)
             {
-                setSensorMode(1, time_budget_in_ms_long);
+                setSensorMode(2, time_budget_in_ms_long);
             }
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             if (!status)
