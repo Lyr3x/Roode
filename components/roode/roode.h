@@ -131,9 +131,6 @@ namespace esphome
       uint64_t manual_threshold_{2000};
       int number_attempts = 20;
       int timing_budget_{-1};
-      int left = 0, right = 0, oldcnt;
-      bool lastTrippedState = 0;
-      double people, distance_avg;
       int short_distance_threshold = 1300;
       int medium_distance_threshold = 3100;
       bool status = false;

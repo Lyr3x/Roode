@@ -5,6 +5,8 @@ namespace esphome
     namespace roode
     {
         static const char *const TAG = "Roode";
+        static const char *const SETUP = "Setup";
+        static const char *const CALIBRATION = "Calibration";
         void Roode::dump_config()
         {
             ESP_LOGCONFIG(TAG, "dump config:");
@@ -14,7 +16,7 @@ namespace esphome
         }
         void Roode::setup()
         {
-            ESP_LOGI("Roode setup", "Booting Roode %s", VERSION);
+            ESP_LOGI(SETUP, "Booting Roode %s", VERSION);
             if (version_sensor != nullptr)
             {
                 version_sensor->publish_state(VERSION);
@@ -27,21 +29,17 @@ namespace esphome
             {
                 distanceSensor.setAddress(address_);
             }
-            if (Roode::invert_direction_ == true)
+            if (invert_direction_)
             {
+                ESP_LOGD(TAG, "Inverting direction");
                 LEFT = 1;
                 RIGHT = 0;
-            }
-            else
-            {
-                LEFT = 0;
-                RIGHT = 1;
             }
 
             distanceSensor.setTimeout(500);
             if (!distanceSensor.init())
             {
-                ESP_LOGE("Setup", "Failed to detect and initialize sensor!");
+                ESP_LOGE(SETUP, "Failed to detect and initialize sensor!");
             }
             if (calibration_active_)
             {
@@ -104,7 +102,7 @@ namespace esphome
             distance = distanceSensor.read();
             if (use_sampling_)
             {
-                ESP_LOGD("Roode", "Using sampling");
+                ESP_LOGD(SETUP, "Using sampling");
                 static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
                 uint16_t MinDistance;
                 uint8_t i;
@@ -112,17 +110,17 @@ namespace esphome
                 {
                     Distances[zone][DistancesTableSize[zone]] = distance;
                     DistancesTableSize[zone]++;
-                    ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
+                    ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
                 }
                 else
                 {
                     for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
                         Distances[zone][i - 1] = Distances[zone][i];
                     Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-                    ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+                    ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
                 }
-                ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-                ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+                ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+                ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
                 // pick up the min distance
                 MinDistance = Distances[zone][0];
                 if (DistancesTableSize[zone] >= 2)
@@ -275,7 +273,7 @@ namespace esphome
 
         void Roode::sendCounter(uint16_t counter)
         {
-            ESP_LOGI("Roode", "Sending people count: %d", counter);
+            ESP_LOGI(SETUP, "Sending people count: %d", counter);
             peopleCounter = counter;
             if (people_counter_sensor != nullptr)
             {
@@ -390,9 +388,9 @@ namespace esphome
                 status = distanceSensor.setDistanceMode(VL53L1X::Short);
                 if (!status)
                 {
-                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Short);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Short);
                 }
-                ESP_LOGI("Setup", "Set short mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI(SETUP, "Set short mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 1: // medium mode
                 time_budget_in_ms = time_budget_in_ms_medium;
@@ -400,9 +398,9 @@ namespace esphome
                 status = distanceSensor.setDistanceMode(VL53L1X::Medium);
                 if (!status)
                 {
-                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Medium);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Medium);
                 }
-                ESP_LOGI("Setup", "Set medium mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI(SETUP, "Set medium mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 2: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
@@ -410,9 +408,9 @@ namespace esphome
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {
-                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Long);
                 }
-                ESP_LOGI("Setup", "Set long range mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 3: // custom mode
                 time_budget_in_ms = new_timing_budget;
@@ -420,9 +418,9 @@ namespace esphome
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {
-                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Long);
                 }
-                ESP_LOGI("Setup", "Manually set custom range mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI(SETUP, "Manually set custom range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             default:
                 break;
@@ -430,7 +428,7 @@ namespace esphome
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             if (!status)
             {
-                ESP_LOGE("Setup", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
             distanceSensor.startContinuous(delay_between_measurements);
         }
@@ -454,7 +452,7 @@ namespace esphome
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             if (!status)
             {
-                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
         }
         int Roode::getSum(int *array, int size)
@@ -481,8 +479,8 @@ namespace esphome
             }
             variance = sum_squared / size - (avg * avg);
             sd = sqrt(variance);
-            ESP_LOGD("Calibration", "Zone AVG: %d", avg);
-            ESP_LOGD("Calibration", "Zone 0 SD: %d", sd);
+            ESP_LOGD(CALIBRATION, "Zone AVG: %d", avg);
+            ESP_LOGD(CALIBRATION, "Zone 0 SD: %d", sd);
             return avg - sd;
         }
 
@@ -498,7 +496,7 @@ namespace esphome
             distanceSensor.startContinuous(delay_between_measurements);
             if (!status)
             {
-                ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
             if (advised_sensor_orientation_)
             {
@@ -569,8 +567,8 @@ namespace esphome
         {
             if (isMax)
             {
-                ESP_LOGI("Roode", "Max threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI("Roode", "Max threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
+                ESP_LOGI(SETUP, "Max threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI(SETUP, "Max threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
                 if (max_threshold_zone0_sensor != nullptr)
                 {
                     max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
@@ -583,8 +581,8 @@ namespace esphome
             }
             else
             {
-                ESP_LOGI("Roode", "Min threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI("Roode", "Min threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
+                ESP_LOGI(SETUP, "Min threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI(SETUP, "Min threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
                 if (min_threshold_zone0_sensor != nullptr)
                 {
                     min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
