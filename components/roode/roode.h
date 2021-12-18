@@ -38,13 +38,18 @@ namespace esphome
     static int delay_between_measurements = 0;
     static int time_budget_in_ms = 0;
 
-    // parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
+    /*
+    Parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
+    The timing budget and inter-measurement period should not be called when the sensor is
+    ranging. The user has to stop the ranging, change these parameters, and restart ranging
+    The minimum inter-measurement period must be longer than the timing budget + 4 ms.
+    */
     static int time_budget_in_ms_short = 15;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
     static int time_budget_in_ms_medium = 33; // Works up to 3.1m increase to minimum of 140ms for 4m
-    static int time_budget_in_ms_long = 100;  // Works up to 4m in the dark on a white chart
-    static int delay_between_measurements_short = 20;
-    static int delay_between_measurements_medium = 50;
-    static int delay_between_measurements_long = 220;
+    static int time_budget_in_ms_long = 140;  // Works up to 4m in the dark on a white chart
+    static int delay_between_measurements_short = 25;
+    static int delay_between_measurements_medium = 40;
+    static int delay_between_measurements_long = 150;
 
     class Roode : public PollingComponent
     {

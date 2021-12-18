@@ -99,43 +99,43 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            delay(10);
+            delay(6);
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.read();
             ESP_LOGD("Roode", "center: %d", distanceSensor.getROICenter());
 
-            if (use_sampling_)
-            {
-                static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
-                uint16_t MinDistance;
-                uint8_t i;
-                if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
-                {
-                    Distances[zone][DistancesTableSize[zone]] = distance;
-                    DistancesTableSize[zone]++;
-                    ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
-                }
-                else
-                {
-                    for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-                        Distances[zone][i - 1] = Distances[zone][i];
-                    Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-                    ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
-                }
-                ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-                ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
-                // pick up the min distance
-                MinDistance = Distances[zone][0];
-                if (DistancesTableSize[zone] >= 2)
-                {
-                    for (i = 1; i < DistancesTableSize[zone]; i++)
-                    {
-                        if (Distances[zone][i] < MinDistance)
-                            MinDistance = Distances[zone][i];
-                    }
-                }
-                distance = MinDistance;
-            }
+            // if (use_sampling_)
+            // {
+            //     static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            //     uint16_t MinDistance;
+            //     uint8_t i;
+            //     if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
+            //     {
+            //         Distances[zone][DistancesTableSize[zone]] = distance;
+            //         DistancesTableSize[zone]++;
+            //         ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
+            //     }
+            //     else
+            //     {
+            //         for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+            //             Distances[zone][i - 1] = Distances[zone][i];
+            //         Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+            //         ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+            //     }
+            //     ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+            //     ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+            //     // pick up the min distance
+            //     MinDistance = Distances[zone][0];
+            //     if (DistancesTableSize[zone] >= 2)
+            //     {
+            //         for (i = 1; i < DistancesTableSize[zone]; i++)
+            //         {
+            //             if (Distances[zone][i] < MinDistance)
+            //                 MinDistance = Distances[zone][i];
+            //         }
+            //     }
+            //     distance = MinDistance;
+            // }
 
             // PathTrack algorithm
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
@@ -489,10 +489,11 @@ namespace esphome
 
         void Roode::calibration(VL53L1X distanceSensor)
         {
+            distanceSensor.stopContinuous();
             // the sensor does 100 measurements for each zone (zones are predefined)
-            time_budget_in_ms = time_budget_in_ms_long;
-            delay_between_measurements = delay_between_measurements_long;
-            distanceSensor.setDistanceMode(VL53L1X::Long);
+            time_budget_in_ms = time_budget_in_ms_medium;
+            delay_between_measurements = delay_between_measurements_medium;
+            distanceSensor.setDistanceMode(VL53L1X::Medium);
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
             distanceSensor.startContinuous(delay_between_measurements);
@@ -524,7 +525,7 @@ namespace esphome
             {
                 // increase sum of values in Zone 0
                 distanceSensor.setROICenter(center[zone]);
-                delay(10);
+                delay(6);
                 distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
@@ -532,7 +533,7 @@ namespace esphome
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                delay(10);
+                delay(6);
                 distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
