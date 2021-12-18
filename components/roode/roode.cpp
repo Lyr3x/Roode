@@ -65,6 +65,7 @@ namespace esphome
                 ESP_LOGD("Roode setup", "last value: %u", peopleCounter);
             }
             sendCounter(peopleCounter);
+            distanceSensor.startContinuous(delay_between_measurements);
         }
 
         void Roode::update()
@@ -97,7 +98,6 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            delay(6);
             distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.read();
             if (use_sampling_)
@@ -355,12 +355,13 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
+            distanceSensor.stopContinuous();
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+            distanceSensor.startContinuous(delay_between_measurements);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
                 distanceSensor.setROICenter(center[zone]);
-                delay(1);
                 distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
@@ -368,7 +369,6 @@ namespace esphome
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                delay(1);
                 distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
@@ -430,12 +430,11 @@ namespace esphome
             {
                 ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
-            distanceSensor.startContinuous(delay_between_measurements);
         }
 
         void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
         {
-            if (average_zone_0 <= short_distance_threshold && average_zone_1 <= short_distance_threshold)
+            if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
             {
                 setSensorMode(0, time_budget_in_ms_short);
             }
@@ -492,8 +491,7 @@ namespace esphome
             delay_between_measurements = delay_between_measurements_medium;
             distanceSensor.setDistanceMode(VL53L1X::Medium);
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-            distanceSensor.startContinuous(delay_between_measurements);
+
             if (!status)
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
@@ -517,12 +515,12 @@ namespace esphome
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-
+            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+            distanceSensor.startContinuous(delay_between_measurements);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
                 distanceSensor.setROICenter(center[zone]);
-                delay(6);
                 distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
@@ -530,7 +528,6 @@ namespace esphome
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                delay(6);
                 distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
@@ -561,6 +558,7 @@ namespace esphome
                 DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
             }
+            distanceSensor.stopContinuous();
         }
 
         void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
