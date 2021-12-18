@@ -15,7 +15,7 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.4.0-alpha-2"
+#define VERSION "v1.4.0-beta"
 #define EEPROM_SIZE 512
     static int LEFT = 0;
     static int RIGHT = 1;
