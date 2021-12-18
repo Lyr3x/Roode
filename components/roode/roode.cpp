@@ -84,7 +84,6 @@ namespace esphome
             zone++;
             zone = zone % 2;
             App.feed_wdt();
-            delay(delay_between_measurements);
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -368,7 +367,6 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-                delay(delay_between_measurements);
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
@@ -377,7 +375,6 @@ namespace esphome
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
-                delay(delay_between_measurements);
             }
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
@@ -531,7 +528,6 @@ namespace esphome
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-                delay(delay_between_measurements);
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
@@ -540,7 +536,6 @@ namespace esphome
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
-                delay(delay_between_measurements);
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone
