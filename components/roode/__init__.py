@@ -31,11 +31,13 @@ CONF_MANUAL = "manual"
 CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
+CONF_USE_SAMPLING = "use_sampling"
 TYPES = [
     CONF_RESTORE_VALUES,
     CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION,
     CONF_I2C_ADDRESS,
+    CONF_USE_SAMPLING,
 ]
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -43,6 +45,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
         cv.Optional(CONF_RESTORE_VALUES, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
+        cv.Optional(CONF_USE_SAMPLING, default="false"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
         cv.Exclusive(
             CONF_CALIBRATION,
