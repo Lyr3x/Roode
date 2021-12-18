@@ -83,6 +83,7 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
+            distanceSensor.setROICenter(center[zone]);
             App.feed_wdt();
             delay(delay_between_measurements);
             // unsigned long end = micros();
@@ -96,41 +97,47 @@ namespace esphome
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
             static int LeftPreviousStatus = NOBODY;
             static int RightPreviousStatus = NOBODY;
-            static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
             static uint8_t DistancesTableSize[2] = {0, 0};
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            uint16_t MinDistance;
-            uint8_t i;
-            distanceSensor.setROICenter(center[zone]);
-            distance = distanceSensor.readSingle();
-            // if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
-            // {
-            //     Distances[zone][DistancesTableSize[zone]] = distance;
-            //     DistancesTableSize[zone]++;
-            //     // ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
-            // }
-            // else
-            // {
-            //     for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-            //         Distances[zone][i - 1] = Distances[zone][i];
-            //     Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-            //     // ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
-            // }
-            // // ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-            // // ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
-            // // pick up the min distance
-            // MinDistance = Distances[zone][0];
-            // if (DistancesTableSize[zone] >= 2)
-            // {
-            //     for (i = 1; i < DistancesTableSize[zone]; i++)
-            //     {
-            //         if (Distances[zone][i] < MinDistance)
-            //             MinDistance = Distances[zone][i];
-            //     }
-            // }
 
+            distance = distanceSensor.read();
+
+            if (use_sampling_)
+            {
+                static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+                uint16_t MinDistance;
+                uint8_t i;
+                if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
+                {
+                    Distances[zone][DistancesTableSize[zone]] = distance;
+                    DistancesTableSize[zone]++;
+                    ESP_LOGD("Roode", "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
+                }
+                else
+                {
+                    for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+                        Distances[zone][i - 1] = Distances[zone][i];
+                    Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+                    ESP_LOGD("Roode", "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+                }
+                ESP_LOGD("Roode", "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+                ESP_LOGD("Roode", "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+                // pick up the min distance
+                MinDistance = Distances[zone][0];
+                if (DistancesTableSize[zone] >= 2)
+                {
+                    for (i = 1; i < DistancesTableSize[zone]; i++)
+                    {
+                        if (Distances[zone][i] < MinDistance)
+                            MinDistance = Distances[zone][i];
+                    }
+                }
+                distance = MinDistance;
+            }
+
+            // PathTrack algorithm
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
             {
                 // Someone is in the sensing area
@@ -351,31 +358,34 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+            delay(100);
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
                 distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.readSingle();
+                delay(1);
+                distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
-
+                delay(delay_between_measurements);
+                App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.readSingle();
+                delay(1);
+                distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
-                App.feed_wdt();
+                delay(delay_between_measurements);
             }
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
-            EEPROM.write(13, ROI_size);
         }
         void Roode::setSensorMode(int sensor_mode, int timing_budget)
         {
+            distanceSensor.stopContinuous();
             switch (sensor_mode)
             {
             case 0: // short mode
@@ -386,9 +396,19 @@ namespace esphome
                 {
                     ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Short);
                 }
-                ESP_LOGI("Setup", "Manually set short mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI("Setup", "Set short mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 1: // long mode
+            case 1: // medium mode
+                time_budget_in_ms = time_budget_in_ms_medium;
+                delay_between_measurements = delay_between_measurements_medium;
+                status = distanceSensor.setDistanceMode(VL53L1X::Medium);
+                if (!status)
+                {
+                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Medium);
+                }
+                ESP_LOGI("Setup", "Set long mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 2: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = delay_between_measurements_long;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
@@ -396,21 +416,11 @@ namespace esphome
                 {
                     ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
                 }
-                ESP_LOGI("Setup", "Manually set long mode. timing_budget: %d", time_budget_in_ms);
-                break;
-            case 2: // max mode
-                time_budget_in_ms = time_budget_in_ms_max_range;
-                delay_between_measurements = delay_between_measurements_max;
-                status = distanceSensor.setDistanceMode(VL53L1X::Long);
-                if (!status)
-                {
-                    ESP_LOGE("Setup", "Could not set distance mode.  mode: %d", VL53L1X::Long);
-                }
-                ESP_LOGI("Setup", "Manually set max range mode. timing_budget: %d", time_budget_in_ms);
+                ESP_LOGI("Setup", "Set max range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 3: // custom mode
                 time_budget_in_ms = timing_budget;
-                delay_between_measurements = delay_between_measurements_max;
+                delay_between_measurements = delay_between_measurements_long;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {
@@ -426,32 +436,24 @@ namespace esphome
             {
                 ESP_LOGE("Setup", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
+            distanceSensor.startContinuous(delay_between_measurements);
         }
 
         void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
         {
-            if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
+            if (average_zone_0 <= short_distance_threshold && average_zone_1 <= short_distance_threshold)
             {
-                // we can use the short mode, which allows more precise measurements up to 1.3 meters
-                time_budget_in_ms = time_budget_in_ms_short;
-                delay_between_measurements = delay_between_measurements_short;
-                distanceSensor.setDistanceMode(VL53L1X::Short);
+                setSensorMode(0, time_budget_in_ms_short);
             }
 
-            if ((average_zone_0 > short_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= long_distance_threshold))
+            if ((average_zone_0 > short_distance_threshold && average_zone_0 <= medium_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= medium_distance_threshold))
             {
-                // we can use the short mode, which allows more precise measurements up to 1.3 meters
-                time_budget_in_ms = time_budget_in_ms_long;
-                delay_between_measurements = delay_between_measurements_long;
-                distanceSensor.setDistanceMode(VL53L1X::Long);
+                setSensorMode(1, time_budget_in_ms_medium);
             }
 
-            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            if (average_zone_0 > medium_distance_threshold || average_zone_1 > medium_distance_threshold)
             {
-                // we can use the short mode, which allows more precise measurements up to 1.3 meters
-                time_budget_in_ms = time_budget_in_ms_max_range;
-                delay_between_measurements = delay_between_measurements_max;
-                distanceSensor.setDistanceMode(VL53L1X::Long);
+                setSensorMode(1, time_budget_in_ms_long);
             }
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
             if (!status)
@@ -465,7 +467,7 @@ namespace esphome
             for (int i = 0; i < size; i++)
             {
                 sum = sum + array[i];
-                yield();
+                App.feed_wdt();
             }
             return sum;
         }
@@ -479,7 +481,7 @@ namespace esphome
             for (int i = 0; i < size; i++)
             {
                 sum_squared = sum_squared + (values[i] * values[i]);
-                yield();
+                App.feed_wdt();
             }
             variance = sum_squared / size - (avg * avg);
             sd = sqrt(variance);
@@ -491,10 +493,12 @@ namespace esphome
         void Roode::calibration(VL53L1X distanceSensor)
         {
             // the sensor does 100 measurements for each zone (zones are predefined)
-            time_budget_in_ms = time_budget_in_ms_max_range;
-            delay_between_measurements = delay_between_measurements_max;
+            time_budget_in_ms = time_budget_in_ms_long;
+            delay_between_measurements = delay_between_measurements_long;
             distanceSensor.setDistanceMode(VL53L1X::Long);
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+            distanceSensor.startContinuous(delay_between_measurements);
             if (!status)
             {
                 ESP_LOGE("Calibration", "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
@@ -518,25 +522,26 @@ namespace esphome
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
-
                 distanceSensor.setROICenter(center[zone]);
-
-                distance = distanceSensor.readSingle();
+                delay(1);
+                distance = distanceSensor.read();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
+                delay(delay_between_measurements);
                 App.feed_wdt();
                 // increase sum of values in Zone 1
                 distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.readSingle();
+                delay(1);
+                distance = distanceSensor.read();
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
+                delay(delay_between_measurements);
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone

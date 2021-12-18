@@ -39,12 +39,12 @@ namespace esphome
     static int time_budget_in_ms = 0;
 
     // parameters which define the time between two different measurements in various modes (https://www.st.com/resource/en/datasheet/vl53l1x.pdf)
-    static int time_budget_in_ms_short = 15;      // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_long = 33;       // Works up to 3.1m increase to minimum of 140ms for 4m
-    static int time_budget_in_ms_max_range = 100; // Works up to 4m in the dark on a white chart
-    static int delay_between_measurements_short = 25;
-    static int delay_between_measurements_long = 50;
-    static int delay_between_measurements_max = 220;
+    static int time_budget_in_ms_short = 15;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_medium = 33; // Works up to 3.1m increase to minimum of 140ms for 4m
+    static int time_budget_in_ms_long = 100;  // Works up to 4m in the dark on a white chart
+    static int delay_between_measurements_short = 20;
+    static int delay_between_measurements_medium = 50;
+    static int delay_between_measurements_long = 220;
 
     class Roode : public PollingComponent
     {
@@ -67,6 +67,7 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
+      void set_use_sampling(bool val) { use_sampling_ = val; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
@@ -116,6 +117,7 @@ namespace esphome
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
+      bool use_sampling_{false};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
@@ -128,7 +130,7 @@ namespace esphome
       bool lastTrippedState = 0;
       double people, distance_avg;
       int short_distance_threshold = 1300;
-      int long_distance_threshold = 3100;
+      int medium_distance_threshold = 3100;
       bool status = false;
       int optimized_zone_0;
       int optimized_zone_1;

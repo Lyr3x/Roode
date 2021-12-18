@@ -26,8 +26,8 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend(
     {
         cv.Optional(CONF_DISTANCE): sensor.sensor_schema(
             icon=ICON_RULER,
-            unit_of_measurement=UNIT_EMPTY,
-            accuracy_decimals=2,
+            unit_of_measurement="mm",
+            accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
