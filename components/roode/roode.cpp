@@ -83,7 +83,6 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
-            distanceSensor.setROICenter(center[zone]);
             App.feed_wdt();
             delay(delay_between_measurements);
             // unsigned long end = micros();
@@ -101,7 +100,7 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-
+            distanceSensor.setROICenter(center[zone]);
             distance = distanceSensor.read();
 
             if (use_sampling_)
