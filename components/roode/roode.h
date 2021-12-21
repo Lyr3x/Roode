@@ -122,7 +122,7 @@ namespace esphome
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
-      bool use_sampling_{false};
+      bool use_sampling_{true};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};

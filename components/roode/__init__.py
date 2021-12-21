@@ -45,7 +45,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
         cv.Optional(CONF_RESTORE_VALUES, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
-        cv.Optional(CONF_USE_SAMPLING, default="false"): cv.boolean,
+        cv.Optional(CONF_USE_SAMPLING, default="true"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
         cv.Exclusive(
             CONF_CALIBRATION,
