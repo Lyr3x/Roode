@@ -84,12 +84,14 @@ namespace esphome
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
+      void set_sensor_status_text_sensor(text_sensor::TextSensor *status_sensor_) { status_sensor = status_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
 
       uint16_t distance = 0;
+      const char *lastStatus = "";
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
@@ -109,6 +111,7 @@ namespace esphome
       binary_sensor::BinarySensor *presence_sensor;
       text_sensor::TextSensor *version_sensor;
       text_sensor::TextSensor *entry_exit_event_sensor;
+      text_sensor::TextSensor *status_sensor;
 
       void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X distanceSensor);

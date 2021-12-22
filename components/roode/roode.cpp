@@ -74,6 +74,10 @@ namespace esphome
             {
                 distance_sensor->publish_state(distance);
             }
+            if (status_sensor != nullptr)
+            {
+                status_sensor->publish_state(lastStatus);
+            }
         }
 
         void Roode::loop()
@@ -101,18 +105,18 @@ namespace esphome
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
-            auto rangeStatus = VL53L1X::rangeStatusToString(distanceSensor.ranging_data.range_status);
-            ESP_LOGD(TAG, "Range status: %s", rangeStatus);
-            if (rangeStatus != "range valid")
+            lastStatus = VL53L1X::rangeStatusToString(distanceSensor.ranging_data.range_status);
+            ESP_LOGD(TAG, "Range status: %s", lastStatus);
+            if (lastStatus != "range valid")
             {
-                if (rangeStatus != "signal fail" || rangeStatus != "wrap target fail")
+                if (lastStatus != "signal fail" || lastStatus != "wrap target fail")
                 {
-                    ESP_LOGE(TAG, "Ranging failed with an error. status: %s", rangeStatus);
+                    ESP_LOGE(TAG, "Ranging failed with an error. status: %s", lastStatus);
                     return;
                 }
                 else
                 {
-                    ESP_LOGE(TAG, "Ranging failed with an warning. status: %s", rangeStatus);
+                    ESP_LOGE(TAG, "Ranging failed with an warning. status: %s", lastStatus);
                 }
             }
             distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
