@@ -2,7 +2,7 @@ from re import I
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
-from esphome.const import CONF_ID, STATE_CLASS_MEASUREMENT, UNIT_EMPTY, UNIT_METER
+from esphome.const import CONF_ID, DEVICE_CLASS_EMPTY, STATE_CLASS_MEASUREMENT, UNIT_EMPTY, UNIT_METER
 
 
 # DEPENDENCIES = ["i2c"]
@@ -77,7 +77,7 @@ CONFIG_SCHEMA = cv.Schema(
                     CONF_SENSOR_MODE,
                     "manual_mode",
                     f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=-1, max=2),
+                ): cv.int_range(min=-1, max=3),
                 cv.Inclusive(
                     CONF_ROI_HEIGHT,
                     "manual_mode",

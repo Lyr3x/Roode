@@ -51,7 +51,7 @@ namespace esphome
                 center[0] = 167;
                 center[1] = 231;
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-                setSensorMode(sensor_mode);
+                setSensorMode(sensor_mode, timing_budget_);
                 DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
                 DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
                 publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
