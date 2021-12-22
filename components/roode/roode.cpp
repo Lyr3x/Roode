@@ -91,7 +91,7 @@ namespace esphome
         void Roode::handleSensorStatus()
         {
             statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
-            if (last_sensor_status != sensor_status && sensor_status == VL53L1X::RangeStatus::RangeValid)
+            if (last_sensor_status == sensor_status && sensor_status == VL53L1X::RangeStatus::RangeValid)
             {
                 {
                     status_sensor->publish_state(statusString);
