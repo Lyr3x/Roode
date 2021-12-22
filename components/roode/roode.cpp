@@ -101,6 +101,20 @@ namespace esphome
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
             distance = distanceSensor.read();
+            auto rangeStatus = VL53L1X::rangeStatusToString(distanceSensor.ranging_data.range_status);
+            ESP_LOGD(TAG, "Range status: %s", rangeStatus);
+            if (rangeStatus != "range valid")
+            {
+                if (rangeStatus != "signal fail" || rangeStatus != "wrap target fail")
+                {
+                    ESP_LOGE(TAG, "Ranging failed with an error. status: %s", rangeStatus);
+                    return;
+                }
+                else
+                {
+                    ESP_LOGE(TAG, "Ranging failed with an warning. status: %s", rangeStatus);
+                }
+            }
             distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             if (use_sampling_)
             {
@@ -150,7 +164,6 @@ namespace esphome
             // left zone
             if (zone == LEFT)
             {
-
                 if (CurrentZoneStatus != LeftPreviousStatus)
                 {
                     // event in left zone has occured
@@ -173,7 +186,6 @@ namespace esphome
             // right zone
             else
             {
-
                 if (CurrentZoneStatus != RightPreviousStatus)
                 {
 
@@ -416,7 +428,7 @@ namespace esphome
                 break;
             case 3: // custom mode
                 time_budget_in_ms = new_timing_budget;
-                delay_between_measurements = delay_between_measurements_long;
+                delay_between_measurements = new_timing_budget + 5;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {

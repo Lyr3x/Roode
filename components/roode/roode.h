@@ -44,12 +44,12 @@ namespace esphome
     ranging. The user has to stop the ranging, change these parameters, and restart ranging
     The minimum inter-measurement period must be longer than the timing budget + 4 ms.
     */
-    static int time_budget_in_ms_short = 15;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_medium = 33; // Works up to 3.1m increase to minimum of 140ms for 4m
+    static int time_budget_in_ms_short = 20;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_medium = 50; // Works up to 3.1m increase to minimum of 140ms for 4m
     static int time_budget_in_ms_long = 140;  // Works up to 4m in the dark on a white chart
     static int delay_between_measurements_short = 25;
-    static int delay_between_measurements_medium = 40;
-    static int delay_between_measurements_long = 150;
+    static int delay_between_measurements_medium = 55;
+    static int delay_between_measurements_long = 145;
 
     class Roode : public PollingComponent
     {
