@@ -51,7 +51,7 @@ namespace esphome
                 center[0] = 167;
                 center[1] = 231;
                 distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-                setSensorMode(sensor_mode);
+                setSensorMode(sensor_mode, timing_budget_);
                 DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
                 DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
                 publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
@@ -88,6 +88,25 @@ namespace esphome
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
         }
 
+        void Roode::handleSensorStatus()
+        {
+            statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
+            if (last_sensor_status == sensor_status && sensor_status == VL53L1X::RangeStatus::RangeValid)
+            {
+                {
+                    status_sensor->publish_state(statusString);
+                }
+            }
+            if (sensor_status != VL53L1X::RangeStatus::RangeValid && sensor_status != VL53L1X::RangeStatus::SignalFail && sensor_status != VL53L1X::RangeStatus::WrapTargetFail)
+            {
+                ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
+                if (status_sensor != nullptr)
+                {
+                    status_sensor->publish_state(statusString);
+                }
+                return;
+            }
+        }
         void Roode::getZoneDistance()
         {
             static int PathTrack[] = {0, 0, 0, 0};
@@ -100,8 +119,12 @@ namespace esphome
             int AnEventHasOccured = 0;
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
+            last_sensor_status = sensor_status;
             distance = distanceSensor.read();
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80); // stop reading
+            sensor_status = distanceSensor.ranging_data.range_status;
+            handleSensorStatus();
+
             if (use_sampling_)
             {
                 ESP_LOGD(SETUP, "Using sampling");
@@ -150,7 +173,6 @@ namespace esphome
             // left zone
             if (zone == LEFT)
             {
-
                 if (CurrentZoneStatus != LeftPreviousStatus)
                 {
                     // event in left zone has occured
@@ -173,7 +195,6 @@ namespace esphome
             // right zone
             else
             {
-
                 if (CurrentZoneStatus != RightPreviousStatus)
                 {
 
@@ -386,7 +407,7 @@ namespace esphome
             {
             case 0: // short mode
                 time_budget_in_ms = time_budget_in_ms_short;
-                delay_between_measurements = delay_between_measurements_short;
+                delay_between_measurements = time_budget_in_ms + 5;
                 status = distanceSensor.setDistanceMode(VL53L1X::Short);
                 if (!status)
                 {
@@ -396,7 +417,7 @@ namespace esphome
                 break;
             case 1: // medium mode
                 time_budget_in_ms = time_budget_in_ms_medium;
-                delay_between_measurements = delay_between_measurements_medium;
+                delay_between_measurements = time_budget_in_ms + 5;
                 status = distanceSensor.setDistanceMode(VL53L1X::Medium);
                 if (!status)
                 {
@@ -406,7 +427,7 @@ namespace esphome
                 break;
             case 2: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
-                delay_between_measurements = delay_between_measurements_long;
+                delay_between_measurements = time_budget_in_ms + 5;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {
@@ -416,7 +437,7 @@ namespace esphome
                 break;
             case 3: // custom mode
                 time_budget_in_ms = new_timing_budget;
-                delay_between_measurements = delay_between_measurements_long;
+                delay_between_measurements = new_timing_budget + 5;
                 status = distanceSensor.setDistanceMode(VL53L1X::Long);
                 if (!status)
                 {
@@ -490,7 +511,7 @@ namespace esphome
             distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_medium;
-            delay_between_measurements = delay_between_measurements_medium;
+            delay_between_measurements = time_budget_in_ms + 5;
             distanceSensor.setDistanceMode(VL53L1X::Medium);
             status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
 

@@ -13,8 +13,9 @@ DEPENDENCIES = ["roode"]
 
 VERSION = "version"
 ENTRY_EXIT_EVENT = "entry_exit_event"
+STATUS = "sensor_status"
 
-TYPES = [VERSION, ENTRY_EXIT_EVENT]
+TYPES = [VERSION, ENTRY_EXIT_EVENT, STATUS]
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -31,6 +32,15 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(ENTRY_EXIT_EVENT): text_sensor.TEXT_SENSOR_SCHEMA.extend(
             {
                 cv.Optional(CONF_ICON, default="mdi:sign-direction"): text_sensor.icon,
+                cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
+                cv.Optional(
+                    CONF_ENTITY_CATEGORY, default=ENTITY_CATEGORY_DIAGNOSTIC
+                ): cv.entity_category,
+            }
+        ),
+        cv.Optional(STATUS): text_sensor.TEXT_SENSOR_SCHEMA.extend(
+            {
+                cv.Optional(CONF_ICON, default="mdi:check-circle"): text_sensor.icon,
                 cv.GenerateID(): cv.declare_id(text_sensor.TextSensor),
                 cv.Optional(
                     CONF_ENTITY_CATEGORY, default=ENTITY_CATEGORY_DIAGNOSTIC
