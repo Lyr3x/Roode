@@ -74,10 +74,6 @@ namespace esphome
             {
                 distance_sensor->publish_state(distance);
             }
-            if (status_sensor != nullptr)
-            {
-                status_sensor->publish_state(lastStatusString);
-            }
         }
 
         void Roode::loop()
@@ -92,6 +88,25 @@ namespace esphome
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
         }
 
+        void Roode::handleSensorStatus()
+        {
+            statusString = VL53L1X::rangeStatusToString(last_sensor_status); // This function call will manipulate the range_status variable
+            if (last_sensor_status != sensor_status && sensor_status != VL53L1X::RangeStatus::RangeValid)
+            {
+                {
+                    status_sensor->publish_state(statusString);
+                }
+            }
+            if (sensor_status != VL53L1X::RangeStatus::RangeValid && sensor_status != VL53L1X::RangeStatus::SignalFail && sensor_status != VL53L1X::RangeStatus::WrapTargetFail)
+            {
+                ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
+                if (status_sensor != nullptr)
+                {
+                    status_sensor->publish_state(statusString);
+                }
+                return;
+            }
+        }
         void Roode::getZoneDistance()
         {
             static int PathTrack[] = {0, 0, 0, 0};
@@ -104,23 +119,12 @@ namespace esphome
             int AnEventHasOccured = 0;
             distanceSensor.setROICenter(center[zone]);
             distanceSensor.startContinuous(delay_between_measurements);
+            last_sensor_status = sensor_status;
             distance = distanceSensor.read();
-            lastStatus = distanceSensor.ranging_data.range_status;
-            lastStatusString = VL53L1X::rangeStatusToString(distanceSensor.ranging_data.range_status);
-            ESP_LOGD(TAG, "Range status: %d, message: ", lastStatus, lastStatusString);
-            if (lastStatus != 0)
-            {
-                if (lastStatus == 2 || lastStatus == 7) // Those exclusions are warnings
-                {
-                    ESP_LOGW(TAG, "Ranging failed with an warning. status: %d, warning: %s", lastStatus, lastStatusString);
-                }
-                else
-                {
-                    ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", lastStatus, lastStatusString);
-                    return;
-                }
-            }
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
+            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80); // stop reading
+            sensor_status = distanceSensor.ranging_data.range_status;
+            handleSensorStatus();
+
             if (use_sampling_)
             {
                 ESP_LOGD(SETUP, "Using sampling");

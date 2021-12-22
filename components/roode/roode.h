@@ -45,7 +45,7 @@ namespace esphome
     The minimum inter-measurement period must be longer than the timing budget + 4 ms.
     */
     static int time_budget_in_ms_short = 20;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_medium = 70; // Works up to 3.1m increase to minimum of 140ms for 4m
+    static int time_budget_in_ms_medium = 60; // Works up to 3.1m increase to minimum of 140ms for 4m
     static int time_budget_in_ms_long = 140;  // Works up to 4m in the dark on a white chart
 
     class Roode : public PollingComponent
@@ -86,10 +86,12 @@ namespace esphome
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
+      void handleSensorStatus();
 
       uint16_t distance = 0;
-      uint16_t lastStatus = -1;
-      const char *lastStatusString = "";
+      VL53L1X::RangeStatus last_sensor_status = VL53L1X::RangeStatus::None;
+      VL53L1X::RangeStatus sensor_status = VL53L1X::RangeStatus::None;
+      const char *statusString = "";
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
