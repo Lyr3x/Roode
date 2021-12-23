@@ -1,6 +1,9 @@
 {
-	"recommendations": [
-		"esphome.esphome-vscode",
-        "ms-vscode.cpptools"
-	]
+    // See http://go.microsoft.com/fwlink/?LinkId=827846
+    // for the documentation about the extensions.json format
+    "recommendations": [
+        "esphome.esphome-vscode",
+        "ms-vscode.cpptools",
+        "platformio.platformio-ide"
+    ]
 }
