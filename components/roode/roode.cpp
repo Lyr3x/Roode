@@ -90,7 +90,7 @@ namespace esphome
 
         bool Roode::handleSensorStatus()
         {
-            statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
+            static const char *statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
             ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
 
             if (last_sensor_status == sensor_status && sensor_status == VL53L1X::RangeStatus::RangeValid)

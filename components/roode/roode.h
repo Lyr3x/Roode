@@ -91,7 +91,6 @@ namespace esphome
       uint16_t distance = 0;
       VL53L1X::RangeStatus last_sensor_status = VL53L1X::RangeStatus::None;
       VL53L1X::RangeStatus sensor_status = VL53L1X::RangeStatus::None;
-      const char *statusString = "";
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
