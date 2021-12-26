@@ -82,7 +82,7 @@ namespace esphome
             getZoneDistance();
             zone++;
             zone = zone % 2;
-            // App.feed_wdt();
+            App.feed_wdt();
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -107,7 +107,9 @@ namespace esphome
 
                 return false;
             }
+            return true;
         }
+
         void Roode::getZoneDistance()
         {
             static int PathTrack[] = {0, 0, 0, 0};
@@ -124,10 +126,10 @@ namespace esphome
             distance = distanceSensor.read();
             distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80); // stop reading
             sensor_status = distanceSensor.ranging_data.range_status;
-            if (!handleSensorStatus())
-            {
-                return;
-            }
+            // if (!handleSensorStatus())
+            // {
+            //     return;
+            // }
 
             if (use_sampling_)
             {
