@@ -86,7 +86,7 @@ namespace esphome
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
-      void handleSensorStatus();
+      bool handleSensorStatus();
 
       uint16_t distance = 0;
       VL53L1X::RangeStatus last_sensor_status = VL53L1X::RangeStatus::None;

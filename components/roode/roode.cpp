@@ -88,23 +88,24 @@ namespace esphome
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
         }
 
-        void Roode::handleSensorStatus()
+        bool Roode::handleSensorStatus()
         {
             statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
+            ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
+
             if (last_sensor_status == sensor_status && sensor_status == VL53L1X::RangeStatus::RangeValid)
             {
-                {
-                    status_sensor->publish_state(statusString);
-                }
-            }
-            if (sensor_status != VL53L1X::RangeStatus::RangeValid && sensor_status != VL53L1X::RangeStatus::SignalFail && sensor_status != VL53L1X::RangeStatus::WrapTargetFail)
-            {
-                ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
                 if (status_sensor != nullptr)
                 {
                     status_sensor->publish_state(statusString);
                 }
-                return;
+                return true;
+            }
+            if (sensor_status != VL53L1X::RangeStatus::RangeValid && sensor_status != VL53L1X::RangeStatus::SignalFail && sensor_status != VL53L1X::RangeStatus::WrapTargetFail)
+            {
+                ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
+
+                return false;
             }
         }
         void Roode::getZoneDistance()
@@ -123,7 +124,10 @@ namespace esphome
             distance = distanceSensor.read();
             distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80); // stop reading
             sensor_status = distanceSensor.ranging_data.range_status;
-            handleSensorStatus();
+            if (!handleSensorStatus())
+            {
+                return;
+            }
 
             if (use_sampling_)
             {
