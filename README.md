@@ -1,5 +1,7 @@
 # RooDe
 
+[![Build](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/main.yml/badge.svg?branch=master)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/main.yml)
+
 People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
