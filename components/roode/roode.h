@@ -90,11 +90,11 @@ namespace esphome
       void sendCounter(uint16_t counter);
       void recalibration();
       bool handleSensorStatus();
-      uint16_t getDistance();
+      int8_t getDistance();
 
       uint16_t distance = 0;
-      VL53L1_Error last_sensor_status = 0;
-      VL53L1_Error sensor_status = 0;
+      VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+      VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI

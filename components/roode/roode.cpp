@@ -106,15 +106,16 @@ namespace esphome
                 }
                 return true;
             }
-            if (sensor_status != 0 && sensor_status != 2 && sensor_status != 7)
+            if (sensor_status < 28)
             {
                 ESP_LOGE(TAG, "Ranging failed with an error. status: %d", sensor_status);
+                status_sensor->publish_state(sensor_status);
                 return false;
             }
             return true;
         }
 
-        uint16_t Roode::getDistance()
+        int8_t Roode::getDistance()
         {
             // Checking if data is available. This can also be done through the hardware interrupt. See the ReadDistanceHardwareInterrupt for an example
             uint8_t dataReady = false;
@@ -130,7 +131,7 @@ namespace esphome
             if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
-                return -1;
+                return sensor_status;
             }
             // After reading the results reset the interrupt to be able to take another measurement
             distanceSensor.ClearInterrupt();
