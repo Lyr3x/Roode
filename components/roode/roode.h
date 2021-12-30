@@ -63,6 +63,8 @@ namespace esphome
       void set_manual_active(bool val) { manual_active_ = val; }
       void set_roi_active(bool val) { roi_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
+      void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
+      void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
       void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
       void set_manual_threshold(int val) { manual_threshold_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
@@ -128,6 +130,8 @@ namespace esphome
       bool manual_active_{false};
       bool roi_active_{false};
       bool roi_calibration_{false};
+      int sensor_offset_calibration_{-1};
+      int sensor_xtalk_calibration_{-1};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       bool use_sampling_{true};
