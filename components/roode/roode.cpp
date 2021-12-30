@@ -115,19 +115,19 @@ namespace esphome
             return true;
         }
 
-        int8_t Roode::getDistance()
+        uint16_t Roode::getDistance()
         {
             // Checking if data is available. This can also be done through the hardware interrupt. See the ReadDistanceHardwareInterrupt for an example
             uint8_t dataReady = false;
             while (!dataReady)
             {
-                distanceSensor.CheckForDataReady(&dataReady);
+                status += distanceSensor.CheckForDataReady(&dataReady);
                 delay(1);
             }
 
             // Get the results
             uint16_t distance;
-            sensor_status = distanceSensor.GetDistanceInMm(&distance);
+            sensor_status += distanceSensor.GetDistanceInMm(&distance);
             if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
@@ -155,6 +155,8 @@ namespace esphome
             distanceSensor.StopRanging();
             if (!handleSensorStatus())
             {
+                last_sensor_status = sensor_status;
+                sensor_status = 0;
                 return;
             }
 

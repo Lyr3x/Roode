@@ -90,7 +90,7 @@ namespace esphome
       void sendCounter(uint16_t counter);
       void recalibration();
       bool handleSensorStatus();
-      int8_t getDistance();
+      uint16_t getDistance();
 
       uint16_t distance = 0;
       VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
