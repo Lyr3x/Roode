@@ -148,13 +148,14 @@ namespace esphome
             uint8_t dataReady = false;
             while (!dataReady)
             {
-                status += distanceSensor.CheckForDataReady(&dataReady);
+                sensor_status += distanceSensor.CheckForDataReady(&dataReady);
                 delay(1);
             }
 
             // Get the results
             uint16_t distance;
             sensor_status += distanceSensor.GetDistanceInMm(&distance);
+
             if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
@@ -162,6 +163,7 @@ namespace esphome
             }
             // After reading the results reset the interrupt to be able to take another measurement
             distanceSensor.ClearInterrupt();
+
             return distance;
         }
 
@@ -501,7 +503,17 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 3: // custom mode
+            case 3: // max mode
+                time_budget_in_ms = time_budget_in_ms_max;
+                delay_between_measurements = time_budget_in_ms + 5;
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
+                }
+                ESP_LOGI(SETUP, "Set max range mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 4: // custom mode
                 time_budget_in_ms = new_timing_budget;
                 delay_between_measurements = new_timing_budget + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -525,18 +537,23 @@ namespace esphome
         {
             if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
             {
-                setSensorMode(0, time_budget_in_ms_short);
+                setSensorMode(0);
             }
 
             if ((average_zone_0 > short_distance_threshold && average_zone_0 <= medium_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= medium_distance_threshold))
             {
-                setSensorMode(1, time_budget_in_ms_medium);
+                setSensorMode(1);
             }
 
-            if (average_zone_0 > medium_distance_threshold || average_zone_1 > medium_distance_threshold)
+            if ((average_zone_0 > medium_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > medium_distance_threshold && average_zone_1 <= long_distance_threshold))
             {
-                setSensorMode(2, time_budget_in_ms_long);
+                setSensorMode(2);
             }
+            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            {
+                setSensorMode(3);
+            }
+
             sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
             if (sensor_status != VL53L1_ERROR_NONE)
             {

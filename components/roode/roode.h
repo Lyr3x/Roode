@@ -49,7 +49,8 @@ namespace esphome
     */
     static int time_budget_in_ms_short = 15;  // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
     static int time_budget_in_ms_medium = 33; // Works up to 3.1m
-    static int time_budget_in_ms_long = 100;  // Works up to 4m in the dark on a white chart
+    static int time_budget_in_ms_long = 100;  // Works up to 2300m
+    static int time_budget_in_ms_max = 200;  // Works up to 3000m
 
     class Roode : public PollingComponent
     {
@@ -98,6 +99,7 @@ namespace esphome
       uint16_t distance = 0;
       VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
       VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
+      ERangeStatus rangeStatus;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
@@ -144,7 +146,8 @@ namespace esphome
       int number_attempts = 20;
       int timing_budget_{-1};
       int short_distance_threshold = 1300;
-      int medium_distance_threshold = 3100;
+      int medium_distance_threshold = 2300;
+      int long_distance_threshold = 3000;
       bool status = false;
       int optimized_zone_0;
       int optimized_zone_1;
