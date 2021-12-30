@@ -81,7 +81,7 @@ switch:
     name: $friendly_name Restart
 binary_sensor:
   - platform: status
-    name: $friendly_name Status
+    name: $friendly_name API Status
   - platform: roode
     presence_sensor:
       name: $friendly_name presence
@@ -108,6 +108,8 @@ sensor:
       name: $friendly_name ROI height
     roi_width:
       name: $friendly_name ROI width
+    sensor_status:
+      name: Sensor Status
 
   - platform: wifi_signal
     name: $friendly_name RSSI

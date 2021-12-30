@@ -119,6 +119,8 @@ sensor:
       name: $friendly_name ROI height
     roi_width:
       name: $friendly_name ROI width
+    sensor_status:
+      name: Sensor Status
 
   - platform: wifi_signal
     name: $friendly_name RSSI
@@ -152,7 +154,6 @@ text_sensor:
   - platform: roode
     version:
       name: $friendly_name version
-  - platform: roode
     entry_exit_event:
       name: $friendly_name last direction
   - platform: template

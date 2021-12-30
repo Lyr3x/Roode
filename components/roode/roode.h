@@ -6,7 +6,8 @@
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/core/application.h"
 #include "EEPROM.h"
-#include <VL53L1X.h>
+// #include <VL53L1X.h>
+#include "VL53L1X_ULD.h"
 #include <math.h>
 
 namespace esphome
@@ -15,8 +16,9 @@ namespace esphome
   {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "v1.4.0-beta"
+#define VERSION "v1.4.1-beta"
 #define EEPROM_SIZE 512
+#define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
     static int LEFT = 0;
     static int RIGHT = 1;
     static const uint16_t DISTANCES_ARRAY_SIZE = 2;
@@ -43,10 +45,11 @@ namespace esphome
     The timing budget and inter-measurement period should not be called when the sensor is
     ranging. The user has to stop the ranging, change these parameters, and restart ranging
     The minimum inter-measurement period must be longer than the timing budget + 4 ms.
+    Valid values: [15,20,33,50,100,200,500]
     */
-    static int time_budget_in_ms_short = 20;  // 20ms with the full API but 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_medium = 60; // Works up to 3.1m increase to minimum of 140ms for 4m
-    static int time_budget_in_ms_long = 140;  // Works up to 4m in the dark on a white chart
+    static int time_budget_in_ms_short = 15;  // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_medium = 33; // Works up to 3.1m
+    static int time_budget_in_ms_long = 100;  // Works up to 4m in the dark on a white chart
 
     class Roode : public PollingComponent
     {
@@ -79,19 +82,20 @@ namespace esphome
       void set_min_threshold_zone1_sensor(sensor::Sensor *min_threshold_zone1_sensor_) { min_threshold_zone1_sensor = min_threshold_zone1_sensor_; }
       void set_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { roi_height_sensor = roi_height_sensor_; }
       void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
+      void set_sensor_status_sensor(sensor::Sensor *status_sensor_) { status_sensor = status_sensor_; }
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
-      void set_sensor_status_text_sensor(text_sensor::TextSensor *status_sensor_) { status_sensor = status_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
       void getZoneDistance();
       void sendCounter(uint16_t counter);
       void recalibration();
       bool handleSensorStatus();
+      uint16_t getDistance();
 
       uint16_t distance = 0;
-      VL53L1X::RangeStatus last_sensor_status = VL53L1X::RangeStatus::None;
-      VL53L1X::RangeStatus sensor_status = VL53L1X::RangeStatus::None;
+      VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+      VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
@@ -99,7 +103,7 @@ namespace esphome
       uint16_t peopleCounter{0};
 
     protected:
-      VL53L1X distanceSensor;
+      VL53L1X_ULD distanceSensor;
       sensor::Sensor *distance_sensor;
       sensor::Sensor *people_counter_sensor;
       sensor::Sensor *max_threshold_zone0_sensor;
@@ -108,13 +112,13 @@ namespace esphome
       sensor::Sensor *min_threshold_zone1_sensor;
       sensor::Sensor *roi_height_sensor;
       sensor::Sensor *roi_width_sensor;
+      sensor::Sensor *status_sensor;
       binary_sensor::BinarySensor *presence_sensor;
       text_sensor::TextSensor *version_sensor;
       text_sensor::TextSensor *entry_exit_event_sensor;
-      text_sensor::TextSensor *status_sensor;
 
-      void roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1);
-      void calibration(VL53L1X distanceSensor);
+      void roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1);
+      void calibration(VL53L1X_ULD distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
       void setSensorMode(int sensor_mode, int timing_budget = 0);
       void publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax);
