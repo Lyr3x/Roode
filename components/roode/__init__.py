@@ -40,6 +40,8 @@ CONF_TIMING_BUDGET = "timing_budget"
 CONF_USE_SAMPLING = "use_sampling"
 CONF_ROI = "roi"
 CONF_ROI_ACTIVE = "roi_active"
+CONF_SENSOR_OFFSET_CALIBRATION = "sensor_offset_calibration"
+CONF_SENSOR_XTALK_CALIBRATION = "sensor_xtalk_calibration"
 TYPES = [
     CONF_RESTORE_VALUES,
     CONF_INVERT_DIRECTION,
@@ -69,6 +71,8 @@ CONFIG_SCHEMA = cv.Schema(
                     min=0, max=100
                 ),
                 cv.Optional(CONF_ROI_CALIBRATION, default="false"): cv.boolean,
+                cv.Optional(CONF_SENSOR_OFFSET_CALIBRATION, default=-1): cv.int_,
+                cv.Optional(CONF_SENSOR_XTALK_CALIBRATION, default=-1): cv.int_,
             }
         ),
         cv.Exclusive(
@@ -148,7 +152,7 @@ async def to_code(config):
     cg.add_library("EEPROM", None)
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
-    
+
     validate_roi_settings(config)
 
     for key in TYPES:

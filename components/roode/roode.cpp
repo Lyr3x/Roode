@@ -26,6 +26,10 @@ namespace esphome
             Wire.setClock(400000);
 
             // Initialize the sensor, give the special I2C_address to the Begin function
+            // Set a different I2C address
+            // This address is stored as long as the sensor is powered. To revert this change you can unplug and replug the power to the sensor
+            distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
+
             sensor_status = distanceSensor.Begin(VL53L1X_ULD_I2C_ADDRESS);
             if (sensor_status != VL53L1_ERROR_NONE)
             {
@@ -35,10 +39,30 @@ namespace esphome
                 {
                 }
             }
-
-            // Set a different I2C address
-            // This address is stored as long as the sensor is powered. To revert this change you can unplug and replug the power to the sensor
-            distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
+            if (sensor_offset_calibration_ != -1)
+            {
+                ESP_LOGI(CALIBRATION, "Setting sensor offset calibration to %d", sensor_offset_calibration_);
+                sensor_status = distanceSensor.SetOffsetInMm(sensor_offset_calibration_);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
+                    while (1)
+                    {
+                    }
+                }
+            }
+            if (sensor_xtalk_calibration_ != -1)
+            {
+                ESP_LOGI(CALIBRATION, "Setting sensor xtalk calibration to %d", sensor_xtalk_calibration_);
+                sensor_status = distanceSensor.SetXTalk(sensor_xtalk_calibration_);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
+                    while (1)
+                    {
+                    }
+                }
+            }
 
             if (invert_direction_)
             {
