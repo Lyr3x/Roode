@@ -286,3 +286,8 @@ lower right.
 2. You did not connect the Sensor properly
 3. Light interference (You will see a lot of noise)
 4. Bad connections
+
+## Sponsors
+Thank you very much for you sponsorship!
+* sunshine-hass
+
