@@ -120,7 +120,9 @@ sensor:
       name: $friendly_name ROI height
     roi_width:
       name: $friendly_name ROI width
-
+    sensor_status:
+      name: Sensor Status
+      
   - platform: wifi_signal
     name: $friendly_name RSSI
     update_interval: 60s

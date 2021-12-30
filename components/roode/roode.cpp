@@ -96,20 +96,19 @@ namespace esphome
 
         bool Roode::handleSensorStatus()
         {
-            // const char *statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
             ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
 
             if (last_sensor_status == sensor_status && sensor_status == 0)
             {
                 if (status_sensor != nullptr)
                 {
-                    // status_sensor->publish_state(statusString);
+                    status_sensor->publish_state(sensor_status);
                 }
                 return true;
             }
             if (sensor_status != 0 && sensor_status != 2 && sensor_status != 7)
             {
-                // ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
+                ESP_LOGE(TAG, "Ranging failed with an error. status: %d", sensor_status);
                 return false;
             }
             return true;
