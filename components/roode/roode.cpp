@@ -97,22 +97,25 @@ namespace esphome
         bool Roode::handleSensorStatus()
         {
             ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
-
-            if (last_sensor_status == sensor_status && sensor_status == 0)
+            bool check_status = false;
+            if (last_sensor_status == sensor_status && sensor_status == VL53L1_ERROR_NONE)
             {
                 if (status_sensor != nullptr)
                 {
                     status_sensor->publish_state(sensor_status);
                 }
-                return true;
+                check_status = true;
             }
-            if (sensor_status < 28)
+            if (sensor_status < 28 && sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(TAG, "Ranging failed with an error. status: %d", sensor_status);
                 status_sensor->publish_state(sensor_status);
-                return false;
+                check_status = false;
             }
-            return true;
+
+            last_sensor_status = sensor_status;
+            sensor_status = VL53L1_ERROR_NONE;
+            return check_status;
         }
 
         uint16_t Roode::getDistance()
@@ -148,15 +151,13 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            distanceSensor.SetROICenter(center[zone]);
-            distanceSensor.StartRanging();
+            sensor_status += distanceSensor.SetROICenter(center[zone]);
+            sensor_status += distanceSensor.StartRanging();
             last_sensor_status = sensor_status;
             distance = getDistance();
-            distanceSensor.StopRanging();
+            sensor_status += distanceSensor.StopRanging();
             if (!handleSensorStatus())
             {
-                last_sensor_status = sensor_status;
-                sensor_status = 0;
                 return;
             }
 
