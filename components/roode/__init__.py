@@ -121,7 +121,7 @@ async def to_code(config):
     await cg.register_component(hub, config)
     cg.add_library("EEPROM", None)
     cg.add_library("Wire", None)
-    cg.add_library("pololu", "1.3.0", "VL53L1X")
+    cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
     for key in TYPES:
         await setup_conf(config, key, hub)
     if CONF_MANUAL in config:

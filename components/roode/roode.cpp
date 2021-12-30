@@ -24,22 +24,27 @@ namespace esphome
             EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
             Wire.setClock(400000);
-            distanceSensor.setBus(&Wire);
-            if (distanceSensor.getAddress() != address_)
+
+            // Initialize the sensor, give the special I2C_address to the Begin function
+            sensor_status = distanceSensor.Begin(VL53L1X_ULD_I2C_ADDRESS);
+            if (sensor_status != VL53L1_ERROR_NONE)
             {
-                distanceSensor.setAddress(address_);
+                // If the sensor could not be initialized print out the error code. -7 is timeout
+                ESP_LOGE(SETUP, "Could not initialize the sensor, error code: %d", sensor_status);
+                while (1)
+                {
+                }
             }
+
+            // Set a different I2C address
+            // This address is stored as long as the sensor is powered. To revert this change you can unplug and replug the power to the sensor
+            distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
+
             if (invert_direction_)
             {
                 ESP_LOGD(TAG, "Inverting direction");
                 LEFT = 1;
                 RIGHT = 0;
-            }
-
-            distanceSensor.setTimeout(500);
-            if (!distanceSensor.init())
-            {
-                ESP_LOGE(SETUP, "Failed to detect and initialize sensor!");
             }
             if (calibration_active_)
             {
@@ -50,7 +55,7 @@ namespace esphome
             {
                 center[0] = 167;
                 center[1] = 231;
-                distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
+                distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
                 setSensorMode(sensor_mode, timing_budget_);
                 DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
                 DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
@@ -65,7 +70,8 @@ namespace esphome
                 ESP_LOGD("Roode setup", "last value: %u", peopleCounter);
             }
             sendCounter(peopleCounter);
-            distanceSensor.startContinuous(delay_between_measurements);
+            distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+            distanceSensor.StartRanging();
         }
 
         void Roode::update()
@@ -90,23 +96,46 @@ namespace esphome
 
         bool Roode::handleSensorStatus()
         {
-            const char *statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
+            // const char *statusString = VL53L1X::rangeStatusToString(sensor_status); // This function call will manipulate the range_status variable
             ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
 
             if (last_sensor_status == sensor_status && sensor_status == 0)
             {
                 if (status_sensor != nullptr)
                 {
-                    status_sensor->publish_state(statusString);
+                    // status_sensor->publish_state(statusString);
                 }
                 return true;
             }
             if (sensor_status != 0 && sensor_status != 2 && sensor_status != 7)
             {
-                ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
+                // ESP_LOGE(TAG, "Ranging failed with an error. status: %d, error: %s", sensor_status, statusString);
                 return false;
             }
             return true;
+        }
+
+        uint16_t Roode::getDistance()
+        {
+            // Checking if data is available. This can also be done through the hardware interrupt. See the ReadDistanceHardwareInterrupt for an example
+            uint8_t dataReady = false;
+            while (!dataReady)
+            {
+                distanceSensor.CheckForDataReady(&dataReady);
+                delay(1);
+            }
+
+            // Get the results
+            uint16_t distance;
+            sensor_status = distanceSensor.GetDistanceInMm(&distance);
+            if (sensor_status != VL53L1_ERROR_NONE)
+            {
+                ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
+                return -1;
+            }
+            // After reading the results reset the interrupt to be able to take another measurement
+            distanceSensor.ClearInterrupt();
+            return distance;
         }
 
         void Roode::getZoneDistance()
@@ -119,12 +148,11 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            distanceSensor.setROICenter(center[zone]);
-            distanceSensor.startContinuous(delay_between_measurements);
+            distanceSensor.SetROICenter(center[zone]);
+            distanceSensor.StartRanging();
             last_sensor_status = sensor_status;
-            distance = distanceSensor.read();
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80); // stop reading
-            sensor_status = distanceSensor.ranging_data.range_status;
+            distance = getDistance();
+            distanceSensor.StopRanging();
             if (!handleSensorStatus())
             {
                 return;
@@ -318,7 +346,7 @@ namespace esphome
         {
             calibration(distanceSensor);
         }
-        void Roode::roi_calibration(VL53L1X distanceSensor, int optimized_zone_0, int optimized_zone_1)
+        void Roode::roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1)
         {
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
@@ -383,21 +411,22 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
-            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-            distanceSensor.startContinuous(delay_between_measurements);
+            sensor_status = distanceSensor.StopRanging();
+            sensor_status = distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
+            sensor_status = distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+            sensor_status = distanceSensor.StartRanging();
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
-                distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.read();
+                distanceSensor.SetROICenter(center[zone]);
+                distance = getDistance();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
                 App.feed_wdt();
                 // increase sum of values in Zone 1
-                distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.read();
+                distanceSensor.SetROICenter(center[zone]);
+                distance = getDistance();
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
@@ -407,54 +436,54 @@ namespace esphome
         }
         void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
+            distanceSensor.StopRanging();
             switch (sensor_mode)
             {
             case 0: // short mode
                 time_budget_in_ms = time_budget_in_ms_short;
                 delay_between_measurements = time_budget_in_ms + 5;
-                status = distanceSensor.setDistanceMode(VL53L1X::Short);
-                if (!status)
+                sensor_status = distanceSensor.SetDistanceMode(Short);
+                if (sensor_status != VL53L1_ERROR_NONE)
                 {
-                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Short);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Short);
                 }
                 ESP_LOGI(SETUP, "Set short mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 1: // medium mode
                 time_budget_in_ms = time_budget_in_ms_medium;
                 delay_between_measurements = time_budget_in_ms + 5;
-                status = distanceSensor.setDistanceMode(VL53L1X::Medium);
-                if (!status)
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
                 {
-                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Medium);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
                 }
                 ESP_LOGI(SETUP, "Set medium mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 2: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = time_budget_in_ms + 5;
-                status = distanceSensor.setDistanceMode(VL53L1X::Long);
-                if (!status)
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
                 {
-                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
                 }
                 ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             case 3: // custom mode
                 time_budget_in_ms = new_timing_budget;
                 delay_between_measurements = new_timing_budget + 5;
-                status = distanceSensor.setDistanceMode(VL53L1X::Long);
-                if (!status)
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
                 {
-                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", VL53L1X::Long);
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
                 }
                 ESP_LOGI(SETUP, "Manually set custom range mode. timing_budget: %d", time_budget_in_ms);
                 break;
             default:
                 break;
             }
-            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-            if (!status)
+            sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
+            if (sensor_status != 0)
             {
                 ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
@@ -476,8 +505,8 @@ namespace esphome
             {
                 setSensorMode(2, time_budget_in_ms_long);
             }
-            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
-            if (!status)
+            sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
+            if (sensor_status != 0)
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
@@ -511,16 +540,16 @@ namespace esphome
             return avg - sd;
         }
 
-        void Roode::calibration(VL53L1X distanceSensor)
+        void Roode::calibration(VL53L1X_ULD distanceSensor)
         {
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
+            distanceSensor.StopRanging();
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_medium;
             delay_between_measurements = time_budget_in_ms + 5;
-            distanceSensor.setDistanceMode(VL53L1X::Medium);
-            status = distanceSensor.setMeasurementTimingBudget(time_budget_in_ms * 1000);
+            distanceSensor.SetDistanceMode(Long);
+            sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
 
-            if (!status)
+            if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
             }
@@ -543,20 +572,21 @@ namespace esphome
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.setROISize(Roode::roi_width_, Roode::roi_height_);
-            distanceSensor.startContinuous(delay_between_measurements);
+            distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
+            distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+            distanceSensor.StartRanging();
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
-                distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.read();
+                distanceSensor.SetROICenter(center[zone]);
+                distance = getDistance();
                 values_zone_0[i] = distance;
                 zone++;
                 zone = zone % 2;
                 App.feed_wdt();
                 // increase sum of values in Zone 1
-                distanceSensor.setROICenter(center[zone]);
-                distance = distanceSensor.read();
+                distanceSensor.SetROICenter(center[zone]);
+                distance = getDistance();
                 values_zone_1[i] = distance;
                 zone++;
                 zone = zone % 2;
@@ -586,7 +616,7 @@ namespace esphome
                 DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
                 publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
             }
-            distanceSensor.writeReg(distanceSensor.SYSTEM__MODE_START, 0x80);
+            distanceSensor.StopRanging();
         }
 
         void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
