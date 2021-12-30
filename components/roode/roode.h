@@ -61,6 +61,7 @@ namespace esphome
 
       void set_calibration_active(bool val) { calibration_active_ = val; }
       void set_manual_active(bool val) { manual_active_ = val; }
+      void set_roi_active(bool val) { roi_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
       void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
       void set_manual_threshold(int val) { manual_threshold_ = val; }
@@ -125,6 +126,7 @@ namespace esphome
       int getSum(int *values, int size);
       bool calibration_active_{false};
       bool manual_active_{false};
+      bool roi_active_{false};
       bool roi_calibration_{false};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};

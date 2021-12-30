@@ -2,7 +2,13 @@ from re import I
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
-from esphome.const import CONF_ID, DEVICE_CLASS_EMPTY, STATE_CLASS_MEASUREMENT, UNIT_EMPTY, UNIT_METER
+from esphome.const import (
+    CONF_ID,
+    DEVICE_CLASS_EMPTY,
+    STATE_CLASS_MEASUREMENT,
+    UNIT_EMPTY,
+    UNIT_METER,
+)
 
 
 # DEPENDENCIES = ["i2c"]
@@ -32,6 +38,8 @@ CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
 CONF_USE_SAMPLING = "use_sampling"
+CONF_ROI = "roi"
+CONF_ROI_ACTIVE = "roi_active"
 TYPES = [
     CONF_RESTORE_VALUES,
     CONF_INVERT_DIRECTION,
@@ -79,24 +87,36 @@ CONFIG_SCHEMA = cv.Schema(
                     f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
                 ): cv.int_range(min=-1, max=3),
                 cv.Inclusive(
-                    CONF_ROI_HEIGHT,
-                    "manual_mode",
-                    f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=4, max=16),
-                cv.Inclusive(
-                    CONF_ROI_WIDTH,
-                    "manual_mode",
-                    f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=4, max=16),
-                cv.Inclusive(
                     CONF_MANUAL_THRESHOLD,
                     "manual_mode",
                     f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
                 ): cv.int_range(min=40, max=4000),
             }
         ),
+        cv.Optional(CONF_ROI): cv.Schema(
+            {
+                cv.Optional(CONF_ROI_ACTIVE, default="true"): cv.boolean,
+                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(min=4, max=16),
+                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(min=4, max=16),
+            }
+        ),
     }
 ).extend(cv.polling_component_schema("100ms"))
+
+
+def validate_roi_settings(config):
+    roi = config.get(CONF_ROI)
+    manual = config.get(CONF_MANUAL)
+    if CONF_CALIBRATION in config:
+        roi_calibration = config.get(CONF_CALIBRATION).get(CONF_ROI_CALIBRATION)
+        if roi_calibration == True and roi != None:
+            raise cv.Invalid(
+                "ROI calibration cannot be used with manual ROI width and height"
+            )
+        if roi_calibration == False and roi == None:
+            raise cv.Invalid("You need to set the ROI manually or use ROI calibration")
+    if manual != None and roi == None:
+        raise cv.Invalid("You need to set the ROI manually if manual mode is active")
 
 
 async def setup_conf(config, key, hub):
@@ -116,12 +136,21 @@ def setup_calibration_mode(config, hub):
         cg.add(getattr(hub, f"set_{key}")(calibration[key]))
 
 
+def setup_manual_roi(config, hub):
+    roi = config[CONF_ROI]
+    for key in roi:
+        cg.add(getattr(hub, f"set_{key}")(roi[key]))
+
+
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
     cg.add_library("EEPROM", None)
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
+    
+    validate_roi_settings(config)
+
     for key in TYPES:
         await setup_conf(config, key, hub)
     if CONF_MANUAL in config:
