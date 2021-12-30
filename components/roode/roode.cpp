@@ -413,10 +413,15 @@ namespace esphome
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            sensor_status = distanceSensor.StopRanging();
-            sensor_status = distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
-            sensor_status = distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            sensor_status = distanceSensor.StartRanging();
+            sensor_status += distanceSensor.StopRanging();
+            sensor_status += distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
+            sensor_status += distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+            sensor_status += distanceSensor.StartRanging();
+            if (sensor_status != VL53L1_ERROR_NONE)
+            {
+                ESP_LOGE(SETUP, "Error in calibration: %d", sensor_status);
+            }
+
             for (int i = 0; i < number_attempts; i++)
             {
                 // increase sum of values in Zone 0
@@ -508,9 +513,9 @@ namespace esphome
                 setSensorMode(2, time_budget_in_ms_long);
             }
             sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
-            if (sensor_status != 0)
+            if (sensor_status != VL53L1_ERROR_NONE)
             {
-                ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
             }
         }
         int Roode::getSum(int *array, int size)
@@ -553,7 +558,7 @@ namespace esphome
 
             if (sensor_status != VL53L1_ERROR_NONE)
             {
-                ESP_LOGE(CALIBRATION, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+                ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
             }
             if (advised_sensor_orientation_)
             {
