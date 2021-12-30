@@ -4,7 +4,7 @@
 
 People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
 
-[![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/RK3KJeSy)
+[![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/hU9SvSXMHs)
 
 - [Hardware Recommendation](#hardware-recommendation)
 - [Wiring](#wiring)
