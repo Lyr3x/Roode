@@ -493,7 +493,17 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set medium mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 2: // long mode
+            case 2: // medium_long mode
+                time_budget_in_ms = time_budget_in_ms_medium_long;
+                delay_between_measurements = time_budget_in_ms + 5;
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
+                }
+                ESP_LOGI(SETUP, "Set medium long range mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 3: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = time_budget_in_ms + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -503,7 +513,7 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 3: // max mode
+            case 4: // max mode
                 time_budget_in_ms = time_budget_in_ms_max;
                 delay_between_measurements = time_budget_in_ms + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -513,7 +523,7 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set max range mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 4: // custom mode
+            case 5: // custom mode
                 time_budget_in_ms = new_timing_budget;
                 delay_between_measurements = new_timing_budget + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -545,21 +555,20 @@ namespace esphome
                 setSensorMode(1);
             }
 
-            if ((average_zone_0 > medium_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > medium_distance_threshold && average_zone_1 <= long_distance_threshold))
+            if ((average_zone_0 > medium_distance_threshold && average_zone_0 <= medium_long_distance_threshold) || (average_zone_1 > medium_distance_threshold && average_zone_1 <= medium_long_distance_threshold))
             {
                 setSensorMode(2);
             }
-            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            if ((average_zone_0 > medium_long_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > medium_long_distance_threshold && average_zone_1 <= long_distance_threshold))
             {
                 setSensorMode(3);
             }
-
-            sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
-            if (sensor_status != VL53L1_ERROR_NONE)
+            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
             {
-                ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
+                setSensorMode(4);
             }
         }
+
         int Roode::getSum(int *array, int size)
         {
             int sum = 0;

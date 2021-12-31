@@ -45,13 +45,14 @@ namespace esphome
     The timing budget and inter-measurement period should not be called when the sensor is
     ranging. The user has to stop the ranging, change these parameters, and restart ranging
     The minimum inter-measurement period must be longer than the timing budget + 4 ms.
+    // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
     Valid values: [15,20,33,50,100,200,500]
     */
-    static int time_budget_in_ms_short = 15; // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
+    static int time_budget_in_ms_short = 15; // max range: 1.3m
     static int time_budget_in_ms_medium = 33;
     static int time_budget_in_ms_medium_long = 50;
     static int time_budget_in_ms_long = 100;
-    static int time_budget_in_ms_max = 200;
+    static int time_budget_in_ms_max = 200; // max range: 4m
 
     class Roode : public PollingComponent
     {
@@ -147,9 +148,9 @@ namespace esphome
       int number_attempts = 20;
       int timing_budget_{-1};
       int short_distance_threshold = 1300;
-      int medium_distance_threshold = 2300;
-      int medium_long_distance_threshold = 3000;
-      int long_distance_threshold = 4000;
+      int medium_distance_threshold = 2000;
+      int medium_long_distance_threshold = 2700;
+      int long_distance_threshold = 3400;
       bool status = false;
       int optimized_zone_0;
       int optimized_zone_1;
