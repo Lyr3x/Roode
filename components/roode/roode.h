@@ -139,7 +139,7 @@ namespace esphome
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       bool sampling_active_{false};
-      uint8_t DISTANCES_ARRAY_SIZE;
+      uint8_t DISTANCES_ARRAY_SIZE{2};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
