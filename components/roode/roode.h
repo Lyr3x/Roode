@@ -45,11 +45,14 @@ namespace esphome
     The timing budget and inter-measurement period should not be called when the sensor is
     ranging. The user has to stop the ranging, change these parameters, and restart ranging
     The minimum inter-measurement period must be longer than the timing budget + 4 ms.
+    // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
     Valid values: [15,20,33,50,100,200,500]
     */
-    static int time_budget_in_ms_short = 15;  // Lowest possible is 15ms with the ULD API (https://www.st.com/resource/en/user_manual/um2510-a-guide-to-using-the-vl53l1x-ultra-lite-driver-stmicroelectronics.pdf)
-    static int time_budget_in_ms_medium = 33; // Works up to 3.1m
-    static int time_budget_in_ms_long = 100;  // Works up to 4m in the dark on a white chart
+    static int time_budget_in_ms_short = 15; // max range: 1.3m
+    static int time_budget_in_ms_medium = 33;
+    static int time_budget_in_ms_medium_long = 50;
+    static int time_budget_in_ms_long = 100;
+    static int time_budget_in_ms_max = 200; // max range: 4m
 
     class Roode : public PollingComponent
     {
@@ -63,6 +66,8 @@ namespace esphome
       void set_manual_active(bool val) { manual_active_ = val; }
       void set_roi_active(bool val) { roi_active_ = val; }
       void set_roi_calibration(bool val) { roi_calibration_ = val; }
+      void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
+      void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
       void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
       void set_manual_threshold(int val) { manual_threshold_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
@@ -96,6 +101,7 @@ namespace esphome
       uint16_t distance = 0;
       VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
       VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
+      ERangeStatus rangeStatus;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
@@ -128,6 +134,8 @@ namespace esphome
       bool manual_active_{false};
       bool roi_active_{false};
       bool roi_calibration_{false};
+      int sensor_offset_calibration_{-1};
+      int sensor_xtalk_calibration_{-1};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       bool use_sampling_{true};
@@ -140,7 +148,9 @@ namespace esphome
       int number_attempts = 20;
       int timing_budget_{-1};
       int short_distance_threshold = 1300;
-      int medium_distance_threshold = 3100;
+      int medium_distance_threshold = 2000;
+      int medium_long_distance_threshold = 2700;
+      int long_distance_threshold = 3400;
       bool status = false;
       int optimized_zone_0;
       int optimized_zone_1;

@@ -26,6 +26,10 @@ namespace esphome
             Wire.setClock(400000);
 
             // Initialize the sensor, give the special I2C_address to the Begin function
+            // Set a different I2C address
+            // This address is stored as long as the sensor is powered. To revert this change you can unplug and replug the power to the sensor
+            distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
+
             sensor_status = distanceSensor.Begin(VL53L1X_ULD_I2C_ADDRESS);
             if (sensor_status != VL53L1_ERROR_NONE)
             {
@@ -35,10 +39,30 @@ namespace esphome
                 {
                 }
             }
-
-            // Set a different I2C address
-            // This address is stored as long as the sensor is powered. To revert this change you can unplug and replug the power to the sensor
-            distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
+            if (sensor_offset_calibration_ != -1)
+            {
+                ESP_LOGI(CALIBRATION, "Setting sensor offset calibration to %d", sensor_offset_calibration_);
+                sensor_status = distanceSensor.SetOffsetInMm(sensor_offset_calibration_);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
+                    while (1)
+                    {
+                    }
+                }
+            }
+            if (sensor_xtalk_calibration_ != -1)
+            {
+                ESP_LOGI(CALIBRATION, "Setting sensor xtalk calibration to %d", sensor_xtalk_calibration_);
+                sensor_status = distanceSensor.SetXTalk(sensor_xtalk_calibration_);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
+                    while (1)
+                    {
+                    }
+                }
+            }
 
             if (invert_direction_)
             {
@@ -124,13 +148,14 @@ namespace esphome
             uint8_t dataReady = false;
             while (!dataReady)
             {
-                status += distanceSensor.CheckForDataReady(&dataReady);
+                sensor_status += distanceSensor.CheckForDataReady(&dataReady);
                 delay(1);
             }
 
             // Get the results
             uint16_t distance;
             sensor_status += distanceSensor.GetDistanceInMm(&distance);
+
             if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
@@ -138,6 +163,7 @@ namespace esphome
             }
             // After reading the results reset the interrupt to be able to take another measurement
             distanceSensor.ClearInterrupt();
+
             return distance;
         }
 
@@ -275,13 +301,13 @@ namespace esphome
                             {
                                 peopleCounter--;
                                 sendCounter(peopleCounter);
-                                ESP_LOGD("Roode pathTracking", "Exit detected.");
-                                if (entry_exit_event_sensor != nullptr)
-                                {
-                                    entry_exit_event_sensor->publish_state("Exit");
-                                }
                                 DistancesTableSize[0] = 0;
                                 DistancesTableSize[1] = 0;
+                            }
+                            ESP_LOGD("Roode pathTracking", "Exit detected.");
+                            if (entry_exit_event_sensor != nullptr)
+                            {
+                                entry_exit_event_sensor->publish_state("Exit");
                             }
                         }
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
@@ -467,7 +493,17 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set medium mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 2: // long mode
+            case 2: // medium_long mode
+                time_budget_in_ms = time_budget_in_ms_medium_long;
+                delay_between_measurements = time_budget_in_ms + 5;
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
+                }
+                ESP_LOGI(SETUP, "Set medium long range mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 3: // long mode
                 time_budget_in_ms = time_budget_in_ms_long;
                 delay_between_measurements = time_budget_in_ms + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -477,7 +513,17 @@ namespace esphome
                 }
                 ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
                 break;
-            case 3: // custom mode
+            case 4: // max mode
+                time_budget_in_ms = time_budget_in_ms_max;
+                delay_between_measurements = time_budget_in_ms + 5;
+                sensor_status = distanceSensor.SetDistanceMode(Long);
+                if (sensor_status != VL53L1_ERROR_NONE)
+                {
+                    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
+                }
+                ESP_LOGI(SETUP, "Set max range mode. timing_budget: %d", time_budget_in_ms);
+                break;
+            case 5: // custom mode
                 time_budget_in_ms = new_timing_budget;
                 delay_between_measurements = new_timing_budget + 5;
                 sensor_status = distanceSensor.SetDistanceMode(Long);
@@ -501,24 +547,28 @@ namespace esphome
         {
             if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
             {
-                setSensorMode(0, time_budget_in_ms_short);
+                setSensorMode(0);
             }
 
             if ((average_zone_0 > short_distance_threshold && average_zone_0 <= medium_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= medium_distance_threshold))
             {
-                setSensorMode(1, time_budget_in_ms_medium);
+                setSensorMode(1);
             }
 
-            if (average_zone_0 > medium_distance_threshold || average_zone_1 > medium_distance_threshold)
+            if ((average_zone_0 > medium_distance_threshold && average_zone_0 <= medium_long_distance_threshold) || (average_zone_1 > medium_distance_threshold && average_zone_1 <= medium_long_distance_threshold))
             {
-                setSensorMode(2, time_budget_in_ms_long);
+                setSensorMode(2);
             }
-            sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
-            if (sensor_status != VL53L1_ERROR_NONE)
+            if ((average_zone_0 > medium_long_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > medium_long_distance_threshold && average_zone_1 <= long_distance_threshold))
             {
-                ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
+                setSensorMode(3);
+            }
+            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            {
+                setSensorMode(4);
             }
         }
+
         int Roode::getSum(int *array, int size)
         {
             int sum = 0;
