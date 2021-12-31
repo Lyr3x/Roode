@@ -301,13 +301,13 @@ namespace esphome
                             {
                                 peopleCounter--;
                                 sendCounter(peopleCounter);
-                                ESP_LOGD("Roode pathTracking", "Exit detected.");
-                                if (entry_exit_event_sensor != nullptr)
-                                {
-                                    entry_exit_event_sensor->publish_state("Exit");
-                                }
                                 DistancesTableSize[0] = 0;
                                 DistancesTableSize[1] = 0;
+                            }
+                            ESP_LOGD("Roode pathTracking", "Exit detected.");
+                            if (entry_exit_event_sensor != nullptr)
+                            {
+                                entry_exit_event_sensor->publish_state("Exit");
                             }
                         }
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
