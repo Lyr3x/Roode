@@ -21,7 +21,6 @@ namespace esphome
 #define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
     static int LEFT = 0;
     static int RIGHT = 1;
-    static const uint16_t DISTANCES_ARRAY_SIZE = 2;
 
     /*
     ##### CALIBRATION #####
@@ -78,7 +77,8 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
-      void set_use_sampling(bool val) { use_sampling_ = val; }
+      void set_sampling_active(bool val) { sampling_active_ = val; }
+      void set_sampling_size(uint8_t size) { DISTANCES_ARRAY_SIZE = size; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
       void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
@@ -138,7 +138,8 @@ namespace esphome
       int sensor_xtalk_calibration_{-1};
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
-      bool use_sampling_{true};
+      bool sampling_active_{false};
+      uint8_t DISTANCES_ARRAY_SIZE;
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};

@@ -63,20 +63,25 @@ namespace esphome
                     }
                 }
             }
-
+            if (sampling_active_)
+            {
+                ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
+            }
             if (invert_direction_)
             {
-                ESP_LOGD(TAG, "Inverting direction");
+                ESP_LOGI(SETUP, "Inverting direction");
                 LEFT = 1;
                 RIGHT = 0;
             }
             if (calibration_active_)
             {
+                ESP_LOGI(SETUP, "Calibrating sensor");
                 calibration(distanceSensor);
                 App.feed_wdt();
             }
             if (manual_active_)
             {
+                ESP_LOGI(SETUP, "Manual sensor configuration");
                 center[0] = 167;
                 center[1] = 231;
                 distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
@@ -91,7 +96,7 @@ namespace esphome
                 peopleCounter = EEPROM.read(100);
                 if (peopleCounter == 255) // 255 is the default value if no value was stored
                     peopleCounter = 0;
-                ESP_LOGD("Roode setup", "last value: %u", peopleCounter);
+                ESP_LOGI("Roode setup", "last value: %u", peopleCounter);
             }
             sendCounter(peopleCounter);
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
@@ -187,10 +192,9 @@ namespace esphome
                 return;
             }
 
-            if (use_sampling_)
+            if (sampling_active_)
             {
-                ESP_LOGD(SETUP, "Using sampling");
-                static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+                uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
                 uint16_t MinDistance;
                 uint8_t i;
                 if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
