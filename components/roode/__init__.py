@@ -95,7 +95,7 @@ CONFIG_SCHEMA = cv.Schema(
                     CONF_SENSOR_MODE,
                     "manual_mode",
                     f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=-1, max=3),
+                ): cv.int_range(min=-1, max=5),
                 cv.Inclusive(
                     CONF_MANUAL_THRESHOLD,
                     "manual_mode",
