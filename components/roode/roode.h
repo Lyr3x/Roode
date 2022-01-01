@@ -5,8 +5,6 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/i2c/i2c.h"
 #include "esphome/core/application.h"
-#include "EEPROM.h"
-// #include <VL53L1X.h>
 #include "VL53L1X_ULD.h"
 #include <math.h>
 
@@ -17,7 +15,6 @@ namespace esphome
 #define NOBODY 0
 #define SOMEONE 1
 #define VERSION "v1.4.1-beta"
-#define EEPROM_SIZE 512
 #define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
     static int LEFT = 0;
     static int RIGHT = 1;
@@ -79,7 +76,7 @@ namespace esphome
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_sampling_size(uint8_t size) { DISTANCES_ARRAY_SIZE = size; }
       void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
-      void set_people_counter_sensor(sensor::Sensor *people_counter_sensor_) { people_counter_sensor = people_counter_sensor_; }
+      void set_people_counter(number::Number *counter) { this->people_counter = counter; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
       void set_max_threshold_zone1_sensor(sensor::Sensor *max_threshold_zone1_sensor_) { max_threshold_zone1_sensor = max_threshold_zone1_sensor_; }
       void set_min_threshold_zone0_sensor(sensor::Sensor *min_threshold_zone0_sensor_) { min_threshold_zone0_sensor = min_threshold_zone0_sensor_; }
@@ -92,7 +89,6 @@ namespace esphome
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
       void getZoneDistance();
-      void sendCounter(uint16_t counter);
       void recalibration();
       bool handleSensorStatus();
       uint16_t getDistance();
@@ -110,7 +106,7 @@ namespace esphome
     protected:
       VL53L1X_ULD distanceSensor;
       sensor::Sensor *distance_sensor;
-      sensor::Sensor *people_counter_sensor;
+      number::Number *people_counter;
       sensor::Sensor *max_threshold_zone0_sensor;
       sensor::Sensor *max_threshold_zone1_sensor;
       sensor::Sensor *min_threshold_zone0_sensor;

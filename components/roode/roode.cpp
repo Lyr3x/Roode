@@ -21,7 +21,6 @@ namespace esphome
             {
                 version_sensor->publish_state(VERSION);
             }
-            EEPROM.begin(EEPROM_SIZE);
             Wire.begin();
             Wire.setClock(400000);
 
@@ -89,15 +88,6 @@ namespace esphome
                 DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
                 publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
             }
-            if (restore_values_)
-            {
-                ESP_LOGI("Roode setup", "Restoring last count value...");
-                peopleCounter = EEPROM.read(100);
-                if (peopleCounter == 255) // 255 is the default value if no value was stored
-                    peopleCounter = 0;
-                ESP_LOGI("Roode setup", "last value: %u", peopleCounter);
-            }
-            sendCounter(peopleCounter);
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
             distanceSensor.StartRanging();
         }
@@ -297,14 +287,13 @@ namespace esphome
                         if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2))
                         {
                             // This an exit
-                            if (peopleCounter > 0)
-                            {
-                                peopleCounter--;
-                                sendCounter(peopleCounter);
-                                DistancesTableSize[0] = 0;
-                                DistancesTableSize[1] = 0;
-                            }
                             ESP_LOGD("Roode pathTracking", "Exit detected.");
+                            DistancesTableSize[0] = 0;
+                            DistancesTableSize[1] = 0;
+                            if (this->people_counter != nullptr)
+                            {
+                                this->people_counter->set(this->people_counter->state - 1);
+                            }
                             if (entry_exit_event_sensor != nullptr)
                             {
                                 entry_exit_event_sensor->publish_state("Exit");
@@ -313,9 +302,11 @@ namespace esphome
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
                         {
                             // This an entry
-                            peopleCounter++;
-                            sendCounter(peopleCounter);
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
+                            if (this->people_counter != nullptr)
+                            {
+                                this->people_counter->set(this->people_counter->state + 1);
+                            }
                             if (entry_exit_event_sensor != nullptr)
                             {
                                 entry_exit_event_sensor->publish_state("Entry");
@@ -356,21 +347,6 @@ namespace esphome
             }
         }
 
-        void Roode::sendCounter(uint16_t counter)
-        {
-            ESP_LOGI(SETUP, "Sending people count: %d", counter);
-            peopleCounter = counter;
-            if (people_counter_sensor != nullptr)
-            {
-                people_counter_sensor->publish_state(peopleCounter);
-            }
-
-            if (restore_values_)
-            {
-                EEPROM.write(100, peopleCounter);
-                EEPROM.commit();
-            }
-        }
         void Roode::recalibration()
         {
             calibration(distanceSensor);
