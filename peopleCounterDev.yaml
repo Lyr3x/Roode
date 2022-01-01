@@ -62,17 +62,19 @@ roode:
   i2c_address: 0x29
   update_interval: 10ms
   # roi:
-  #   roi_height: 16
-  #   roi_width: 6
+  # roi_height: 16
+  # roi_width: 6
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
     roi_calibration: true
+    # sensor_offset_calibration: 8
+    # sensor_xtalk_calibration: 53406
   # manual:
   #   sensor_mode: 3
   #   manual_threshold: 1280
   #   timing_budget: 200
-  # use_sampling: true
+  # sampling: 3
   invert_direction: true
   restore_values: false
 
@@ -94,8 +96,6 @@ sensor:
       name: $friendly_name people counter
     distance_sensor:
       name: $friendly_name distance
-      filters:
-        - delta: 100.0
     max_threshold_zone0:
       name: $friendly_name max zone 0
     max_threshold_zone1:

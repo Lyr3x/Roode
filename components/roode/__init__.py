@@ -37,7 +37,8 @@ CONF_MANUAL = "manual"
 CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
-CONF_USE_SAMPLING = "use_sampling"
+CONF_SAMPLING = "sampling"
+CONF_SAMPLING_SIZE = "size"
 CONF_ROI = "roi"
 CONF_ROI_ACTIVE = "roi_active"
 CONF_SENSOR_OFFSET_CALIBRATION = "sensor_offset_calibration"
@@ -47,7 +48,6 @@ TYPES = [
     CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION,
     CONF_I2C_ADDRESS,
-    CONF_USE_SAMPLING,
 ]
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -55,8 +55,15 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
         cv.Optional(CONF_RESTORE_VALUES, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
-        cv.Optional(CONF_USE_SAMPLING, default="true"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
+        cv.Optional(CONF_SAMPLING, default=2): cv.Any(
+            cv.int_range(1, 255),
+            cv.Schema(
+                {
+                    cv.Optional(CONF_SAMPLING_SIZE, default=2): cv.int_range(1, 255),
+                }
+            ),
+        ),
         cv.Exclusive(
             CONF_CALIBRATION,
             "mode",
@@ -82,14 +89,14 @@ CONFIG_SCHEMA = cv.Schema(
         ): cv.Schema(
             {
                 cv.Optional(CONF_MANUAL_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_TIMING_BUDGET, default=10): cv.int_range(
-                    min=10, max=1000
+                cv.Optional(CONF_TIMING_BUDGET, default=15): cv.one_of(
+                    15, 20, 33, 50, 100, 200, 500
                 ),
                 cv.Inclusive(
                     CONF_SENSOR_MODE,
                     "manual_mode",
                     f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=-1, max=3),
+                ): cv.int_range(min=-1, max=5),
                 cv.Inclusive(
                     CONF_MANUAL_THRESHOLD,
                     "manual_mode",
@@ -146,6 +153,15 @@ def setup_manual_roi(config, hub):
         cg.add(getattr(hub, f"set_{key}")(roi[key]))
 
 
+def setup_sampling(config, hub):
+    sampling = config[CONF_SAMPLING]
+    if isinstance(sampling, int):
+        cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling))
+    else:
+        for key in sampling:
+            cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling[key]))
+
+
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
@@ -161,3 +177,5 @@ async def to_code(config):
         setup_manual_mode(config, hub)
     if CONF_CALIBRATION in config:
         setup_calibration_mode(config, hub)
+    if CONF_SAMPLING in config:
+        setup_sampling(config, hub)

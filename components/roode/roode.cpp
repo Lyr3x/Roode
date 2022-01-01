@@ -64,19 +64,23 @@ namespace esphome
                 }
             }
 
+            ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
+
             if (invert_direction_)
             {
-                ESP_LOGD(TAG, "Inverting direction");
+                ESP_LOGI(SETUP, "Inverting direction");
                 LEFT = 1;
                 RIGHT = 0;
             }
             if (calibration_active_)
             {
+                ESP_LOGI(SETUP, "Calibrating sensor");
                 calibration(distanceSensor);
                 App.feed_wdt();
             }
             if (manual_active_)
             {
+                ESP_LOGI(SETUP, "Manual sensor configuration");
                 center[0] = 167;
                 center[1] = 231;
                 distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
@@ -91,7 +95,7 @@ namespace esphome
                 peopleCounter = EEPROM.read(100);
                 if (peopleCounter == 255) // 255 is the default value if no value was stored
                     peopleCounter = 0;
-                ESP_LOGD("Roode setup", "last value: %u", peopleCounter);
+                ESP_LOGI("Roode setup", "last value: %u", peopleCounter);
             }
             sendCounter(peopleCounter);
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
@@ -187,39 +191,35 @@ namespace esphome
                 return;
             }
 
-            if (use_sampling_)
+            uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            uint16_t MinDistance;
+            uint8_t i;
+            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             {
-                ESP_LOGD(SETUP, "Using sampling");
-                static uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
-                uint16_t MinDistance;
-                uint8_t i;
-                if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
-                {
-                    Distances[zone][DistancesTableSize[zone]] = distance;
-                    DistancesTableSize[zone]++;
-                    ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
-                }
-                else
-                {
-                    for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-                        Distances[zone][i - 1] = Distances[zone][i];
-                    Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-                    ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
-                }
-                ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-                ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
-                // pick up the min distance
-                MinDistance = Distances[zone][0];
-                if (DistancesTableSize[zone] >= 2)
-                {
-                    for (i = 1; i < DistancesTableSize[zone]; i++)
-                    {
-                        if (Distances[zone][i] < MinDistance)
-                            MinDistance = Distances[zone][i];
-                    }
-                }
-                distance = MinDistance;
+                Distances[zone][DistancesTableSize[zone]] = distance;
+                DistancesTableSize[zone]++;
+                ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
             }
+            else
+            {
+                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+                    Distances[zone][i - 1] = Distances[zone][i];
+                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+                ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+            }
+            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+            // pick up the min distance
+            MinDistance = Distances[zone][0];
+            if (DistancesTableSize[zone] >= 2)
+            {
+                for (i = 1; i < DistancesTableSize[zone]; i++)
+                {
+                    if (Distances[zone][i] < MinDistance)
+                        MinDistance = Distances[zone][i];
+                }
+            }
+            distance = MinDistance;
 
             // PathTrack algorithm
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
