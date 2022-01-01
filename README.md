@@ -104,9 +104,11 @@ roode:
   - **sensor_mode(required, int)**: Sets the distance mode of the sensor if `calibration=false`.
     - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
   - **timing_budget (optional, int)**: The timing budget for the sensor. Increasing this slows down detection but increases accuracy. Min: `10ms` Max: `1000s`. Defaults to `10ms`.
-- **invert_direction (Optional, bool)**: Inverts the counting direction. Defaults to `false`.
+- **invert_direction (Optional, bool)**: Inverts the counting direction. Switch to `true` if the movement count appears backwards. Defaults to `false`.
 - **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
-- **advised_sensor_orientation(Optional, bool)**: Inverts the detection orientation of the sensor. Defaults to `true`.
+- **advised_sensor_orientation(Optional, bool)**: Advised orientation has the two sensor pads parallel to the entryway.
+                                                  So `false` means the pads are perpendicular to the entryway.
+                                                  Defaults to `true`.
 
 ### Sensor
 
