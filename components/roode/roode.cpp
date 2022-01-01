@@ -63,10 +63,9 @@ namespace esphome
                     }
                 }
             }
-            if (sampling_active_)
-            {
-                ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
-            }
+
+            ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
+
             if (invert_direction_)
             {
                 ESP_LOGI(SETUP, "Inverting direction");
@@ -192,38 +191,35 @@ namespace esphome
                 return;
             }
 
-            if (sampling_active_)
+            uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            uint16_t MinDistance;
+            uint8_t i;
+            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             {
-                uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
-                uint16_t MinDistance;
-                uint8_t i;
-                if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
-                {
-                    Distances[zone][DistancesTableSize[zone]] = distance;
-                    DistancesTableSize[zone]++;
-                    ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
-                }
-                else
-                {
-                    for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-                        Distances[zone][i - 1] = Distances[zone][i];
-                    Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-                    ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
-                }
-                ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-                ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
-                // pick up the min distance
-                MinDistance = Distances[zone][0];
-                if (DistancesTableSize[zone] >= 2)
-                {
-                    for (i = 1; i < DistancesTableSize[zone]; i++)
-                    {
-                        if (Distances[zone][i] < MinDistance)
-                            MinDistance = Distances[zone][i];
-                    }
-                }
-                distance = MinDistance;
+                Distances[zone][DistancesTableSize[zone]] = distance;
+                DistancesTableSize[zone]++;
+                ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
             }
+            else
+            {
+                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+                    Distances[zone][i - 1] = Distances[zone][i];
+                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
+                ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+            }
+            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
+            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+            // pick up the min distance
+            MinDistance = Distances[zone][0];
+            if (DistancesTableSize[zone] >= 2)
+            {
+                for (i = 1; i < DistancesTableSize[zone]; i++)
+                {
+                    if (Distances[zone][i] < MinDistance)
+                        MinDistance = Distances[zone][i];
+                }
+            }
+            distance = MinDistance;
 
             // PathTrack algorithm
             if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])

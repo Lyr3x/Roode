@@ -38,7 +38,6 @@ CONF_MANUAL_ACTIVE = "manual_active"
 CONF_CALIBRATION_ACTIVE = "calibration_active"
 CONF_TIMING_BUDGET = "timing_budget"
 CONF_SAMPLING = "sampling"
-CONF_SAMPLING_ACTIVE = "active"
 CONF_SAMPLING_SIZE = "size"
 CONF_ROI = "roi"
 CONF_ROI_ACTIVE = "roi_active"
@@ -57,11 +56,13 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_RESTORE_VALUES, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
-        cv.Optional(CONF_SAMPLING): cv.Schema(
-            {
-                cv.Optional(CONF_SAMPLING_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_SAMPLING_SIZE, default=2): cv.uint8_t,
-            }
+        cv.Optional(CONF_SAMPLING, default=2): cv.Any(
+            cv.int_range(1, 255),
+            cv.Schema(
+                {
+                    cv.Optional(CONF_SAMPLING_SIZE, default=2): cv.int_range(1, 255),
+                }
+            ),
         ),
         cv.Exclusive(
             CONF_CALIBRATION,
@@ -161,8 +162,11 @@ def setup_manual_roi(config, hub):
 
 def setup_sampling(config, hub):
     sampling = config[CONF_SAMPLING]
-    for key in sampling:
-        cg.add(getattr(hub, f"set_sampling_{key}")(sampling[key]))
+    if isinstance(sampling, int):
+        cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling))
+    else:
+        for key in sampling:
+            cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling[key]))
 
 
 async def to_code(config):

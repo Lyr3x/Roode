@@ -86,7 +86,6 @@ roode:
   #   manual_threshold: 1280
   #   timing_budget: 200
   sampling:
-    active: true
     size: 3
   invert_direction: true
   restore_values: false
