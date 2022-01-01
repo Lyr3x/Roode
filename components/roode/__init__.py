@@ -89,8 +89,8 @@ CONFIG_SCHEMA = cv.Schema(
         ): cv.Schema(
             {
                 cv.Optional(CONF_MANUAL_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_TIMING_BUDGET, default=10): cv.int_range(
-                    min=15, max=500
+                cv.Optional(CONF_TIMING_BUDGET, default=15): cv.one_of(
+                    15, 20, 33, 50, 100, 200, 500
                 ),
                 cv.Inclusive(
                     CONF_SENSOR_MODE,
@@ -137,13 +137,6 @@ async def setup_conf(config, key, hub):
 
 def setup_manual_mode(config, hub):
     manual = config[CONF_MANUAL]
-    if CONF_TIMING_BUDGET in manual:
-        valid_budgets = [15, 20, 33, 50, 100, 200, 500]
-        timing_budget = manual[CONF_TIMING_BUDGET]
-        if timing_budget not in valid_budgets:
-            raise cv.Invalid(
-                f"{CONF_TIMING_BUDGET} must be one of {valid_budgets}, got {timing_budget}"
-            )
     for key in manual:
         cg.add(getattr(hub, f"set_{key}")(manual[key]))
 
