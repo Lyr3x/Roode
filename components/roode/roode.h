@@ -125,6 +125,7 @@ namespace esphome
       void publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
+      void updateCounter(int delta);
       bool calibration_active_{false};
       bool manual_active_{false};
       bool roi_active_{false};

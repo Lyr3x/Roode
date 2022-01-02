@@ -290,10 +290,7 @@ namespace esphome
                             ESP_LOGD("Roode pathTracking", "Exit detected.");
                             DistancesTableSize[0] = 0;
                             DistancesTableSize[1] = 0;
-                            if (this->people_counter != nullptr)
-                            {
-                                this->people_counter->set(this->people_counter->state - 1);
-                            }
+                            this->updateCounter(-1);
                             if (entry_exit_event_sensor != nullptr)
                             {
                                 entry_exit_event_sensor->publish_state("Exit");
@@ -303,10 +300,7 @@ namespace esphome
                         {
                             // This an entry
                             ESP_LOGD("Roode pathTracking", "Entry detected.");
-                            if (this->people_counter != nullptr)
-                            {
-                                this->people_counter->set(this->people_counter->state + 1);
-                            }
+                            this->updateCounter(1);
                             if (entry_exit_event_sensor != nullptr)
                             {
                                 entry_exit_event_sensor->publish_state("Entry");
@@ -346,7 +340,15 @@ namespace esphome
                 }
             }
         }
-
+        void Roode::updateCounter(int delta) {
+            if (this->people_counter == nullptr)
+            {
+                return;
+            }
+            auto next = this->people_counter->state + (float) delta;
+            ESP_LOGI(TAG, "Updating people count: %d", (int) next);
+            this->people_counter->set(next);
+        }
         void Roode::recalibration()
         {
             calibration(distanceSensor);

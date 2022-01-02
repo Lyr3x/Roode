@@ -4,14 +4,6 @@
 namespace esphome {
 namespace number {
 
-// Same as parent just changed log statement from debug to info
-auto PersistedNumber::publish_state(float state) -> void {
-    this->has_state_ = true;
-    this->state = state;
-    ESP_LOGI("number", "'%s': Sending state %f", this->get_name().c_str(), state);
-    this->state_callback_.call(state);
-}
-
 auto PersistedNumber::control(float newValue) -> void {
     this->publish_state(newValue);
     if (this->restore_value_) {
