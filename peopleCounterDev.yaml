@@ -73,7 +73,6 @@ number:
   - platform: roode
     people_counter:
       name: $friendly_name people counter
-      restore_value: true
 
 switch:
   - platform: restart

@@ -12,7 +12,7 @@ PersistedNumber = number.number_ns.class_("PersistedNumber", number.Number, cg.C
 
 PERSISTED_NUMBER_SCHEMA = number.NUMBER_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(PersistedNumber),
-    cv.Optional(CONF_RESTORE_VALUE): cv.boolean,
+    cv.Optional(CONF_RESTORE_VALUE, default=True): cv.boolean,
 })
 
 

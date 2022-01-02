@@ -91,7 +91,6 @@ number:
   - platform: roode
     people_counter:
       name: People Count
-      restore_value: true
 ```
 
 ### Configuration variables
