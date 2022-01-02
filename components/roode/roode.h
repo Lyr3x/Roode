@@ -7,6 +7,7 @@
 #include "esphome/core/application.h"
 #include "VL53L1X_ULD.h"
 #include <math.h>
+#include "configuration.h"
 
 namespace esphome
 {
@@ -94,17 +95,19 @@ namespace esphome
       uint16_t getDistance();
 
       uint16_t distance = 0;
-      VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
-      VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
+
       ERangeStatus rangeStatus;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int roi_width_{6};                  // width of the ROI
       int roi_height_{16};                // height of the ROI
       uint16_t peopleCounter{0};
+      Configuration sensorConfiguration;
 
     protected:
       VL53L1X_ULD distanceSensor;
+      VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+      VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
       sensor::Sensor *distance_sensor;
       number::Number *people_counter;
       sensor::Sensor *max_threshold_zone0_sensor;
