@@ -22,14 +22,14 @@ auto PersistedNumber::control(float newValue) -> void {
 auto PersistedNumber::setup() -> void {
     float value;
     if (!this->restore_value_) {
-        value = 0;
+        value = this->traits.get_min_value();
     } else {
         this->pref_ = global_preferences->make_preference<float>(this->get_object_id_hash());
         if (this->pref_.load(&value)) {
             ESP_LOGI("number", "'%s': Restored state %f", this->get_name().c_str(), value);
         } else {
             ESP_LOGI("number", "'%s': No previous state found", this->get_name().c_str());
-            value = 0;
+            value = this->traits.get_min_value();
         }
     }
     this->publish_state(value);
