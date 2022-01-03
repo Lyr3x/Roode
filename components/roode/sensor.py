@@ -13,7 +13,8 @@ from . import Roode, CONF_ROODE_ID
 
 DEPENDENCIES = ["roode"]
 
-CONF_DISTANCE = "distance_sensor"
+CONF_DISTANCE_ZONE0 = "distance_zone0"
+CONF_DISTANCE_ZONE1 = "distance_zone1"
 CONF_MAX_THRESHOLD_ZONE0 = "max_threshold_zone0"
 CONF_MAX_THRESHOLD_ZONE1 = "max_threshold_zone1"
 CONF_MIN_THRESHOLD_ZONE0 = "min_threshold_zone0"
@@ -24,7 +25,14 @@ SENSOR_STATUS = "sensor_status"
 
 CONFIG_SCHEMA = sensor.sensor_schema().extend(
     {
-        cv.Optional(CONF_DISTANCE): sensor.sensor_schema(
+        cv.Optional(CONF_DISTANCE_ZONE0): sensor.sensor_schema(
+            icon=ICON_RULER,
+            unit_of_measurement="mm",
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_DISTANCE_ZONE1): sensor.sensor_schema(
             icon=ICON_RULER,
             unit_of_measurement="mm",
             accuracy_decimals=0,
@@ -85,9 +93,12 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend(
 
 async def to_code(config):
     var = await cg.get_variable(config[CONF_ROODE_ID])
-    if CONF_DISTANCE in config:
-        distance = await sensor.new_sensor(config[CONF_DISTANCE])
-        cg.add(var.set_distance_sensor(distance))
+    if CONF_DISTANCE_ZONE0 in config:
+        distance = await sensor.new_sensor(config[CONF_DISTANCE_ZONE0])
+        cg.add(var.set_distance_zone0(distance))
+    if CONF_DISTANCE_ZONE1 in config:
+        distance = await sensor.new_sensor(config[CONF_DISTANCE_ZONE1])
+        cg.add(var.set_distance_zone1(distance))
     if CONF_MAX_THRESHOLD_ZONE0 in config:
         count = await sensor.new_sensor(config[CONF_MAX_THRESHOLD_ZONE0])
         cg.add(var.set_max_threshold_zone0_sensor(count))

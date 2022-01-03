@@ -4,9 +4,6 @@ namespace esphome
 {
     namespace roode
     {
-        static const char *const TAG = "Roode";
-        static const char *const SETUP = "Setup";
-        static const char *const CALIBRATION = "Calibration";
         void Roode::dump_config()
         {
             ESP_LOGCONFIG(TAG, "dump config:");
@@ -62,9 +59,8 @@ namespace esphome
                     }
                 }
             }
-
+            createZones();
             ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
-
             if (invert_direction_)
             {
                 ESP_LOGI(SETUP, "Inverting direction");
@@ -73,7 +69,6 @@ namespace esphome
             }
             if (calibration_active_)
             {
-                ESP_LOGI(SETUP, "Calibrating sensor");
                 calibration(distanceSensor);
                 App.feed_wdt();
             }
@@ -94,19 +89,23 @@ namespace esphome
 
         void Roode::update()
         {
-            if (distance_sensor != nullptr)
+            if (distance_zone0 != nullptr)
             {
-                distance_sensor->publish_state(distance);
+                distance_zone0->publish_state(zone0->getDistance());
+            }
+            if (distance_zone1 != nullptr)
+            {
+                distance_zone1->publish_state(zone1->getDistance());
             }
         }
 
         void Roode::loop()
         {
             // unsigned long start = micros();
-            getZoneDistance();
-            zone++;
-            zone = zone % 2;
-            App.feed_wdt();
+            distance = getAlternatingZoneDistances();
+            doPathTracking(distance, zone);
+            handleSensorStatus();
+            // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d", zone0->getDistance(Roode::distanceSensor, Roode::sensor_status), zone1->getDistance(Roode::distanceSensor, Roode::sensor_status));
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -136,32 +135,29 @@ namespace esphome
             return check_status;
         }
 
-        uint16_t Roode::getDistance()
+        void Roode::createZones()
         {
-            // Checking if data is available. This can also be done through the hardware interrupt. See the ReadDistanceHardwareInterrupt for an example
-            uint8_t dataReady = false;
-            while (!dataReady)
+            zone0 = new Zone(Roode::roi_width_, Roode::roi_height_, center[0]);
+            zone1 = new Zone(Roode::roi_width_, Roode::roi_height_, center[1]);
+        }
+        uint16_t Roode::getAlternatingZoneDistances()
+        {
+            if (zone == zone0->getZoneId())
             {
-                sensor_status += distanceSensor.CheckForDataReady(&dataReady);
-                delay(1);
+                distance = zone0->getNewDistance(distanceSensor);
+            }
+            else if (zone == zone1->getZoneId())
+            {
+                distance = zone1->getNewDistance(distanceSensor);
             }
 
-            // Get the results
-            uint16_t distance;
-            sensor_status += distanceSensor.GetDistanceInMm(&distance);
-
-            if (sensor_status != VL53L1_ERROR_NONE)
-            {
-                ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
-                return sensor_status;
-            }
-            // After reading the results reset the interrupt to be able to take another measurement
-            distanceSensor.ClearInterrupt();
-
+            zone++;
+            zone = zone % 2;
+            App.feed_wdt();
             return distance;
         }
 
-        void Roode::getZoneDistance()
+        void Roode::doPathTracking(uint16_t zoneDistance, uint8_t zone)
         {
             static int PathTrack[] = {0, 0, 0, 0};
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
@@ -171,24 +167,15 @@ namespace esphome
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
-            sensor_status += distanceSensor.SetROICenter(center[zone]);
-            sensor_status += distanceSensor.StartRanging();
-            last_sensor_status = sensor_status;
-            distance = getDistance();
-            sensor_status += distanceSensor.StopRanging();
-            if (!handleSensorStatus())
-            {
-                return;
-            }
 
             uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
             uint16_t MinDistance;
             uint8_t i;
             if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
             {
+                ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone, distance);
                 Distances[zone][DistancesTableSize[zone]] = distance;
                 DistancesTableSize[zone]++;
-                ESP_LOGD(SETUP, "Distances[%d][DistancesTableSize[zone]] = %d", zone, Distances[zone][DistancesTableSize[zone]]);
             }
             else
             {
@@ -340,13 +327,14 @@ namespace esphome
                 }
             }
         }
-        void Roode::updateCounter(int delta) {
+        void Roode::updateCounter(int delta)
+        {
             if (this->people_counter == nullptr)
             {
                 return;
             }
-            auto next = this->people_counter->state + (float) delta;
-            ESP_LOGI(TAG, "Updating people count: %d", (int) next);
+            auto next = this->people_counter->state + (float)delta;
+            ESP_LOGI(TAG, "Updating people count: %d", (int)next);
             this->people_counter->set(next);
         }
         void Roode::recalibration()
@@ -360,6 +348,10 @@ namespace esphome
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size * 2;
+            zone0->setRoiWidth(roi_width_);
+            zone0->setRoiHeight(roi_height_);
+            zone1->setRoiWidth(roi_width_);
+            zone1->setRoiHeight(roi_height_);
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -414,12 +406,14 @@ namespace esphome
                     break;
                 }
             }
+            zone0->setRoiCenter(center[0]);
+            zone1->setRoiCenter(center[1]);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
             sensor_status += distanceSensor.StopRanging();
-            sensor_status += distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
+            sensor_status += distanceSensor.SetROI(zone0->getRoiWidth(), zone0->getRoiHeight());
             sensor_status += distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
             sensor_status += distanceSensor.StartRanging();
             if (sensor_status != VL53L1_ERROR_NONE)
@@ -429,19 +423,8 @@ namespace esphome
 
             for (int i = 0; i < number_attempts; i++)
             {
-                // increase sum of values in Zone 0
-                distanceSensor.SetROICenter(center[zone]);
-                distance = getDistance();
-                values_zone_0[i] = distance;
-                zone++;
-                zone = zone % 2;
-                App.feed_wdt();
-                // increase sum of values in Zone 1
-                distanceSensor.SetROICenter(center[zone]);
-                distance = getDistance();
-                values_zone_1[i] = distance;
-                zone++;
-                zone = zone % 2;
+                values_zone_0[i] = getAlternatingZoneDistances();
+                values_zone_1[i] = getAlternatingZoneDistances();
             }
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
@@ -578,6 +561,7 @@ namespace esphome
 
         void Roode::calibration(VL53L1X_ULD distanceSensor)
         {
+            ESP_LOGI(SETUP, "Calibrating sensor");
             distanceSensor.StopRanging();
             // the sensor does 100 measurements for each zone (zones are predefined)
             time_budget_in_ms = time_budget_in_ms_medium;
@@ -604,28 +588,24 @@ namespace esphome
                 roi_height_ = roi_width_;
             }
 
+            zone0->setRoiWidth(roi_width_);
+            zone0->setRoiHeight(roi_height_);
+            zone1->setRoiWidth(roi_width_);
+            zone1->setRoiHeight(roi_height_);
+            zone0->setRoiCenter(center[0]);
+            zone1->setRoiCenter(center[1]);
+
             zone = 0;
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
+            sensor_status += distanceSensor.SetROI(zone0->getRoiWidth(), zone0->getRoiHeight());
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
             distanceSensor.StartRanging();
             for (int i = 0; i < number_attempts; i++)
             {
-                // increase sum of values in Zone 0
-                distanceSensor.SetROICenter(center[zone]);
-                distance = getDistance();
-                values_zone_0[i] = distance;
-                zone++;
-                zone = zone % 2;
-                App.feed_wdt();
-                // increase sum of values in Zone 1
-                distanceSensor.SetROICenter(center[zone]);
-                distance = getDistance();
-                values_zone_1[i] = distance;
-                zone++;
-                zone = zone % 2;
+                values_zone_0[i] = getAlternatingZoneDistances();
+                values_zone_1[i] = getAlternatingZoneDistances();
             }
 
             // after we have computed the sum for each zone, we can compute the average distance of each zone

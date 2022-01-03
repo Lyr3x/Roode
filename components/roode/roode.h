@@ -8,6 +8,7 @@
 #include "VL53L1X_ULD.h"
 #include <math.h>
 #include "configuration.h"
+#include "zone.h"
 
 namespace esphome
 {
@@ -19,7 +20,9 @@ namespace esphome
 #define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
     static int LEFT = 0;
     static int RIGHT = 1;
-
+    static const char *const TAG = "Roode";
+    static const char *const SETUP = "Setup";
+    static const char *const CALIBRATION = "Calibration";
     /*
     ##### CALIBRATION #####
     */
@@ -76,7 +79,8 @@ namespace esphome
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_sampling_size(uint8_t size) { DISTANCES_ARRAY_SIZE = size; }
-      void set_distance_sensor(sensor::Sensor *distance_sensor_) { distance_sensor = distance_sensor_; }
+      void set_distance_zone0(sensor::Sensor *distance_zone0_) { distance_zone0 = distance_zone0_; }
+      void set_distance_zone1(sensor::Sensor *distance_zone1_) { distance_zone1 = distance_zone1_; }
       void set_people_counter(number::Number *counter) { this->people_counter = counter; }
       void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
       void set_max_threshold_zone1_sensor(sensor::Sensor *max_threshold_zone1_sensor_) { max_threshold_zone1_sensor = max_threshold_zone1_sensor_; }
@@ -89,10 +93,10 @@ namespace esphome
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
-      void getZoneDistance();
+      uint16_t getAlternatingZoneDistances();
+      void doPathTracking(uint16_t zoneDistance, uint8_t zone);
       void recalibration();
       bool handleSensorStatus();
-      uint16_t getDistance();
 
       uint16_t distance = 0;
 
@@ -106,9 +110,10 @@ namespace esphome
 
     protected:
       VL53L1X_ULD distanceSensor;
-      VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
-      VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
-      sensor::Sensor *distance_sensor;
+      Zone *zone0;
+      Zone *zone1;
+      sensor::Sensor *distance_zone0;
+      sensor::Sensor *distance_zone1;
       number::Number *people_counter;
       sensor::Sensor *max_threshold_zone0_sensor;
       sensor::Sensor *max_threshold_zone1_sensor;
@@ -121,6 +126,7 @@ namespace esphome
       text_sensor::TextSensor *version_sensor;
       text_sensor::TextSensor *entry_exit_event_sensor;
 
+      void createZones();
       void roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X_ULD distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);

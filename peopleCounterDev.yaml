@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roodedev
+  devicename: roode-office
   friendly_name: $devicename
 
 external_components:
@@ -87,8 +87,10 @@ binary_sensor:
 sensor:
   - platform: roode
     id: hallway
-    distance_sensor:
-      name: $friendly_name distance
+    distance_zone0:
+      name: $friendly_name distance zone 0
+    distance_zone1:
+      name: $friendly_name distance zone 1
     max_threshold_zone0:
       name: $friendly_name max zone 0
     max_threshold_zone1:

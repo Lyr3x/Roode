@@ -1,0 +1,51 @@
+@startuml
+class Roode {
+    + void setup()
+    + void update()
+    + void loop()
+    + void dump_config()
+    + void getZoneDistance()
+    + void sendCounter(uint16_t counter)
+    + void recalibration()
+    + bool handleSensorStatus()
+    + uint16_t getDistance()
+    + VL53L1_Error sensor_status = VL53L1_ERROR_NONE
+    + VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE
+    # VL53L1X_ULD distanceSensor
+}
+
+class Configuration {
+    + Zone getZoneConfigraution(uint8_t zone)
+    + int getTimingBudget()
+    # void setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
+    # void publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
+    # void setSensorMode(int sensor_mode, int timing_budget = 0)
+}
+
+class Zone {
+    + Zone(Configuration *configuration)
+    + void calibrateThreshold(VL53L1X_ULD distanceSensor)
+    + void calibrateRoi(VL53L1X_ULD distanceSensor)
+    + uint16_t getMaxThreshold()
+    + uint16_t getMinThreshold()
+    + uint16_t getROIWidth()
+    + uint16_t getROIHeight()
+    + uint8_t getROICenter()
+    # int getOptimizedValues(int *values, int sum, int size)
+    # int getSum(int *values, int size)
+}
+
+class PersistedNumber {
+    + float get_setup_priority() const override { return setup_priority::HARDWARE; }
+    + void set_restore_value(bool restore) { this->restore_value_ = restore; }
+    + void setup() override;
+    # void control(float value) override
+    # bool restore_value_{false}
+    # ESPPreferenceObject pref_
+}
+
+Roode --> "<<instantiate>>" Configuration
+Roode --> "<<instantiate>>" Zone
+Roode --> "<<instantiate>>" PersistedNumber
+
+@enduml

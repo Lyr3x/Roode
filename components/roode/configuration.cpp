@@ -7,7 +7,7 @@ namespace esphome
 {
     namespace roode
     {
-        void Calibration::setSensorMode(VL53L1X_ULD distanceSensor, int sensor_mode, int new_timing_budget)
+        void Configuration::setSensorMode(VL53L1X_ULD distanceSensor, int sensor_mode, int new_timing_budget)
         {
             distanceSensor.StopRanging();
             switch (sensor_mode)
