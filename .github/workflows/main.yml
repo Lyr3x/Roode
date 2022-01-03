@@ -1,5 +1,7 @@
 name: Build ESP
-on: push
+on:
+  push:
+  pull_request:
 jobs:
   main:
     name: Main
