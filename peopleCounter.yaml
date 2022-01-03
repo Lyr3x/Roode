@@ -29,14 +29,6 @@ api:
   password: !secret api_password
   reboot_timeout: 60min
   services:
-    - service: set_counter
-      variables:
-        newCount: int
-      then:
-        - lambda: "id(roode_platform)->sendCounter(newCount);"
-    - service: reset_counter
-      then:
-        - lambda: "id(roode_platform)->sendCounter(0);"
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
@@ -88,7 +80,11 @@ roode:
   sampling:
     size: 3
   invert_direction: true
-  restore_values: false
+
+number:
+  - platform: roode
+    people_counter:
+      name: $friendly_name people counter
 
 switch:
   - platform: restart
@@ -103,9 +99,6 @@ binary_sensor:
 sensor:
   - platform: roode
     id: hallway
-    people_counter_sensor:
-      id: peopleCounter
-      name: $friendly_name people counter
     distance_sensor:
       name: $friendly_name distance
       filters:
