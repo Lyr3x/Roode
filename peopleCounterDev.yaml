@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roode-office
+  devicename: roodedev
   friendly_name: $devicename
 
 external_components:
