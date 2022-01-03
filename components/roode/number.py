@@ -8,7 +8,7 @@ from esphome.const import (
 )
 from esphome.cpp_generator import MockObj
 
-from components.persisted_number import PERSISTED_NUMBER_SCHEMA, new_persisted_number
+from ..persisted_number import PERSISTED_NUMBER_SCHEMA, new_persisted_number
 from . import Roode, CONF_ROODE_ID
 
 DEPENDENCIES = ["roode"]
