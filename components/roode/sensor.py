@@ -3,6 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from esphome.const import (
     ICON_ARROW_EXPAND_VERTICAL,
+    ICON_COUNTER,
     ICON_NEW_BOX,
     ICON_RULER,
     STATE_CLASS_MEASUREMENT,
@@ -14,6 +15,7 @@ from . import Roode, CONF_ROODE_ID
 DEPENDENCIES = ["roode"]
 
 CONF_DISTANCE = "distance_sensor"
+CONF_PEOPLE_COUNTER = "people_counter_sensor"
 CONF_MAX_THRESHOLD_ZONE0 = "max_threshold_zone0"
 CONF_MAX_THRESHOLD_ZONE1 = "max_threshold_zone1"
 CONF_MIN_THRESHOLD_ZONE0 = "min_threshold_zone0"
@@ -30,6 +32,12 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend(
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
+        cv.Optional(CONF_PEOPLE_COUNTER): sensor.sensor_schema(
+            icon=ICON_COUNTER,
+            unit_of_measurement=UNIT_EMPTY,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_MAX_THRESHOLD_ZONE0): sensor.sensor_schema(
             icon="mdi:map-marker-distance",
@@ -88,6 +96,9 @@ async def to_code(config):
     if CONF_DISTANCE in config:
         distance = await sensor.new_sensor(config[CONF_DISTANCE])
         cg.add(var.set_distance_sensor(distance))
+    if CONF_PEOPLE_COUNTER in config:
+        count = await sensor.new_sensor(config[CONF_PEOPLE_COUNTER])
+        cg.add(var.set_people_counter_sensor(count))
     if CONF_MAX_THRESHOLD_ZONE0 in config:
         count = await sensor.new_sensor(config[CONF_MAX_THRESHOLD_ZONE0])
         cg.add(var.set_max_threshold_zone0_sensor(count))

@@ -86,11 +86,7 @@ roode:
   #   manual_threshold: 1300
   #   timing_budget: 100
   invert_direction: true
-
-number:
-  - platform: roode
-    people_counter:
-      name: People Count
+  restore_values: false
 ```
 
 ### Configuration variables
@@ -109,6 +105,7 @@ number:
     - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
   - **timing_budget (optional, int)**: The timing budget for the sensor. Increasing this slows down detection but increases accuracy. Min: `10ms` Max: `1000s`. Defaults to `10ms`.
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Switch to `true` if the movement count appears backwards. Defaults to `false`.
+- **restore_values (Optional, bool)**: Enables the restoration of the last count, after a reboot occurs. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Advised orientation has the two sensor pads parallel to the entryway.
                                                   So `false` means the pads are perpendicular to the entryway.
                                                   Defaults to `true`.
@@ -128,6 +125,9 @@ binary_sensor:
 sensor:
   - platform: roode
     id: hallway
+    people_counter_sensor:
+      id: peopleCounter
+      name: $friendly_name people counter
     distance_sensor:
       name: $friendly_name distance
       filters:

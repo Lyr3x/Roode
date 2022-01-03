@@ -1,13 +1,18 @@
 from re import I
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.components import sensor
 from esphome.const import (
     CONF_ID,
+    DEVICE_CLASS_EMPTY,
+    STATE_CLASS_MEASUREMENT,
+    UNIT_EMPTY,
+    UNIT_METER,
 )
 
 
 # DEPENDENCIES = ["i2c"]
-AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor", "number"]
+AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor"]
 MULTI_CONF = True
 
 CONF_ROODE_ID = "roode_id"
@@ -25,6 +30,7 @@ CONF_MAX_THRESHOLD_PERCENTAGE = "max_threshold_percentage"
 CONF_MIN_THRESHOLD_PERCENTAGE = "min_threshold_percentage"
 CONF_MANUAL_THRESHOLD = "manual_threshold"
 CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
+CONF_RESTORE_VALUES = "restore_values"
 CONF_I2C_ADDRESS = "i2c_address"
 CONF_SENSOR_MODE = "sensor_mode"
 CONF_MANUAL = "manual"
@@ -38,15 +44,16 @@ CONF_ROI_ACTIVE = "roi_active"
 CONF_SENSOR_OFFSET_CALIBRATION = "sensor_offset_calibration"
 CONF_SENSOR_XTALK_CALIBRATION = "sensor_xtalk_calibration"
 TYPES = [
+    CONF_RESTORE_VALUES,
     CONF_INVERT_DIRECTION,
     CONF_ADVISED_SENSOR_ORIENTATION,
     CONF_I2C_ADDRESS,
 ]
-
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
         cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
+        cv.Optional(CONF_RESTORE_VALUES, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
         cv.Optional(CONF_SAMPLING, default=2): cv.Any(
@@ -158,6 +165,7 @@ def setup_sampling(config, hub):
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
+    cg.add_library("EEPROM", None)
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
 
