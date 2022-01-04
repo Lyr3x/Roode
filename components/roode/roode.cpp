@@ -88,13 +88,13 @@ namespace esphome
 
         void Roode::update()
         {
-            if (distance_zone0 != nullptr)
+            if (distance_entry != nullptr)
             {
-                distance_zone0->publish_state(zone0->getDistance());
+                distance_entry->publish_state(entry->getDistance());
             }
-            if (distance_zone1 != nullptr)
+            if (distance_exit != nullptr)
             {
-                distance_zone1->publish_state(zone1->getDistance());
+                distance_exit->publish_state(exit->getDistance());
             }
         }
 
@@ -104,8 +104,8 @@ namespace esphome
             distance = getAlternatingZoneDistances();
             doPathTracking(this->current_zone);
             handleSensorStatus();
-            this->current_zone = this->current_zone == this->zone0 ? this->zone1 : this->zone0;
-            // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d", zone0->getDistance(Roode::distanceSensor, Roode::sensor_status), zone1->getDistance(Roode::distanceSensor, Roode::sensor_status));
+            this->current_zone = this->current_zone == this->entry ? this->exit : this->entry;
+            // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d", entry->getDistance(Roode::distanceSensor, Roode::sensor_status), exit->getDistance(Roode::distanceSensor, Roode::sensor_status));
             // unsigned long end = micros();
             // unsigned long delta = end - start;
             // ESP_LOGI("Roode loop", "loop took %lu microseconds", delta);
@@ -141,18 +141,18 @@ namespace esphome
             {
                 center[0] = 167;
                 center[1] = 231;
-                zone0 = new Zone(Roode::roi_width_, Roode::roi_height_, center[0]);
-                zone1 = new Zone(Roode::roi_width_, Roode::roi_height_, center[1]);
+                entry = new Zone(entry_roi_width, entry_roi_height, center[0]);
+                exit = new Zone(exit_roi_width, exit_roi_height, center[1]);
             }
             else
             {
                 center[0] = 195;
                 center[1] = 60;
-                zone1 = new Zone(Roode::roi_height_, Roode::roi_width_, center[1]);
-                zone0 = new Zone(Roode::roi_height_, Roode::roi_width_, center[0]);
+                entry = new Zone(entry_roi_width, entry_roi_height, center[0]);
+                exit = new Zone(exit_roi_width, exit_roi_height, center[1]);
             }
 
-            current_zone = zone0;
+            current_zone = entry;
         }
         uint16_t Roode::getAlternatingZoneDistances()
         {
@@ -350,10 +350,9 @@ namespace esphome
             // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
             int ROI_size = min(8, max(4, function_of_the_distance));
-            Roode::roi_width_ = ROI_size;
-            Roode::roi_height_ = ROI_size * 2;
-            zone0->updateRoi(roi_width_, roi_height_, center[0]);
-            zone1->updateRoi(roi_width_, roi_height_, center[1]);
+
+            entry->updateRoi(ROI_size, ROI_size * 2, center[0]);
+            exit->updateRoi(ROI_size, ROI_size * 2, center[1]);
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -408,14 +407,14 @@ namespace esphome
                     break;
                 }
             }
-            zone0->setRoiCenter(center[0]);
-            zone1->setRoiCenter(center[1]);
+            entry->setRoiCenter(center[0]);
+            exit->setRoiCenter(center[1]);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
 
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            current_zone = zone0;
+            current_zone = entry;
             for (int i = 0; i < number_attempts; i++)
             {
                 values_zone_0[i] = getAlternatingZoneDistances();
@@ -569,14 +568,13 @@ namespace esphome
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
             }
-
-            zone0->updateRoi(roi_width_, roi_height_, center[0]);
-            zone1->updateRoi(roi_width_, roi_height_, center[1]);
+            entry->updateRoi(entry_roi_width, entry_roi_height, center[0]);
+            exit->updateRoi(exit_roi_width, exit_roi_height, center[1]);
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            current_zone = zone0;
+            current_zone = entry;
             for (int i = 0; i < number_attempts; i++)
             {
                 values_zone_0[i] = getAlternatingZoneDistances();
@@ -614,39 +612,48 @@ namespace esphome
         {
             if (isMax)
             {
-                ESP_LOGI(SETUP, "Max threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI(SETUP, "Max threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
-                if (max_threshold_zone0_sensor != nullptr)
+                ESP_LOGI(SETUP, "Max threshold entry: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI(SETUP, "Max threshold exit: %dmm", DIST_THRESHOLD_ARR[1]);
+                if (max_threshold_entry_sensor != nullptr)
                 {
-                    max_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                    max_threshold_entry_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
                 }
 
-                if (max_threshold_zone1_sensor != nullptr)
+                if (max_threshold_exit_sensor != nullptr)
                 {
-                    max_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                    max_threshold_exit_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
                 }
             }
             else
             {
-                ESP_LOGI(SETUP, "Min threshold zone0: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI(SETUP, "Min threshold zone1: %dmm", DIST_THRESHOLD_ARR[1]);
-                if (min_threshold_zone0_sensor != nullptr)
+                ESP_LOGI(SETUP, "Min threshold entry: %dmm", DIST_THRESHOLD_ARR[0]);
+                ESP_LOGI(SETUP, "Min threshold exit: %dmm", DIST_THRESHOLD_ARR[1]);
+                if (min_threshold_entry_sensor != nullptr)
                 {
-                    min_threshold_zone0_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                    min_threshold_entry_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
                 }
-                if (min_threshold_zone1_sensor != nullptr)
+                if (min_threshold_exit_sensor != nullptr)
                 {
-                    min_threshold_zone1_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                    min_threshold_exit_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
                 }
             }
 
-            if (roi_height_sensor != nullptr)
+            if (entry_roi_height_sensor != nullptr)
             {
-                roi_height_sensor->publish_state(roi_height_);
+                entry_roi_height_sensor->publish_state(entry->getRoiHeight());
             }
-            if (roi_width_sensor != nullptr)
+            if (entry_roi_width_sensor != nullptr)
             {
-                roi_width_sensor->publish_state(roi_width_);
+                entry_roi_width_sensor->publish_state(entry->getRoiWidth());
+            }
+
+            if (exit_roi_height_sensor != nullptr)
+            {
+                exit_roi_height_sensor->publish_state(exit->getRoiHeight());
+            }
+            if (exit_roi_width_sensor != nullptr)
+            {
+                exit_roi_width_sensor->publish_state(exit->getRoiWidth());
             }
         }
     }

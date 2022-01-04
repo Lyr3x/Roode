@@ -3,6 +3,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_ID,
+    CONF_OR,
 )
 
 
@@ -35,18 +36,16 @@ CONF_SAMPLING = "sampling"
 CONF_SAMPLING_SIZE = "size"
 CONF_ROI = "roi"
 CONF_ROI_ACTIVE = "roi_active"
+CONF_ZONES = "zones"
+CONF_ENTRY_ZONE = "entry"
+CONF_EXIT_ZONE = "exit"
 CONF_SENSOR_OFFSET_CALIBRATION = "sensor_offset_calibration"
 CONF_SENSOR_XTALK_CALIBRATION = "sensor_xtalk_calibration"
-TYPES = [
-    CONF_INVERT_DIRECTION,
-    CONF_ADVISED_SENSOR_ORIENTATION,
-    CONF_I2C_ADDRESS,
-]
+TYPES = [CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS]
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
-        cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
         cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
         cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
         cv.Optional(CONF_SAMPLING, default=2): cv.Any(
@@ -104,12 +103,45 @@ CONFIG_SCHEMA = cv.Schema(
                 cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(min=4, max=16),
             }
         ),
+        cv.Optional(CONF_ZONES): cv.Schema(
+            {
+                cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
+                cv.Optional(CONF_ENTRY_ZONE): cv.Schema(
+                    {
+                        cv.Optional(CONF_ROI): cv.Schema(
+                            {
+                                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(
+                                    min=4, max=16
+                                ),
+                                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(
+                                    min=4, max=16
+                                ),
+                            }
+                        ),
+                    }
+                ),
+                cv.Optional(CONF_EXIT_ZONE): cv.Schema(
+                    {
+                        cv.Optional(CONF_ROI): cv.Schema(
+                            {
+                                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(
+                                    min=4, max=16
+                                ),
+                                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(
+                                    min=4, max=16
+                                ),
+                            }
+                        ),
+                    }
+                ),
+            }
+        ),
     }
 ).extend(cv.polling_component_schema("100ms"))
 
 
 def validate_roi_settings(config):
-    roi = config.get(CONF_ROI)
+    roi = config.get(CONF_ZONES).get(CONF_ROI)
     manual = config.get(CONF_MANUAL)
     if CONF_CALIBRATION in config:
         roi_calibration = config.get(CONF_CALIBRATION).get(CONF_ROI_CALIBRATION)
@@ -155,13 +187,27 @@ def setup_sampling(config, hub):
             cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling[key]))
 
 
+def setup_zones(config, hub):
+    zones = config[CONF_ZONES]
+    for zone in zones:
+        if CONF_ENTRY_ZONE in zone or CONF_EXIT_ZONE in zone:
+            roi = zones[zone][CONF_ROI]
+            for key in roi:
+                cg.add(getattr(hub, f"set_{zone}_{key}")(roi[key]))
+        else:
+            cg.add(getattr(hub, f"set_{zone}")(zones[zone]))
+
+    if CONF_INVERT_DIRECTION in zones:
+        cg.add(getattr(hub, "set_invert_direction")(zones[CONF_INVERT_DIRECTION]))
+
+
 async def to_code(config):
     hub = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(hub, config)
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
 
-    validate_roi_settings(config)
+    # validate_roi_settings(config)
 
     for key in TYPES:
         await setup_conf(config, key, hub)
@@ -171,3 +217,5 @@ async def to_code(config):
         setup_calibration_mode(config, hub)
     if CONF_SAMPLING in config:
         setup_sampling(config, hub)
+    if CONF_ZONES in config:
+        setup_zones(config, hub)

@@ -132,9 +132,9 @@ sensor:
       name: $friendly_name distance
       filters:
         - delta: 100.0
-    threshold_zone0:
+    threshold_entry:
       name: $friendly_name Zone 0
-    threshold_zone1:
+    threshold_exit:
       name: $friendly_name Zone 1
     roi_height:
       name: $friendly_name ROI height

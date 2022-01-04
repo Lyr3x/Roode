@@ -106,13 +106,13 @@ sensor:
       name: $friendly_name distance
       filters:
         - delta: 10.0
-    max_threshold_zone0:
+    max_threshold_entry:
       name: $friendly_name max zone 0
-    max_threshold_zone1:
+    max_threshold_exit:
       name: $friendly_name max zone 1
-    min_threshold_zone0:
+    min_threshold_entry:
       name: $friendly_name min zone 0
-    min_threshold_zone1:
+    min_threshold_exit:
       name: $friendly_name min zone 1
     roi_height:
       name: $friendly_name ROI height

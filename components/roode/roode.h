@@ -71,22 +71,26 @@ namespace esphome
       void set_manual_threshold(int val) { manual_threshold_ = val; }
       void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
       void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
-      void set_roi_height(int height) { roi_height_ = height; }
-      void set_roi_width(int width) { roi_width_ = width; }
+      void set_entry_roi_height(int height) { entry_roi_height = height; }
+      void set_entry_roi_width(int width) { entry_roi_width = width; }
+      void set_exit_roi_height(int height) { exit_roi_height = height; }
+      void set_exit_roi_width(int width) { exit_roi_width = width; }
       void set_i2c_address(uint8_t address) { this->address_ = address; }
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
       void set_sampling_size(uint8_t size) { DISTANCES_ARRAY_SIZE = size; }
-      void set_distance_zone0(sensor::Sensor *distance_zone0_) { distance_zone0 = distance_zone0_; }
-      void set_distance_zone1(sensor::Sensor *distance_zone1_) { distance_zone1 = distance_zone1_; }
+      void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
+      void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
       void set_people_counter(number::Number *counter) { this->people_counter = counter; }
-      void set_max_threshold_zone0_sensor(sensor::Sensor *max_threshold_zone0_sensor_) { max_threshold_zone0_sensor = max_threshold_zone0_sensor_; }
-      void set_max_threshold_zone1_sensor(sensor::Sensor *max_threshold_zone1_sensor_) { max_threshold_zone1_sensor = max_threshold_zone1_sensor_; }
-      void set_min_threshold_zone0_sensor(sensor::Sensor *min_threshold_zone0_sensor_) { min_threshold_zone0_sensor = min_threshold_zone0_sensor_; }
-      void set_min_threshold_zone1_sensor(sensor::Sensor *min_threshold_zone1_sensor_) { min_threshold_zone1_sensor = min_threshold_zone1_sensor_; }
-      void set_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { roi_height_sensor = roi_height_sensor_; }
-      void set_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { roi_width_sensor = roi_width_sensor_; }
+      void set_max_threshold_entry_sensor(sensor::Sensor *max_threshold_entry_sensor_) { max_threshold_entry_sensor = max_threshold_entry_sensor_; }
+      void set_max_threshold_exit_sensor(sensor::Sensor *max_threshold_exit_sensor_) { max_threshold_exit_sensor = max_threshold_exit_sensor_; }
+      void set_min_threshold_entry_sensor(sensor::Sensor *min_threshold_entry_sensor_) { min_threshold_entry_sensor = min_threshold_entry_sensor_; }
+      void set_min_threshold_exit_sensor(sensor::Sensor *min_threshold_exit_sensor_) { min_threshold_exit_sensor = min_threshold_exit_sensor_; }
+      void set_entry_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { entry_roi_height_sensor = roi_height_sensor_; }
+      void set_entry_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { entry_roi_width_sensor = roi_width_sensor_; }
+      void set_exit_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { exit_roi_height_sensor = roi_height_sensor_; }
+      void set_exit_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { exit_roi_width_sensor = roi_width_sensor_; }
       void set_sensor_status_sensor(sensor::Sensor *status_sensor_) { status_sensor = status_sensor_; }
       void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) { presence_sensor = presence_sensor_; }
       void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
@@ -102,25 +106,29 @@ namespace esphome
       ERangeStatus rangeStatus;
       int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
       int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
-      int roi_width_{6};                  // width of the ROI
-      int roi_height_{16};                // height of the ROI
+      int entry_roi_width{6};             // width of the ROI
+      int entry_roi_height{16};           // height of the ROI
+      int exit_roi_width{6};              // width of the ROI
+      int exit_roi_height{16};            // height of the ROI
       uint16_t peopleCounter{0};
       Configuration sensorConfiguration;
 
     protected:
       VL53L1X_ULD distanceSensor;
-      Zone *zone0;
-      Zone *zone1;
+      Zone *entry;
+      Zone *exit;
       Zone *current_zone;
-      sensor::Sensor *distance_zone0;
-      sensor::Sensor *distance_zone1;
+      sensor::Sensor *distance_entry;
+      sensor::Sensor *distance_exit;
       number::Number *people_counter;
-      sensor::Sensor *max_threshold_zone0_sensor;
-      sensor::Sensor *max_threshold_zone1_sensor;
-      sensor::Sensor *min_threshold_zone0_sensor;
-      sensor::Sensor *min_threshold_zone1_sensor;
-      sensor::Sensor *roi_height_sensor;
-      sensor::Sensor *roi_width_sensor;
+      sensor::Sensor *max_threshold_entry_sensor;
+      sensor::Sensor *max_threshold_exit_sensor;
+      sensor::Sensor *min_threshold_entry_sensor;
+      sensor::Sensor *min_threshold_exit_sensor;
+      sensor::Sensor *exit_roi_height_sensor;
+      sensor::Sensor *exit_roi_width_sensor;
+      sensor::Sensor *entry_roi_height_sensor;
+      sensor::Sensor *entry_roi_width_sensor;
       sensor::Sensor *status_sensor;
       binary_sensor::BinarySensor *presence_sensor;
       text_sensor::TextSensor *version_sensor;

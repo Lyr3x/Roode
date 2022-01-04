@@ -67,7 +67,16 @@ roode:
   #   manual_threshold: 1280
   #   timing_budget: 200
   # sampling: 3
-  invert_direction: true
+  zones:
+    invert_direction: true
+    entry:
+      roi:
+        roi_height: 12
+        roi_width: 6
+    exit:
+      roi:
+        roi_height: 12
+        roi_width: 6
 
 number:
   - platform: roode
@@ -87,22 +96,26 @@ binary_sensor:
 sensor:
   - platform: roode
     id: hallway
-    distance_zone0:
+    distance_entry:
       name: $friendly_name distance zone 0
-    distance_zone1:
+    distance_exit:
       name: $friendly_name distance zone 1
-    max_threshold_zone0:
+    max_threshold_entry:
       name: $friendly_name max zone 0
-    max_threshold_zone1:
+    max_threshold_exit:
       name: $friendly_name max zone 1
-    min_threshold_zone0:
+    min_threshold_entry:
       name: $friendly_name min zone 0
-    min_threshold_zone1:
+    min_threshold_exit:
       name: $friendly_name min zone 1
-    roi_height:
-      name: $friendly_name ROI height
-    roi_width:
-      name: $friendly_name ROI width
+    roi_height_entry:
+      name: $friendly_name ROI height zone 0
+    roi_width_entry:
+      name: $friendly_name ROI width zone 0
+    roi_height_exit:
+      name: $friendly_name ROI height zone 1
+    roi_width_exit:
+      name: $friendly_name ROI width zone 1
     sensor_status:
       name: Sensor Status
 
