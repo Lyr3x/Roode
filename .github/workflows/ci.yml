@@ -1,4 +1,4 @@
-name: Build ESP
+name: CI
 on:
   push:
   pull_request:
@@ -12,7 +12,7 @@ jobs:
         uses: actions/setup-python@master
         with:
           python-version: '3.x'
-      - name: Install Platform IO
+      - name: Install ESPHome
         run: |
           python -m pip install --upgrade pip
           pip install -U esphome
@@ -24,4 +24,12 @@ jobs:
         run: esphome config peopleCounter32.yaml
       - name: Build ESP32
         run: esphome compile peopleCounter32.yaml
-      
+  format:
+    name: Python Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: '3.x'

@@ -1,0 +1,51 @@
+substitutions:
+  friendly_name: test
+
+external_components:
+  - source: components
+    refresh: always
+
+i2c:
+  sda: 4
+  scl: 5
+
+number:
+  - platform: roode
+    people_counter:
+      name: $friendly_name people counter
+
+binary_sensor:
+  - platform: status
+    name: $friendly_name Status
+  - platform: roode
+    presence_sensor:
+      name: $friendly_name presence
+
+sensor:
+  - platform: roode
+    id: hallway
+    distance_sensor:
+      name: $friendly_name distance
+      filters:
+        - delta: 10.0
+    max_threshold_zone0:
+      name: $friendly_name max zone 0
+    max_threshold_zone1:
+      name: $friendly_name max zone 1
+    min_threshold_zone0:
+      name: $friendly_name min zone 0
+    min_threshold_zone1:
+      name: $friendly_name min zone 1
+    roi_height:
+      name: $friendly_name ROI height
+    roi_width:
+      name: $friendly_name ROI width
+    sensor_status:
+      name: Sensor Status
+
+text_sensor:
+  - platform: roode
+    version:
+      name: $friendly_name version
+    entry_exit_event:
+      name: $friendly_name last direction

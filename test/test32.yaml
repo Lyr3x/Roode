@@ -1,0 +1,27 @@
+<<: !include .common.yaml
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+roode:
+  id: roode_platform
+  i2c_address: 0x29
+  update_interval: 10ms
+    # roi:
+  # roi_height: 16
+  # roi_width: 6
+  calibration:
+    max_threshold_percentage: 85
+    min_threshold_percentage: 5
+    roi_calibration: true
+    # sensor_offset_calibration: 8
+    # sensor_xtalk_calibration: 53406
+  # manual:
+  #   sensor_mode: 3
+  #   manual_threshold: 1280
+  #   timing_budget: 200
+  sampling:
+    size: 3
+  invert_direction: true
