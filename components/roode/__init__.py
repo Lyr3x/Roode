@@ -141,7 +141,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 def validate_roi_settings(config):
-    roi = config.get(CONF_ZONES).get(CONF_ROI)
+    roi = config.get(CONF_ZONES)
     manual = config.get(CONF_MANUAL)
     if CONF_CALIBRATION in config:
         roi_calibration = config.get(CONF_CALIBRATION).get(CONF_ROI_CALIBRATION)
@@ -207,7 +207,7 @@ async def to_code(config):
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
 
-    # validate_roi_settings(config)
+    validate_roi_settings(config)
 
     for key in TYPES:
         await setup_conf(config, key, hub)
