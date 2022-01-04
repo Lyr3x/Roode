@@ -14,7 +14,7 @@ namespace esphome
             this->roi_center = roi_center;
         }
 
-        uint16_t Zone::getNewDistance(VL53L1X_ULD &distanceSensor)
+        uint16_t Zone::readDistance(VL53L1X_ULD &distanceSensor)
         {
             last_sensor_status = sensor_status;
 

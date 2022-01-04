@@ -27,7 +27,6 @@ namespace esphome
     ##### CALIBRATION #####
     */
     static int center[2] = {0, 0}; /* center of the two zones */
-    static int zone = 0;
 
     /*
     Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
@@ -94,7 +93,7 @@ namespace esphome
       void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) { entry_exit_event_sensor = entry_exit_event_sensor_; }
       void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
       uint16_t getAlternatingZoneDistances();
-      void doPathTracking(uint16_t zoneDistance, uint8_t zone);
+      void doPathTracking(Zone *zone);
       void recalibration();
       bool handleSensorStatus();
 
@@ -112,6 +111,7 @@ namespace esphome
       VL53L1X_ULD distanceSensor;
       Zone *zone0;
       Zone *zone1;
+      Zone *current_zone;
       sensor::Sensor *distance_zone0;
       sensor::Sensor *distance_zone1;
       number::Number *people_counter;

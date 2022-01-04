@@ -9,11 +9,22 @@ namespace esphome
 {
     namespace roode
     {
+        struct ROI
+        {
+            uint16_t width;
+            uint16_t height;
+            uint16_t center;
+        };
+        struct Threshold
+        {
+            uint16_t min;
+            uint16_t max;
+        };
         class Zone
         {
         public:
             Zone(int roi_width, int roi_height, int roi_center);
-            uint16_t getNewDistance(VL53L1X_ULD &distanceSensor);
+            uint16_t readDistance(VL53L1X_ULD &distanceSensor);
             uint16_t calibrateThreshold();
             uint16_t calibrateRoi();
             uint16_t getMinThreshold();

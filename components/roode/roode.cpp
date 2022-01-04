@@ -103,8 +103,9 @@ namespace esphome
         {
             // unsigned long start = micros();
             distance = getAlternatingZoneDistances();
-            doPathTracking(distance, zone);
+            doPathTracking(this->current_zone);
             handleSensorStatus();
+            this->current_zone = this->current_zone == this->zone0 ? this->zone1 : this->zone0;
             // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d", zone0->getDistance(Roode::distanceSensor, Roode::sensor_status), zone1->getDistance(Roode::distanceSensor, Roode::sensor_status));
             // unsigned long end = micros();
             // unsigned long delta = end - start;
@@ -139,25 +140,16 @@ namespace esphome
         {
             zone0 = new Zone(Roode::roi_width_, Roode::roi_height_, center[0]);
             zone1 = new Zone(Roode::roi_width_, Roode::roi_height_, center[1]);
+            current_zone = zone0;
         }
         uint16_t Roode::getAlternatingZoneDistances()
         {
-            if (zone == zone0->getZoneId())
-            {
-                distance = zone0->getNewDistance(distanceSensor);
-            }
-            else if (zone == zone1->getZoneId())
-            {
-                distance = zone1->getNewDistance(distanceSensor);
-            }
-
-            zone++;
-            zone = zone % 2;
+            this->current_zone->readDistance(distanceSensor);
             App.feed_wdt();
-            return distance;
+            return this->current_zone->getDistance();
         }
 
-        void Roode::doPathTracking(uint16_t zoneDistance, uint8_t zone)
+        void Roode::doPathTracking(Zone *zone)
         {
             static int PathTrack[] = {0, 0, 0, 0};
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
@@ -171,35 +163,35 @@ namespace esphome
             uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
             uint16_t MinDistance;
             uint8_t i;
-            if (DistancesTableSize[zone] < DISTANCES_ARRAY_SIZE)
+            if (DistancesTableSize[zone->getZoneId()] < DISTANCES_ARRAY_SIZE)
             {
-                ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone, distance);
-                Distances[zone][DistancesTableSize[zone]] = distance;
-                DistancesTableSize[zone]++;
+                ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone->getZoneId(), distance);
+                Distances[zone->getZoneId()][DistancesTableSize[zone->getZoneId()]] = zone->getDistance();
+                DistancesTableSize[zone->getZoneId()]++;
             }
             else
             {
                 for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
-                    Distances[zone][i - 1] = Distances[zone][i];
-                Distances[zone][DISTANCES_ARRAY_SIZE - 1] = distance;
-                ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone, Distances[zone][DISTANCES_ARRAY_SIZE - 1]);
+                    Distances[zone->getZoneId()][i - 1] = Distances[zone->getZoneId()][i];
+                Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1] = distance;
+                ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone->getZoneId(), Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1]);
             }
-            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone][0]);
-            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone][1]);
+            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone->getZoneId()][0]);
+            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone->getZoneId()][1]);
             // pick up the min distance
-            MinDistance = Distances[zone][0];
-            if (DistancesTableSize[zone] >= 2)
+            MinDistance = Distances[zone->getZoneId()][0];
+            if (DistancesTableSize[zone->getZoneId()] >= 2)
             {
-                for (i = 1; i < DistancesTableSize[zone]; i++)
+                for (i = 1; i < DistancesTableSize[zone->getZoneId()]; i++)
                 {
-                    if (Distances[zone][i] < MinDistance)
-                        MinDistance = Distances[zone][i];
+                    if (Distances[zone->getZoneId()][i] < MinDistance)
+                        MinDistance = Distances[zone->getZoneId()][i];
                 }
             }
             distance = MinDistance;
 
             // PathTrack algorithm
-            if (distance < DIST_THRESHOLD_MAX[zone] && distance > DIST_THRESHOLD_MIN[zone])
+            if (distance < DIST_THRESHOLD_MAX[zone->getZoneId()] && distance > DIST_THRESHOLD_MIN[zone->getZoneId()])
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
@@ -210,7 +202,7 @@ namespace esphome
             }
 
             // left zone
-            if (zone == LEFT)
+            if (zone->getZoneId() == LEFT)
             {
                 if (CurrentZoneStatus != LeftPreviousStatus)
                 {
@@ -409,7 +401,6 @@ namespace esphome
             zone0->setRoiCenter(center[0]);
             zone1->setRoiCenter(center[1]);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
-            zone = 0;
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
             sensor_status += distanceSensor.StopRanging();
@@ -594,8 +585,6 @@ namespace esphome
             zone1->setRoiHeight(roi_height_);
             zone0->setRoiCenter(center[0]);
             zone1->setRoiCenter(center[1]);
-
-            zone = 0;
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
