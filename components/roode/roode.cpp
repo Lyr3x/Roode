@@ -59,7 +59,6 @@ namespace esphome
                     }
                 }
             }
-            createZones();
             ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
             if (invert_direction_)
             {
@@ -67,6 +66,9 @@ namespace esphome
                 LEFT = 1;
                 RIGHT = 0;
             }
+            ESP_LOGI(SETUP, "Creating entry and exit zones.");
+            createEntryAndExitZone();
+
             if (calibration_active_)
             {
                 calibration(distanceSensor);
@@ -75,9 +77,6 @@ namespace esphome
             if (manual_active_)
             {
                 ESP_LOGI(SETUP, "Manual sensor configuration");
-                center[0] = 167;
-                center[1] = 231;
-                distanceSensor.SetROI(Roode::roi_width_, Roode::roi_height_);
                 sensorConfiguration.setSensorMode(distanceSensor, sensor_mode, timing_budget_);
                 DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
                 DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
@@ -136,10 +135,23 @@ namespace esphome
             return check_status;
         }
 
-        void Roode::createZones()
+        void Roode::createEntryAndExitZone()
         {
-            zone0 = new Zone(Roode::roi_width_, Roode::roi_height_, center[0]);
-            zone1 = new Zone(Roode::roi_width_, Roode::roi_height_, center[1]);
+            if (advised_sensor_orientation_)
+            {
+                center[0] = 167;
+                center[1] = 231;
+                zone0 = new Zone(Roode::roi_width_, Roode::roi_height_, center[0]);
+                zone1 = new Zone(Roode::roi_width_, Roode::roi_height_, center[1]);
+            }
+            else
+            {
+                center[0] = 195;
+                center[1] = 60;
+                zone1 = new Zone(Roode::roi_height_, Roode::roi_width_, center[1]);
+                zone0 = new Zone(Roode::roi_height_, Roode::roi_width_, center[0]);
+            }
+
             current_zone = zone0;
         }
         uint16_t Roode::getAlternatingZoneDistances()
@@ -176,8 +188,8 @@ namespace esphome
                 Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1] = distance;
                 ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone->getZoneId(), Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1]);
             }
-            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone, Distances[zone->getZoneId()][0]);
-            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone, Distances[zone->getZoneId()][1]);
+            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][0]);
+            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][1]);
             // pick up the min distance
             MinDistance = Distances[zone->getZoneId()][0];
             if (DistancesTableSize[zone->getZoneId()] >= 2)
@@ -556,20 +568,6 @@ namespace esphome
             if (sensor_status != VL53L1_ERROR_NONE)
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
-            }
-            if (advised_sensor_orientation_)
-            {
-                center[0] = 167;
-                center[1] = 231;
-            }
-            else
-            {
-                center[0] = 195;
-                center[1] = 60;
-                uint16_t roi_width_temp = roi_width_;
-                uint16_t roi_height_temp = roi_height_;
-                roi_width_ = roi_height_;
-                roi_height_ = roi_width_;
             }
 
             zone0->updateRoi(roi_width_, roi_height_, center[0]);

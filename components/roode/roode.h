@@ -126,7 +126,7 @@ namespace esphome
       text_sensor::TextSensor *version_sensor;
       text_sensor::TextSensor *entry_exit_event_sensor;
 
-      void createZones();
+      void createEntryAndExitZone();
       void roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibration(VL53L1X_ULD distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
