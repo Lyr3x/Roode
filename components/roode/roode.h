@@ -18,8 +18,6 @@ namespace esphome
 #define SOMEONE 1
 #define VERSION "v1.4.1-beta"
 #define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
-    static int LEFT = 0;
-    static int RIGHT = 1;
     static const char *const TAG = "Roode";
     static const char *const SETUP = "Setup";
     static const char *const CALIBRATION = "Calibration";

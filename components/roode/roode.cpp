@@ -60,12 +60,6 @@ namespace esphome
                 }
             }
             ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
-            if (invert_direction_)
-            {
-                ESP_LOGI(SETUP, "Inverting direction");
-                LEFT = 1;
-                RIGHT = 0;
-            }
             ESP_LOGI(SETUP, "Creating entry and exit zones.");
             createEntryAndExitZone();
 
@@ -214,7 +208,7 @@ namespace esphome
             }
 
             // left zone
-            if (zone->getZoneId() == LEFT)
+            if (zone == (this->invert_direction_ ? this->exit : this->entry))
             {
                 if (CurrentZoneStatus != LeftPreviousStatus)
                 {
@@ -356,7 +350,6 @@ namespace esphome
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
-
                 switch (ROI_size)
                 {
                 case 4:
