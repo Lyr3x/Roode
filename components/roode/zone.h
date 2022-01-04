@@ -32,9 +32,10 @@ namespace esphome
             uint16_t getRoiWidth();
             uint16_t getRoiHeight();
             uint16_t getRoiCenter();
-            uint16_t setRoiWidth(uint16_t new_roi_width);
-            uint16_t setRoiHeight(uint16_t new_roi_height);
-            uint16_t setRoiCenter(uint16_t new_roi_center);
+            void setRoiWidth(uint16_t new_roi_width);
+            void setRoiHeight(uint16_t new_roi_height);
+            void setRoiCenter(uint16_t new_roi_center);
+            void updateRoi(uint16_t new_width, uint16_t new_height, uint16_t new_center);
             uint8_t getZoneId();
             uint16_t getDistance();
             bool handleSensorStatus();
@@ -43,6 +44,8 @@ namespace esphome
             int getSum(int *values, int size);
             int getOptimizedValues(int *values, int sum, int size);
             void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
+            ROI roi;
+            Threshold threshold;
             uint16_t roi_width;
             uint16_t roi_height;
             uint16_t roi_center;

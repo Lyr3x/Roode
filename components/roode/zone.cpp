@@ -12,14 +12,15 @@ namespace esphome
             this->roi_width = roi_width;
             this->roi_height = roi_height;
             this->roi_center = roi_center;
+            this->roi = {roi_width, roi_height, roi_center};
         }
 
         uint16_t Zone::readDistance(VL53L1X_ULD &distanceSensor)
         {
             last_sensor_status = sensor_status;
-
-            sensor_status += distanceSensor.StartRanging();
+            sensor_status += distanceSensor.SetROI(this->getRoiWidth(), this->getRoiHeight());
             sensor_status += distanceSensor.SetROICenter(this->getRoiCenter());
+            sensor_status += distanceSensor.StartRanging();
             // Checking if data is available. This can also be done through the hardware interrupt. See the ReadDistanceHardwareInterrupt for an example
             uint8_t dataReady = false;
             while (!dataReady)
@@ -38,6 +39,7 @@ namespace esphome
             }
             // After reading the results reset the interrupt to be able to take another measurement
             sensor_status += distanceSensor.ClearInterrupt();
+            sensor_status += distanceSensor.StopRanging();
             return distance;
         }
         uint16_t Zone::getDistance()
@@ -46,27 +48,33 @@ namespace esphome
         }
         uint16_t Zone::getRoiWidth()
         {
-            return this->roi_width;
+            return this->roi.width;
         }
         uint16_t Zone::getRoiHeight()
         {
-            return this->roi_height;
+            return this->roi.height;
         }
         uint16_t Zone::getRoiCenter()
         {
-            return this->roi_center;
+            return this->roi.center;
         }
-        uint16_t Zone::setRoiWidth(uint16_t new_roi_width)
+        void Zone::setRoiWidth(uint16_t new_roi_width)
         {
-            return this->roi_width = new_roi_width;
+            this->roi.width = new_roi_width;
         }
-        uint16_t Zone::setRoiHeight(uint16_t new_roi_height)
+        void Zone::setRoiHeight(uint16_t new_roi_height)
         {
-            return this->roi_height = new_roi_height;
+            this->roi.height = new_roi_height;
         }
-        uint16_t Zone::setRoiCenter(uint16_t new_roi_center)
+        void Zone::setRoiCenter(uint16_t new_roi_center)
         {
-            return this->roi_center = new_roi_center;
+            this->roi.center = new_roi_center;
+        }
+        void Zone::updateRoi(uint16_t new_width, uint16_t new_height, uint16_t new_center)
+        {
+            this->roi.width = new_width;
+            this->roi.height = new_height;
+            this->roi.center = new_center;
         }
         uint8_t Zone::getZoneId()
         {

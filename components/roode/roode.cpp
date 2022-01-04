@@ -340,10 +340,8 @@ namespace esphome
             int ROI_size = min(8, max(4, function_of_the_distance));
             Roode::roi_width_ = ROI_size;
             Roode::roi_height_ = ROI_size * 2;
-            zone0->setRoiWidth(roi_width_);
-            zone0->setRoiHeight(roi_height_);
-            zone1->setRoiWidth(roi_width_);
-            zone1->setRoiHeight(roi_height_);
+            zone0->updateRoi(roi_width_, roi_height_, center[0]);
+            zone1->updateRoi(roi_width_, roi_height_, center[1]);
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
@@ -403,20 +401,15 @@ namespace esphome
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            sensor_status += distanceSensor.StopRanging();
-            sensor_status += distanceSensor.SetROI(zone0->getRoiWidth(), zone0->getRoiHeight());
-            sensor_status += distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            sensor_status += distanceSensor.StartRanging();
-            if (sensor_status != VL53L1_ERROR_NONE)
-            {
-                ESP_LOGE(SETUP, "Error in calibration: %d", sensor_status);
-            }
 
+            distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+            current_zone = zone0;
             for (int i = 0; i < number_attempts; i++)
             {
                 values_zone_0[i] = getAlternatingZoneDistances();
                 values_zone_1[i] = getAlternatingZoneDistances();
             }
+
             optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
             optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
         }
@@ -579,18 +572,13 @@ namespace esphome
                 roi_height_ = roi_width_;
             }
 
-            zone0->setRoiWidth(roi_width_);
-            zone0->setRoiHeight(roi_height_);
-            zone1->setRoiWidth(roi_width_);
-            zone1->setRoiHeight(roi_height_);
-            zone0->setRoiCenter(center[0]);
-            zone1->setRoiCenter(center[1]);
+            zone0->updateRoi(roi_width_, roi_height_, center[0]);
+            zone1->updateRoi(roi_width_, roi_height_, center[1]);
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
-            sensor_status += distanceSensor.SetROI(zone0->getRoiWidth(), zone0->getRoiHeight());
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            distanceSensor.StartRanging();
+            current_zone = zone0;
             for (int i = 0; i < number_attempts; i++)
             {
                 values_zone_0[i] = getAlternatingZoneDistances();
