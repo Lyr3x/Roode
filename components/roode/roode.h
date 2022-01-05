@@ -102,8 +102,6 @@ namespace esphome
       uint16_t distance = 0;
 
       ERangeStatus rangeStatus;
-      // int DIST_THRESHOLD_MAX[2] = {0, 0}; // max treshold of the two zones
-      // int DIST_THRESHOLD_MIN[2] = {0, 0}; // min treshold of the two zones
       int entry_roi_width{6};             // width of the ROI
       int entry_roi_height{16};           // height of the ROI
       int exit_roi_width{6};              // width of the ROI
