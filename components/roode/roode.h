@@ -102,10 +102,10 @@ namespace esphome
       uint16_t distance = 0;
 
       ERangeStatus rangeStatus;
-      int entry_roi_width{6};             // width of the ROI
-      int entry_roi_height{16};           // height of the ROI
-      int exit_roi_width{6};              // width of the ROI
-      int exit_roi_height{16};            // height of the ROI
+      int entry_roi_width{6};   
+      int entry_roi_height{16}; 
+      int exit_roi_width{6};    
+      int exit_roi_height{16}; 
       uint16_t peopleCounter{0};
       Configuration sensorConfiguration;
 
@@ -135,7 +135,7 @@ namespace esphome
       void calibration(VL53L1X_ULD distanceSensor);
       void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
       void setSensorMode(int sensor_mode, int timing_budget = 0);
-      void publishSensorConfiguration(Zone* entry, Zone* exit, bool isMax);
+      void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
       int getOptimizedValues(int *values, int sum, int size);
       int getSum(int *values, int size);
       void updateCounter(int delta);
