@@ -72,9 +72,9 @@ namespace esphome
             {
                 ESP_LOGI(SETUP, "Manual sensor configuration");
                 sensorConfiguration.setSensorMode(distanceSensor, sensor_mode, timing_budget_);
-                DIST_THRESHOLD_MAX[0] = Roode::manual_threshold_;
-                DIST_THRESHOLD_MAX[1] = Roode::manual_threshold_;
-                publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
+                entry->setMaxThreshold(Roode::manual_threshold_);
+                exit->setMaxThreshold(Roode::manual_threshold_);
+                publishSensorConfiguration(entry, exit, true);
             }
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
             distanceSensor.StartRanging();
@@ -197,7 +197,7 @@ namespace esphome
             distance = MinDistance;
 
             // PathTrack algorithm
-            if (distance < DIST_THRESHOLD_MAX[zone->getZoneId()] && distance > DIST_THRESHOLD_MIN[zone->getZoneId()])
+            if (distance < zone->getMaxThreshold() && distance > zone->getMinThreshold())
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
@@ -584,50 +584,50 @@ namespace esphome
                 roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
             }
 
-            DIST_THRESHOLD_MAX[0] = optimized_zone_0 * max_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-            DIST_THRESHOLD_MAX[1] = optimized_zone_1 * max_threshold_percentage_ / 100;
-            int hundred_threshold_zone_0 = DIST_THRESHOLD_MAX[0] / 100;
-            int hundred_threshold_zone_1 = DIST_THRESHOLD_MAX[1] / 100;
-            int unit_threshold_zone_0 = DIST_THRESHOLD_MAX[0] - 100 * hundred_threshold_zone_0;
-            int unit_threshold_zone_1 = DIST_THRESHOLD_MAX[1] - 100 * hundred_threshold_zone_1;
-            publishSensorConfiguration(DIST_THRESHOLD_MAX, true);
+            entry->setMaxThreshold(optimized_zone_0 * max_threshold_percentage_ / 100); // they can be int values, as we are not interested in the decimal part when defining the threshold
+            exit->setMaxThreshold(optimized_zone_1 * max_threshold_percentage_ / 100);
+            int hundred_threshold_zone_0 = entry->getMaxThreshold() / 100;
+            int hundred_threshold_zone_1 = exit->getMaxThreshold() / 100;
+            int unit_threshold_zone_0 = entry->getMaxThreshold() - 100 * hundred_threshold_zone_0;
+            int unit_threshold_zone_1 = exit->getMaxThreshold() - 100 * hundred_threshold_zone_1;
+            publishSensorConfiguration(entry, exit, true);
             App.feed_wdt();
             if (min_threshold_percentage_ != 0)
             {
-                DIST_THRESHOLD_MIN[0] = optimized_zone_0 * min_threshold_percentage_ / 100; // they can be int values, as we are not interested in the decimal part when defining the threshold
-                DIST_THRESHOLD_MIN[1] = optimized_zone_1 * min_threshold_percentage_ / 100;
-                publishSensorConfiguration(DIST_THRESHOLD_MIN, false);
+                entry->setMinThreshold(optimized_zone_0 * min_threshold_percentage_ / 100); // they can be int values, as we are not interested in the decimal part when defining the threshold
+                exit->setMinThreshold(optimized_zone_1 * min_threshold_percentage_ / 100);
+                publishSensorConfiguration(entry, exit, false);
             }
             distanceSensor.StopRanging();
         }
 
-        void Roode::publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax)
+        void Roode::publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax)
         {
             if (isMax)
             {
-                ESP_LOGI(SETUP, "Max threshold entry: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI(SETUP, "Max threshold exit: %dmm", DIST_THRESHOLD_ARR[1]);
+                ESP_LOGI(SETUP, "Max threshold entry: %dmm", entry->getMaxThreshold());
+                ESP_LOGI(SETUP, "Max threshold exit: %dmm", exit->getMaxThreshold());
                 if (max_threshold_entry_sensor != nullptr)
                 {
-                    max_threshold_entry_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                    max_threshold_entry_sensor->publish_state(entry->getMaxThreshold());
                 }
 
                 if (max_threshold_exit_sensor != nullptr)
                 {
-                    max_threshold_exit_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                    max_threshold_exit_sensor->publish_state(exit->getMaxThreshold());
                 }
             }
             else
             {
-                ESP_LOGI(SETUP, "Min threshold entry: %dmm", DIST_THRESHOLD_ARR[0]);
-                ESP_LOGI(SETUP, "Min threshold exit: %dmm", DIST_THRESHOLD_ARR[1]);
+                ESP_LOGI(SETUP, "Min threshold entry: %dmm", entry->getMaxThreshold());
+                ESP_LOGI(SETUP, "Min threshold exit: %dmm", exit->getMaxThreshold());
                 if (min_threshold_entry_sensor != nullptr)
                 {
-                    min_threshold_entry_sensor->publish_state(DIST_THRESHOLD_ARR[0]);
+                    min_threshold_entry_sensor->publish_state(entry->getMinThreshold());
                 }
                 if (min_threshold_exit_sensor != nullptr)
                 {
-                    min_threshold_exit_sensor->publish_state(DIST_THRESHOLD_ARR[1]);
+                    min_threshold_exit_sensor->publish_state(exit->getMinThreshold());
                 }
             }
 

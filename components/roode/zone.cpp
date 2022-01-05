@@ -76,6 +76,23 @@ namespace esphome
             this->roi.height = new_height;
             this->roi.center = new_center;
         }
+        void Zone::setMinThreshold(uint16_t min)
+        {
+            this->threshold.min = min;
+        }
+        void Zone::setMaxThreshold(uint16_t max)
+        {
+            this->threshold.max = max;
+        }
+        uint16_t Zone::getMinThreshold()
+        {
+            return this->threshold.min;
+        }
+        uint16_t Zone::getMaxThreshold()
+        {
+            return this->threshold.max;
+        }
+
         uint8_t Zone::getZoneId()
         {
             return this->id;

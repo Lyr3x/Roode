@@ -32,6 +32,8 @@ namespace esphome
             uint16_t getRoiWidth();
             uint16_t getRoiHeight();
             uint16_t getRoiCenter();
+            void setMinThreshold(uint16_t min);
+            void setMaxThreshold(uint16_t max);
             void setRoiWidth(uint16_t new_roi_width);
             void setRoiHeight(uint16_t new_roi_height);
             void setRoiCenter(uint16_t new_roi_center);
