@@ -47,6 +47,8 @@ namespace esphome
     static int time_budget_in_ms_long = 100;
     static int time_budget_in_ms_max = 200; // max range: 4m
 
+    static uint8_t DistancesTableSize[2] = {0, 0};
+
     class Roode : public PollingComponent
     {
     public:
@@ -94,12 +96,6 @@ namespace esphome
       void doPathTracking(Zone *zone);
       void recalibration();
       bool handleSensorStatus();
-
-      uint16_t distance = 0;
-      int entry_roi_width{6};
-      int entry_roi_height{16};
-      int exit_roi_width{6};
-      int exit_roi_height{16};
       Configuration sensorConfiguration;
 
     protected:
@@ -151,6 +147,10 @@ namespace esphome
       int medium_distance_threshold = 2000;
       int medium_long_distance_threshold = 2700;
       int long_distance_threshold = 3400;
+      int entry_roi_width{6};
+      int entry_roi_height{16};
+      int exit_roi_width{6};
+      int exit_roi_height{16};
     };
 
   } // namespace roode

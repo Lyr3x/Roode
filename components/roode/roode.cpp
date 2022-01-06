@@ -94,7 +94,7 @@ namespace esphome
         void Roode::loop()
         {
             // unsigned long start = micros();
-            distance = getAlternatingZoneDistances();
+            getAlternatingZoneDistances();
             doPathTracking(this->current_zone);
             handleSensorStatus();
             this->current_zone = this->current_zone == this->entry ? this->exit : this->entry;
@@ -145,9 +145,9 @@ namespace esphome
         }
         uint16_t Roode::getAlternatingZoneDistances()
         {
-            this->current_zone->readDistance(distanceSensor);
+            sensor_status += this->current_zone->readDistance(distanceSensor);
             App.feed_wdt();
-            return this->current_zone->getDistance();
+            return sensor_status;
         }
 
         void Roode::doPathTracking(Zone *zone)
@@ -156,7 +156,6 @@ namespace esphome
             static int PathTrackFillingSize = 1; // init this to 1 as we start from state where nobody is any of the zones
             static int LeftPreviousStatus = NOBODY;
             static int RightPreviousStatus = NOBODY;
-            static uint8_t DistancesTableSize[2] = {0, 0};
             int CurrentZoneStatus = NOBODY;
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
@@ -166,7 +165,7 @@ namespace esphome
             uint8_t i;
             if (DistancesTableSize[zone->getZoneId()] < samples)
             {
-                ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone->getZoneId(), distance);
+                ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone->getZoneId(), zone->getDistance());
                 Distances[zone->getZoneId()][DistancesTableSize[zone->getZoneId()]] = zone->getDistance();
                 DistancesTableSize[zone->getZoneId()]++;
             }
@@ -174,11 +173,9 @@ namespace esphome
             {
                 for (i = 1; i < samples; i++)
                     Distances[zone->getZoneId()][i - 1] = Distances[zone->getZoneId()][i];
-                Distances[zone->getZoneId()][samples - 1] = distance;
+                Distances[zone->getZoneId()][samples - 1] = zone->getDistance();
                 ESP_LOGD(SETUP, "Distances[%d][samples - 1] = %d", zone->getZoneId(), Distances[zone->getZoneId()][samples - 1]);
             }
-            ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][0]);
-            ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][1]);
             // pick up the min distance
             MinDistance = Distances[zone->getZoneId()][0];
             if (DistancesTableSize[zone->getZoneId()] >= 2)
@@ -189,10 +186,9 @@ namespace esphome
                         MinDistance = Distances[zone->getZoneId()][i];
                 }
             }
-            distance = MinDistance;
 
             // PathTrack algorithm
-            if (distance < zone->getMaxThreshold() && distance > zone->getMinThreshold())
+            if (MinDistance < zone->getMaxThreshold() && MinDistance > zone->getMinThreshold())
             {
                 // Someone is in the sensing area
                 CurrentZoneStatus = SOMEONE;
@@ -336,7 +332,6 @@ namespace esphome
         }
         void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
-            distanceSensor.StopRanging();
             switch (sensor_mode)
             {
             case 0: // short mode
