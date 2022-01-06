@@ -4,7 +4,9 @@
 #include <math.h>
 #include "esphome/core/log.h"
 #include "configuration.h"
+
 static const char *const TAG = "Zone";
+static const char *const CALIBRATION = "Zone calibration";
 namespace esphome
 {
     namespace roode
@@ -18,14 +20,17 @@ namespace esphome
         struct Threshold
         {
             uint16_t min;
+            uint16_t min_percentage;
             uint16_t max;
+            uint16_t max_percentage;
         };
         class Zone
         {
         public:
             Zone(int roi_width, int roi_height, int roi_center);
-            uint16_t readDistance(VL53L1X_ULD &distanceSensor);
-            uint16_t calibrateThreshold();
+            VL53L1_Error readDistance(VL53L1X_ULD &distanceSensor);
+            int calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts, uint16_t max_threshold_percentage, uint16_t min_threshold_percentage);
+            void roi_calibration(VL53L1X_ULD &distanceSensor, int entry_threshold, int exit_threshold, bool sensor_orientation);
             uint16_t calibrateRoi();
             uint16_t getMinThreshold();
             uint16_t getMaxThreshold();
@@ -45,7 +50,6 @@ namespace esphome
         protected:
             int getSum(int *values, int size);
             int getOptimizedValues(int *values, int sum, int size);
-            void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
             ROI roi;
             Threshold threshold;
             uint16_t roi_width;

@@ -27,7 +27,7 @@ namespace esphome
             VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
             void setSensorMode(int sensor_mode, int timing_budget = 0);
             void publishSensorConfiguration(int DIST_THRESHOLD_ARR[2], bool isMax);
-            void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
+            void setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance);
         };
     }
 }

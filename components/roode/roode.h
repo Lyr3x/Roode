@@ -20,7 +20,7 @@ namespace esphome
 #define VL53L1X_ULD_I2C_ADDRESS 0x52 // Default address is 0x52
     static const char *const TAG = "Roode";
     static const char *const SETUP = "Setup";
-    static const char *const CALIBRATION = "Calibration";
+    static const char *const CALIBRATION = "Sensor Calibration";
 
     /*
     Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,
@@ -128,8 +128,8 @@ namespace esphome
 
       void createEntryAndExitZone();
       void roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1);
-      void calibration(VL53L1X_ULD distanceSensor);
-      void setCorrectDistanceSettings(float average_zone_0, float average_zone_1);
+      void calibrateZones(VL53L1X_ULD distanceSensor);
+      void setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance);
       void setSensorMode(int sensor_mode, int timing_budget = 0);
       void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
       int getOptimizedValues(int *values, int sum, int size);

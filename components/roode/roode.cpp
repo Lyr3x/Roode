@@ -65,7 +65,7 @@ namespace esphome
 
             if (calibration_active_)
             {
-                calibration(distanceSensor);
+                calibrateZones(distanceSensor);
                 App.feed_wdt();
             }
             if (manual_active_)
@@ -77,7 +77,6 @@ namespace esphome
                 publishSensorConfiguration(entry, exit, true);
             }
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            distanceSensor.StartRanging();
         }
 
         void Roode::update()
@@ -333,83 +332,7 @@ namespace esphome
         }
         void Roode::recalibration()
         {
-            calibration(distanceSensor);
-        }
-        void Roode::roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1)
-        {
-            // the value of the average distance is used for computing the optimal size of the ROI and consequently also the center of the two zones
-            int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
-            int ROI_size = min(8, max(4, function_of_the_distance));
-
-            entry->updateRoi(ROI_size, ROI_size * 2);
-            exit->updateRoi(ROI_size, ROI_size * 2);
-            // now we set the position of the center of the two zones
-            if (advised_sensor_orientation_)
-            {
-                switch (ROI_size)
-                {
-                case 4:
-                    entry->setRoiCenter(150);
-                    exit->setRoiCenter(247);
-                    break;
-                case 5:
-                    entry->setRoiCenter(159);
-                    exit->setRoiCenter(239);
-                    break;
-                case 6:
-                    entry->setRoiCenter(159);
-                    exit->setRoiCenter(239);
-                    break;
-                case 7:
-                    entry->setRoiCenter(167);
-                    exit->setRoiCenter(231);
-                    break;
-                case 8:
-                    entry->setRoiCenter(167);
-                    exit->setRoiCenter(231);
-                    break;
-                }
-            }
-            else
-            {
-                switch (ROI_size)
-                {
-                case 4:
-                    entry->setRoiCenter(193);
-                    exit->setRoiCenter(58);
-                    break;
-                case 5:
-                    entry->setRoiCenter(194);
-                    exit->setRoiCenter(59);
-                    break;
-                case 6:
-                    entry->setRoiCenter(194);
-                    exit->setRoiCenter(59);
-                    break;
-                case 7:
-                    entry->setRoiCenter(195);
-                    exit->setRoiCenter(60);
-                    break;
-                case 8:
-                    entry->setRoiCenter(195);
-                    exit->setRoiCenter(60);
-                    break;
-                }
-            }
-            // we will now repeat the calculations necessary to define the thresholds with the updated zones
-            int *values_zone_0 = new int[number_attempts];
-            int *values_zone_1 = new int[number_attempts];
-
-            distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            current_zone = entry;
-            for (int i = 0; i < number_attempts; i++)
-            {
-                values_zone_0[i] = getAlternatingZoneDistances();
-                values_zone_1[i] = getAlternatingZoneDistances();
-            }
-
-            optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
-            optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
+            calibrateZones(distanceSensor);
         }
         void Roode::setSensorMode(int sensor_mode, int new_timing_budget)
         {
@@ -486,66 +409,35 @@ namespace esphome
             }
         }
 
-        void Roode::setCorrectDistanceSettings(float average_zone_0, float average_zone_1)
+        void Roode::setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance)
         {
-            if (average_zone_0 <= short_distance_threshold || average_zone_1 <= short_distance_threshold)
+            if (average_entry_zone_distance <= short_distance_threshold || average_exit_zone_distance <= short_distance_threshold)
             {
                 setSensorMode(0);
             }
 
-            if ((average_zone_0 > short_distance_threshold && average_zone_0 <= medium_distance_threshold) || (average_zone_1 > short_distance_threshold && average_zone_1 <= medium_distance_threshold))
+            if ((average_entry_zone_distance > short_distance_threshold && average_entry_zone_distance <= medium_distance_threshold) || (average_exit_zone_distance > short_distance_threshold && average_exit_zone_distance <= medium_distance_threshold))
             {
                 setSensorMode(1);
             }
 
-            if ((average_zone_0 > medium_distance_threshold && average_zone_0 <= medium_long_distance_threshold) || (average_zone_1 > medium_distance_threshold && average_zone_1 <= medium_long_distance_threshold))
+            if ((average_entry_zone_distance > medium_distance_threshold && average_entry_zone_distance <= medium_long_distance_threshold) || (average_exit_zone_distance > medium_distance_threshold && average_exit_zone_distance <= medium_long_distance_threshold))
             {
                 setSensorMode(2);
             }
-            if ((average_zone_0 > medium_long_distance_threshold && average_zone_0 <= long_distance_threshold) || (average_zone_1 > medium_long_distance_threshold && average_zone_1 <= long_distance_threshold))
+            if ((average_entry_zone_distance > medium_long_distance_threshold && average_entry_zone_distance <= long_distance_threshold) || (average_exit_zone_distance > medium_long_distance_threshold && average_exit_zone_distance <= long_distance_threshold))
             {
                 setSensorMode(3);
             }
-            if (average_zone_0 > long_distance_threshold || average_zone_1 > long_distance_threshold)
+            if (average_entry_zone_distance > long_distance_threshold || average_exit_zone_distance > long_distance_threshold)
             {
                 setSensorMode(4);
             }
         }
 
-        int Roode::getSum(int *array, int size)
+        void Roode::calibrateZones(VL53L1X_ULD distanceSensor)
         {
-            int sum = 0;
-            for (int i = 0; i < size; i++)
-            {
-                sum = sum + array[i];
-                App.feed_wdt();
-            }
-            return sum;
-        }
-        int Roode::getOptimizedValues(int *values, int sum, int size)
-        {
-            int sum_squared = 0;
-            int variance = 0;
-            int sd = 0;
-            int avg = sum / size;
-
-            for (int i = 0; i < size; i++)
-            {
-                sum_squared = sum_squared + (values[i] * values[i]);
-                App.feed_wdt();
-            }
-            variance = sum_squared / size - (avg * avg);
-            sd = sqrt(variance);
-            ESP_LOGD(CALIBRATION, "Zone AVG: %d", avg);
-            ESP_LOGD(CALIBRATION, "Zone 0 SD: %d", sd);
-            return avg - sd;
-        }
-
-        void Roode::calibration(VL53L1X_ULD distanceSensor)
-        {
-            ESP_LOGI(SETUP, "Calibrating sensor");
-            distanceSensor.StopRanging();
-            // the sensor does 100 measurements for each zone (zones are predefined)
+            ESP_LOGI(SETUP, "Calibrating sensor zone");
             time_budget_in_ms = time_budget_in_ms_medium;
             delay_between_measurements = time_budget_in_ms + 5;
             distanceSensor.SetDistanceMode(Long);
@@ -555,31 +447,16 @@ namespace esphome
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
             }
-            entry->updateRoi(entry_roi_width, entry_roi_height);
-            exit->updateRoi(exit_roi_width, exit_roi_height);
-
-            int *values_zone_0 = new int[number_attempts];
-            int *values_zone_1 = new int[number_attempts];
-            distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
-            current_zone = entry;
-            for (int i = 0; i < number_attempts; i++)
-            {
-                values_zone_0[i] = getAlternatingZoneDistances();
-                values_zone_1[i] = getAlternatingZoneDistances();
-            }
-
-            // after we have computed the sum for each zone, we can compute the average distance of each zone
-
-            optimized_zone_0 = getOptimizedValues(values_zone_0, getSum(values_zone_0, number_attempts), number_attempts);
-            optimized_zone_1 = getOptimizedValues(values_zone_1, getSum(values_zone_1, number_attempts), number_attempts);
-            setCorrectDistanceSettings(optimized_zone_0, optimized_zone_1);
+            int entry_threshold = entry->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
+            int exit_threshold = exit->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
+            setCorrectDistanceSettings(entry_threshold, exit_threshold);
             if (roi_calibration_)
             {
-                roi_calibration(distanceSensor, optimized_zone_0, optimized_zone_1);
+                entry->roi_calibration(distanceSensor, entry_threshold, exit_threshold, advised_sensor_orientation_);
+                entry->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
+                exit->roi_calibration(distanceSensor, entry_threshold, exit_threshold, advised_sensor_orientation_);
+                exit->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
             }
-
-            entry->setMaxThreshold(optimized_zone_0 * max_threshold_percentage_ / 100); // they can be int values, as we are not interested in the decimal part when defining the threshold
-            exit->setMaxThreshold(optimized_zone_1 * max_threshold_percentage_ / 100);
             int hundred_threshold_zone_0 = entry->getMaxThreshold() / 100;
             int hundred_threshold_zone_1 = exit->getMaxThreshold() / 100;
             int unit_threshold_zone_0 = entry->getMaxThreshold() - 100 * hundred_threshold_zone_0;
@@ -588,19 +465,14 @@ namespace esphome
             App.feed_wdt();
             if (min_threshold_percentage_ != 0)
             {
-                entry->setMinThreshold(optimized_zone_0 * min_threshold_percentage_ / 100); // they can be int values, as we are not interested in the decimal part when defining the threshold
-                exit->setMinThreshold(optimized_zone_1 * min_threshold_percentage_ / 100);
                 publishSensorConfiguration(entry, exit, false);
             }
-            distanceSensor.StopRanging();
         }
 
         void Roode::publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax)
         {
             if (isMax)
             {
-                ESP_LOGI(SETUP, "Max threshold entry: %dmm", entry->getMaxThreshold());
-                ESP_LOGI(SETUP, "Max threshold exit: %dmm", exit->getMaxThreshold());
                 if (max_threshold_entry_sensor != nullptr)
                 {
                     max_threshold_entry_sensor->publish_state(entry->getMaxThreshold());
@@ -613,8 +485,6 @@ namespace esphome
             }
             else
             {
-                ESP_LOGI(SETUP, "Min threshold entry: %dmm", entry->getMaxThreshold());
-                ESP_LOGI(SETUP, "Min threshold exit: %dmm", exit->getMaxThreshold());
                 if (min_threshold_entry_sensor != nullptr)
                 {
                     min_threshold_entry_sensor->publish_state(entry->getMinThreshold());

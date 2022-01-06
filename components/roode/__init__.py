@@ -142,16 +142,18 @@ CONFIG_SCHEMA = cv.Schema(
 
 def validate_roi_settings(config):
     roi = config.get(CONF_ZONES)
+    entry = roi.get(CONF_ENTRY_ZONE)
+    exit = roi.get(CONF_EXIT_ZONE)
     manual = config.get(CONF_MANUAL)
     if CONF_CALIBRATION in config:
         roi_calibration = config.get(CONF_CALIBRATION).get(CONF_ROI_CALIBRATION)
-        if roi_calibration == True and roi != None:
+        if roi_calibration == True and (entry != None or exit != None):
             raise cv.Invalid(
                 "ROI calibration cannot be used with manual ROI width and height"
             )
-        if roi_calibration == False and roi == None:
+        if roi_calibration == False and (entry == None or exit == None):
             raise cv.Invalid("You need to set the ROI manually or use ROI calibration")
-    if manual != None and roi == None:
+    if manual != None and (roi == None or entry == None or exit == None):
         raise cv.Invalid("You need to set the ROI manually if manual mode is active")
 
 
