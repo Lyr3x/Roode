@@ -246,6 +246,7 @@ namespace esphome
             // if an event has occured
             if (AnEventHasOccured)
             {
+                delay(1);
                 if (PathTrackFillingSize < 4)
                 {
                     PathTrackFillingSize++;
@@ -254,6 +255,7 @@ namespace esphome
                 // if nobody anywhere lets check if an exit or entry has happened
                 if ((LeftPreviousStatus == NOBODY) && (RightPreviousStatus == NOBODY))
                 {
+                    delay(1);
                     // check exit or entry only if PathTrackFillingSize is 4 (for example 0 1 3 2) and last event is 0 (nobobdy anywhere)
                     if (PathTrackFillingSize == 4)
                     {
