@@ -53,9 +53,6 @@ roode:
   id: roode_platform
   i2c_address: 0x29
   update_interval: 10ms
-  # roi:
-  # roi_height: 16
-  # roi_width: 6
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -68,15 +65,15 @@ roode:
   #   timing_budget: 200
   # sampling: 3
   zones:
-    invert_direction: true
-    entry:
-      roi:
-        roi_height: 12
-        roi_width: 6
-    exit:
-      roi:
-        roi_height: 12
-        roi_width: 6
+    invert_direction: false
+    # entry:
+    #   roi:
+    #     roi_height: 12
+    #     roi_width: 6
+    # exit:
+    #   roi:
+    #     roi_height: 12
+    #     roi_width: 6
 
 number:
   - platform: roode
