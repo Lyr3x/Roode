@@ -108,7 +108,7 @@ namespace esphome
         {
             ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
             bool check_status = false;
-            if (last_sensor_status == sensor_status && sensor_status == VL53L1_ERROR_NONE)
+            if (last_sensor_status != sensor_status && sensor_status == VL53L1_ERROR_NONE)
             {
                 if (status_sensor != nullptr)
                 {
@@ -254,7 +254,6 @@ namespace esphome
                 // if nobody anywhere lets check if an exit or entry has happened
                 if ((LeftPreviousStatus == NOBODY) && (RightPreviousStatus == NOBODY))
                 {
-
                     // check exit or entry only if PathTrackFillingSize is 4 (for example 0 1 3 2) and last event is 0 (nobobdy anywhere)
                     if (PathTrackFillingSize == 4)
                     {
@@ -263,7 +262,7 @@ namespace esphome
                         if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2))
                         {
                             // This an exit
-                            ESP_LOGD("Roode pathTracking", "Exit detected.");
+                            ESP_LOGI("Roode pathTracking", "Exit detected.");
                             DistancesTableSize[0] = 0;
                             DistancesTableSize[1] = 0;
                             this->updateCounter(-1);
@@ -275,7 +274,7 @@ namespace esphome
                         else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1))
                         {
                             // This an entry
-                            ESP_LOGD("Roode pathTracking", "Entry detected.");
+                            ESP_LOGI("Roode pathTracking", "Entry detected.");
                             this->updateCounter(1);
                             if (entry_exit_event_sensor != nullptr)
                             {
