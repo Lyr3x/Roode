@@ -73,29 +73,44 @@ namespace esphome
                 switch (ROI_size)
                 {
                 case 4:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(150);
+                        break;
+                    }
                     this->setRoiCenter(247);
 
                     break;
                 case 5:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(159);
+                        break;
+                    }
                     this->setRoiCenter(239);
                     break;
                 case 6:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(159);
+                        break;
+                    }
                     this->setRoiCenter(239);
                     break;
                 case 7:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(167);
+                        break;
+                    }
                     this->setRoiCenter(231);
                     break;
                 case 8:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(167);
+                        break;
+                    }
                     this->setRoiCenter(231);
                     break;
                 }
@@ -105,28 +120,43 @@ namespace esphome
                 switch (ROI_size)
                 {
                 case 4:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(193);
+                        break;
+                    }
                     this->setRoiCenter(58);
                     break;
                 case 5:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(194);
+                        break;
+                    }
                     this->setRoiCenter(59);
                     break;
                 case 6:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(194);
+                        break;
+                    }
                     this->setRoiCenter(59);
                     break;
                 case 7:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(195);
+                        break;
+                    }
                     this->setRoiCenter(60);
                     break;
                 case 8:
-                    if (this->getZoneId() == 0)
+                    if (this->getZoneId() == 0U)
+                    {
                         this->setRoiCenter(195);
+                        break;
+                    }
                     this->setRoiCenter(60);
                     break;
                 }

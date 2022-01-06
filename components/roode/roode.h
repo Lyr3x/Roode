@@ -73,7 +73,7 @@ namespace esphome
       void set_invert_direction(bool dir) { invert_direction_ = dir; }
       void set_restore_values(bool val) { restore_values_ = val; }
       void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
-      void set_sampling_size(uint8_t size) { DISTANCES_ARRAY_SIZE = size; }
+      void set_sampling_size(uint8_t size) { samples = size; }
       void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
       void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
       void set_people_counter(number::Number *counter) { this->people_counter = counter; }
@@ -96,13 +96,10 @@ namespace esphome
       bool handleSensorStatus();
 
       uint16_t distance = 0;
-
-      ERangeStatus rangeStatus;
-      int entry_roi_width{6};   
-      int entry_roi_height{16}; 
-      int exit_roi_width{6};    
-      int exit_roi_height{16}; 
-      uint16_t peopleCounter{0};
+      int entry_roi_width{6};
+      int entry_roi_height{16};
+      int exit_roi_width{6};
+      int exit_roi_height{16};
       Configuration sensorConfiguration;
 
     protected:
@@ -127,13 +124,10 @@ namespace esphome
       text_sensor::TextSensor *entry_exit_event_sensor;
 
       void createEntryAndExitZone();
-      void roi_calibration(VL53L1X_ULD distanceSensor, int optimized_zone_0, int optimized_zone_1);
       void calibrateZones(VL53L1X_ULD distanceSensor);
       void setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance);
       void setSensorMode(int sensor_mode, int timing_budget = 0);
       void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
-      int getOptimizedValues(int *values, int sum, int size);
-      int getSum(int *values, int size);
       void updateCounter(int delta);
       bool calibration_active_{false};
       bool manual_active_{false};
@@ -144,22 +138,19 @@ namespace esphome
       int sensor_mode{-1};
       bool advised_sensor_orientation_{true};
       bool sampling_active_{false};
-      uint8_t DISTANCES_ARRAY_SIZE{2};
+      uint8_t samples{2};
       uint8_t address_ = 0x29;
       bool invert_direction_{false};
       bool restore_values_{false};
       uint64_t max_threshold_percentage_{85};
       uint64_t min_threshold_percentage_{0};
       uint64_t manual_threshold_{2000};
-      int number_attempts = 20;
+      int number_attempts = 20; // TO DO: make this configurable
       int timing_budget_{-1};
       int short_distance_threshold = 1300;
       int medium_distance_threshold = 2000;
       int medium_long_distance_threshold = 2700;
       int long_distance_threshold = 3400;
-      bool status = false;
-      int optimized_zone_0;
-      int optimized_zone_1;
     };
 
   } // namespace roode

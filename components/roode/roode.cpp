@@ -59,7 +59,7 @@ namespace esphome
                     }
                 }
             }
-            ESP_LOGI(SETUP, "Using sampling with sampling size: %d", DISTANCES_ARRAY_SIZE);
+            ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
             ESP_LOGI(SETUP, "Creating entry and exit zones.");
             createEntryAndExitZone();
 
@@ -161,10 +161,10 @@ namespace esphome
             int AllZonesCurrentStatus = 0;
             int AnEventHasOccured = 0;
 
-            uint16_t Distances[2][DISTANCES_ARRAY_SIZE];
+            uint16_t Distances[2][samples];
             uint16_t MinDistance;
             uint8_t i;
-            if (DistancesTableSize[zone->getZoneId()] < DISTANCES_ARRAY_SIZE)
+            if (DistancesTableSize[zone->getZoneId()] < samples)
             {
                 ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zone->getZoneId(), distance);
                 Distances[zone->getZoneId()][DistancesTableSize[zone->getZoneId()]] = zone->getDistance();
@@ -172,10 +172,10 @@ namespace esphome
             }
             else
             {
-                for (i = 1; i < DISTANCES_ARRAY_SIZE; i++)
+                for (i = 1; i < samples; i++)
                     Distances[zone->getZoneId()][i - 1] = Distances[zone->getZoneId()][i];
-                Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1] = distance;
-                ESP_LOGD(SETUP, "Distances[%d][DISTANCES_ARRAY_SIZE - 1] = %d", zone->getZoneId(), Distances[zone->getZoneId()][DISTANCES_ARRAY_SIZE - 1]);
+                Distances[zone->getZoneId()][samples - 1] = distance;
+                ESP_LOGD(SETUP, "Distances[%d][samples - 1] = %d", zone->getZoneId(), Distances[zone->getZoneId()][samples - 1]);
             }
             ESP_LOGD(SETUP, "Distances[%d][0]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][0]);
             ESP_LOGD(SETUP, "Distances[%d][1]] = %d", zone->getZoneId(), Distances[zone->getZoneId()][1]);
