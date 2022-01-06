@@ -37,7 +37,7 @@ namespace esphome
             void setRoiWidth(uint16_t new_roi_width);
             void setRoiHeight(uint16_t new_roi_height);
             void setRoiCenter(uint16_t new_roi_center);
-            void updateRoi(uint16_t new_width, uint16_t new_height, uint16_t new_center);
+            void updateRoi(uint16_t new_width, uint16_t new_height);
             uint8_t getZoneId();
             uint16_t getDistance();
             bool handleSensorStatus();

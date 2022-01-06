@@ -21,10 +21,6 @@ namespace esphome
     static const char *const TAG = "Roode";
     static const char *const SETUP = "Setup";
     static const char *const CALIBRATION = "Calibration";
-    /*
-    ##### CALIBRATION #####
-    */
-    static int center[2] = {0, 0}; /* center of the two zones */
 
     /*
     Use the VL53L1X_SetTimingBudget function to set the TB in milliseconds. The TB values available are [15, 20,

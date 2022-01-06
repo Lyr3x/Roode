@@ -72,8 +72,8 @@ namespace esphome
             {
                 ESP_LOGI(SETUP, "Manual sensor configuration");
                 sensorConfiguration.setSensorMode(distanceSensor, sensor_mode, timing_budget_);
-                entry->setMaxThreshold(Roode::manual_threshold_);
-                exit->setMaxThreshold(Roode::manual_threshold_);
+                entry->setMaxThreshold(manual_threshold_);
+                exit->setMaxThreshold(manual_threshold_);
                 publishSensorConfiguration(entry, exit, true);
             }
             distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
@@ -133,17 +133,13 @@ namespace esphome
         {
             if (advised_sensor_orientation_)
             {
-                center[0] = 167;
-                center[1] = 231;
-                entry = new Zone(entry_roi_width, entry_roi_height, center[0]);
-                exit = new Zone(exit_roi_width, exit_roi_height, center[1]);
+                entry = new Zone(entry_roi_width, entry_roi_height, 167);
+                exit = new Zone(exit_roi_width, exit_roi_height, 231);
             }
             else
             {
-                center[0] = 195;
-                center[1] = 60;
-                entry = new Zone(entry_roi_width, entry_roi_height, center[0]);
-                exit = new Zone(exit_roi_width, exit_roi_height, center[1]);
+                entry = new Zone(entry_roi_width, entry_roi_height, 195);
+                exit = new Zone(exit_roi_width, exit_roi_height, 60);
             }
 
             current_zone = entry;
@@ -345,32 +341,32 @@ namespace esphome
             int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(optimized_zone_0, optimized_zone_1) / 1000)));
             int ROI_size = min(8, max(4, function_of_the_distance));
 
-            entry->updateRoi(ROI_size, ROI_size * 2, center[0]);
-            exit->updateRoi(ROI_size, ROI_size * 2, center[1]);
+            entry->updateRoi(ROI_size, ROI_size * 2);
+            exit->updateRoi(ROI_size, ROI_size * 2);
             // now we set the position of the center of the two zones
             if (advised_sensor_orientation_)
             {
                 switch (ROI_size)
                 {
                 case 4:
-                    center[0] = 150;
-                    center[1] = 247;
+                    entry->setRoiCenter(150);
+                    exit->setRoiCenter(247);
                     break;
                 case 5:
-                    center[0] = 159;
-                    center[1] = 239;
+                    entry->setRoiCenter(159);
+                    exit->setRoiCenter(239);
                     break;
                 case 6:
-                    center[0] = 159;
-                    center[1] = 239;
+                    entry->setRoiCenter(159);
+                    exit->setRoiCenter(239);
                     break;
                 case 7:
-                    center[0] = 167;
-                    center[1] = 231;
+                    entry->setRoiCenter(167);
+                    exit->setRoiCenter(231);
                     break;
                 case 8:
-                    center[0] = 167;
-                    center[1] = 231;
+                    entry->setRoiCenter(167);
+                    exit->setRoiCenter(231);
                     break;
                 }
             }
@@ -379,29 +375,27 @@ namespace esphome
                 switch (ROI_size)
                 {
                 case 4:
-                    center[0] = 193;
-                    center[1] = 58;
+                    entry->setRoiCenter(193);
+                    exit->setRoiCenter(58);
                     break;
                 case 5:
-                    center[0] = 194;
-                    center[1] = 59;
+                    entry->setRoiCenter(194);
+                    exit->setRoiCenter(59);
                     break;
                 case 6:
-                    center[0] = 194;
-                    center[1] = 59;
+                    entry->setRoiCenter(194);
+                    exit->setRoiCenter(59);
                     break;
                 case 7:
-                    center[0] = 195;
-                    center[1] = 60;
+                    entry->setRoiCenter(195);
+                    exit->setRoiCenter(60);
                     break;
                 case 8:
-                    center[0] = 195;
-                    center[1] = 60;
+                    entry->setRoiCenter(195);
+                    exit->setRoiCenter(60);
                     break;
                 }
             }
-            entry->setRoiCenter(center[0]);
-            exit->setRoiCenter(center[1]);
             // we will now repeat the calculations necessary to define the thresholds with the updated zones
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];
@@ -561,8 +555,8 @@ namespace esphome
             {
                 ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms, sensor_status);
             }
-            entry->updateRoi(entry_roi_width, entry_roi_height, center[0]);
-            exit->updateRoi(exit_roi_width, exit_roi_height, center[1]);
+            entry->updateRoi(entry_roi_width, entry_roi_height);
+            exit->updateRoi(exit_roi_width, exit_roi_height);
 
             int *values_zone_0 = new int[number_attempts];
             int *values_zone_1 = new int[number_attempts];

@@ -70,11 +70,10 @@ namespace esphome
         {
             this->roi.center = new_roi_center;
         }
-        void Zone::updateRoi(uint16_t new_width, uint16_t new_height, uint16_t new_center)
+        void Zone::updateRoi(uint16_t new_width, uint16_t new_height)
         {
             this->roi.width = new_width;
             this->roi.height = new_height;
-            this->roi.center = new_center;
         }
         void Zone::setMinThreshold(uint16_t min)
         {
