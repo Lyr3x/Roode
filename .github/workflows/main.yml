@@ -10,7 +10,7 @@ jobs:
         uses: actions/setup-python@master
         with:
           python-version: '3.x'
-      - name: Install Platform IO
+      - name: Install ESPHome
         run: |
           python -m pip install --upgrade pip
           pip install -U esphome
