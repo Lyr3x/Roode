@@ -1,21 +1,15 @@
 substitutions:
-  devicename: roode32
+  devicename: roode8266dev
   friendly_name: $devicename
 
 external_components:
   refresh: always
-  source:
-    type: git
-    url: https://github.com/Lyr3x/Roode
-    ref: master
+  source: components
 
 esphome:
   name: $devicename
-
-esp32:
-  board: wemos_d1_mini32
-  framework:
-    type: arduino
+  platform: ESP8266
+  board: d1_mini
 
 wifi:
   networks:
@@ -23,7 +17,7 @@ wifi:
       password: !secret ssid1_password
   use_address: $devicename
   fast_connect: True
-  power_save_mode: light
+  power_save_mode: none
   domain: .local
 
 captive_portal:
@@ -35,16 +29,6 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-    - service: set_max_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
-    - service: set_min_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
@@ -60,13 +44,13 @@ logger:
   level: INFO
 
 i2c:
-  sda: 21
-  scl: 22
+  sda: 4
+  scl: 5
 
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
+  update_interval: 100ms
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -102,6 +86,7 @@ button:
 number:
   - platform: roode
     people_counter:
+      id: counter
       name: $friendly_name people counter
 
 binary_sensor:
@@ -140,6 +125,7 @@ sensor:
       name: $friendly_name ROI width zone 1
     sensor_status:
       name: Sensor Status
+
   - platform: wifi_signal
     name: $friendly_name RSSI
     update_interval: 60s
@@ -179,3 +165,16 @@ text_sensor:
     name: $friendly_name Uptime Human Readable
     id: uptime_human
     icon: mdi:clock-start
+
+font:
+  - file: "fonts/Roboto-Regular.ttf"
+    id: my_font
+    size: 20
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: screen
+    reset_pin: D0
+    address: 0x3C
+    lambda: |-
+      it.printf(127, 60, id(my_font), TextAlign::BASELINE_RIGHT , "Counter: %d", id(counter)->state);

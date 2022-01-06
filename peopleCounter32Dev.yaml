@@ -1,5 +1,5 @@
 substitutions:
-  devicename: roodedev
+  devicename: roode32dev
   friendly_name: $devicename
 
 external_components:
@@ -13,14 +13,15 @@ esp32:
   board: wemos_d1_mini32
   framework:
     type: arduino
-
+    
 wifi:
   networks:
     - ssid: !secret ssid1
       password: !secret ssid1_password
+  use_address: $devicename
   fast_connect: True
-  power_save_mode: light
-  domain: .shieldnet
+  power_save_mode: none
+  domain: .local
 
 captive_portal:
 
@@ -43,16 +44,16 @@ web_server:
 
 # Enable logging
 logger:
-  level: DEBUG
+  level: INFO
 
 i2c:
-  sda: 21
-  scl: 22
+  sda: 4
+  scl: 5
 
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 10ms
+  update_interval: 100ms
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -65,7 +66,7 @@ roode:
   #   timing_budget: 200
   # sampling: 3
   zones:
-    invert_direction: false
+    invert_direction: true
     # entry:
     #   roi:
     #     roi_height: 12
@@ -75,14 +76,22 @@ roode:
     #     roi_height: 12
     #     roi_width: 6
 
+button:
+  - platform: restart
+    name: $friendly_name Restart
+    entity_category: config
+  - platform: template
+    name: $friendly_name Recalibrate
+    on_press:
+      - lambda: id(roode_platform)->recalibration();
+    entity_category: config
+
 number:
   - platform: roode
     people_counter:
+      id: counter
       name: $friendly_name people counter
 
-switch:
-  - platform: restart
-    name: $friendly_name Restart
 binary_sensor:
   - platform: status
     name: $friendly_name API Status
@@ -92,11 +101,15 @@ binary_sensor:
 
 sensor:
   - platform: roode
-    id: hallway
+    id: roode_sensors
     distance_entry:
       name: $friendly_name distance zone 0
+      filters:
+        - delta: 100
     distance_exit:
       name: $friendly_name distance zone 1
+      filters:
+        - delta: 100
     max_threshold_entry:
       name: $friendly_name max zone 0
     max_threshold_exit:
@@ -155,3 +168,16 @@ text_sensor:
     name: $friendly_name Uptime Human Readable
     id: uptime_human
     icon: mdi:clock-start
+
+font:
+  - file: "fonts/Roboto-Regular.ttf"
+    id: my_font
+    size: 20
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: screen
+    reset_pin: D0
+    address: 0x3C
+    lambda: |-
+      it.printf(127, 60, id(my_font), TextAlign::BASELINE_RIGHT , "Counter: %d", id(counter)->state);

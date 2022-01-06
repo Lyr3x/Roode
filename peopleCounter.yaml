@@ -32,16 +32,6 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-    - service: set_max_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
-    - service: set_min_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
@@ -64,9 +54,6 @@ roode:
   id: roode_platform
   i2c_address: 0x29
   update_interval: 10ms
-  # roi:
-    # roi_height: 16
-    # roi_width: 6
   calibration:
     max_threshold_percentage: 85
     min_threshold_percentage: 5
@@ -77,32 +64,52 @@ roode:
   #   sensor_mode: 3
   #   manual_threshold: 1280
   #   timing_budget: 200
-  sampling:
-    size: 3
-  invert_direction: true
+  # sampling: 3
+  zones:
+    invert_direction: true
+    # entry:
+    #   roi:
+    #     roi_height: 12
+    #     roi_width: 6
+    # exit:
+    #   roi:
+    #     roi_height: 12
+    #     roi_width: 6
+
+button:
+  - platform: restart
+    name: $friendly_name Restart
+    entity_category: config
+  - platform: template
+    name: $friendly_name Recalibrate
+    on_press:
+      - lambda: id(roode_platform)->recalibration();
+    entity_category: config
 
 number:
   - platform: roode
     people_counter:
+      id: counter
       name: $friendly_name people counter
 
-switch:
-  - platform: restart
-    name: $friendly_name Restart
 binary_sensor:
   - platform: status
-    name: $friendly_name Status
+    name: $friendly_name API Status
   - platform: roode
     presence_sensor:
       name: $friendly_name presence
 
 sensor:
   - platform: roode
-    id: hallway
-    distance_sensor:
-      name: $friendly_name distance
+    id: roode_sensors
+    distance_entry:
+      name: $friendly_name distance zone 0
       filters:
-        - delta: 10.0
+        - delta: 100
+    distance_exit:
+      name: $friendly_name distance zone 1
+      filters:
+        - delta: 100
     max_threshold_entry:
       name: $friendly_name max zone 0
     max_threshold_exit:
@@ -111,10 +118,14 @@ sensor:
       name: $friendly_name min zone 0
     min_threshold_exit:
       name: $friendly_name min zone 1
-    roi_height:
-      name: $friendly_name ROI height
-    roi_width:
-      name: $friendly_name ROI width
+    roi_height_entry:
+      name: $friendly_name ROI height zone 0
+    roi_width_entry:
+      name: $friendly_name ROI width zone 0
+    roi_height_exit:
+      name: $friendly_name ROI height zone 1
+    roi_width_exit:
+      name: $friendly_name ROI width zone 1
     sensor_status:
       name: Sensor Status
 
@@ -150,6 +161,7 @@ text_sensor:
   - platform: roode
     version:
       name: $friendly_name version
+  - platform: roode
     entry_exit_event:
       name: $friendly_name last direction
   - platform: template
