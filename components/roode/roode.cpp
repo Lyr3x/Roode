@@ -138,9 +138,6 @@ void Roode::doPathTracking(Zone *zone) {
   int AnEventHasOccured = 0;
   // PathTrack algorithm
   uint16_t sampledDistance = zone->getMinDistance();
-  if (sampledDistance == 0) {
-    return;
-  }
   if (sampledDistance < zone->getMaxThreshold() && sampledDistance > zone->getMinThreshold()) {
     // Someone is in the sensing area
     CurrentZoneStatus = SOMEONE;
