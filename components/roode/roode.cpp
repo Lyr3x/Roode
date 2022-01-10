@@ -188,7 +188,7 @@ void Roode::doPathTracking(Zone *zone) {
   // if an event has occured
   if (AnEventHasOccured) {
     delay(1);
-    ESP_LOGE(TAG, "Event has occured, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
+    ESP_LOGD(TAG, "Event has occured, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
     if (PathTrackFillingSize < 4) {
       PathTrackFillingSize++;
     }
@@ -196,7 +196,7 @@ void Roode::doPathTracking(Zone *zone) {
     // if nobody anywhere lets check if an exit or entry has happened
     if ((LeftPreviousStatus == NOBODY) && (RightPreviousStatus == NOBODY)) {
       delay(1);
-      ESP_LOGE(TAG, "Nobody anywhere, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
+      ESP_LOGD(TAG, "Nobody anywhere, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
       // check exit or entry only if PathTrackFillingSize is 4 (for example 0 1
       // 3 2) and last event is 0 (nobobdy anywhere)
       if (PathTrackFillingSize == 4) {

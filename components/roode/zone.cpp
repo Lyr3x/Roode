@@ -25,7 +25,7 @@ VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
   while (!dataReady) {
     sensor_status += distanceSensor.CheckForDataReady(&dataReady);
     if (sensor_status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Data not ready yet. error code: %d", sensor_status);
+      ESP_LOGD(TAG, "Data not ready yet. error code: %d", sensor_status);
       return sensor_status;
     }
     delay(1);
@@ -34,7 +34,7 @@ VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
   // Get the results
   sensor_status += distanceSensor.GetDistanceInMm(&distance);
   if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not get distance, error code: %d", sensor_status);
+    ESP_LOGD(TAG, "Could not get distance, error code: %d", sensor_status);
     return sensor_status;
   }
 
@@ -61,7 +61,7 @@ VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
   sensor_status += distanceSensor.ClearInterrupt();
   sensor_status += distanceSensor.StopRanging();
   if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not stop ranging, error code: %d", sensor_status);
+    ESP_LOGD(TAG, "Could not stop ranging, error code: %d", sensor_status);
     return sensor_status;
   }
 
