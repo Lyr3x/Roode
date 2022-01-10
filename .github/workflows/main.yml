@@ -15,7 +15,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U esphome
       - name: Validate ESP32 Config
-        run: esphome config peopleCounterDev.yaml
+        run: esphome config peopleCounter32Dev.yaml
       - name: Build ESP32
-        run: esphome compile peopleCounterDev.yaml
+        run: esphome compile peopleCounter32Dev.yaml
       
