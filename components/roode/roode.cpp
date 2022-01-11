@@ -28,16 +28,16 @@ void Roode::setup() {
     // If the sensor could not be initialized print out the error code. -7 is
     // timeout
     ESP_LOGE(SETUP, "Could not initialize the sensor, error code: %d", sensor_status);
-    while (1) {
-    }
+    this->mark_failed();
+    return;
   }
   if (sensor_offset_calibration_ != -1) {
     ESP_LOGI(CALIBRATION, "Setting sensor offset calibration to %d", sensor_offset_calibration_);
     sensor_status = distanceSensor.SetOffsetInMm(sensor_offset_calibration_);
     if (sensor_status != VL53L1_ERROR_NONE) {
       ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
-      while (1) {
-      }
+      this->mark_failed();
+      return;
     }
   }
   if (sensor_xtalk_calibration_ != -1) {
@@ -45,26 +45,15 @@ void Roode::setup() {
     sensor_status = distanceSensor.SetXTalk(sensor_xtalk_calibration_);
     if (sensor_status != VL53L1_ERROR_NONE) {
       ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
-      while (1) {
-      }
+      this->mark_failed();
+      return;
     }
   }
   ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
   ESP_LOGI(SETUP, "Creating entry and exit zones.");
   createEntryAndExitZone();
 
-  if (calibration_active_) {
-    calibrateZones(distanceSensor);
-    App.feed_wdt();
-  }
-  if (manual_active_) {
-    ESP_LOGI(SETUP, "Manual sensor configuration");
-    sensorConfiguration.setSensorMode(distanceSensor, sensor_mode, timing_budget_);
-    entry->setMaxThreshold(manual_threshold_);
-    exit->setMaxThreshold(manual_threshold_);
-    publishSensorConfiguration(entry, exit, true);
-  }
-  distanceSensor.SetInterMeasurementInMs(delay_between_measurements);
+  calibrateZones(distanceSensor);
 }
 
 void Roode::update() {
@@ -91,7 +80,7 @@ void Roode::loop() {
 }
 
 bool Roode::handleSensorStatus() {
-  ESP_LOGD(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
+  ESP_LOGV(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
   bool check_status = false;
   if (last_sensor_status != sensor_status && sensor_status == VL53L1_ERROR_NONE) {
     if (status_sensor != nullptr) {
@@ -111,16 +100,14 @@ bool Roode::handleSensorStatus() {
 }
 
 void Roode::createEntryAndExitZone() {
-  if (advised_sensor_orientation_) {
-    entry = new Zone(entry_roi_width, entry_roi_height, 167, samples);
-    exit = new Zone(exit_roi_width, exit_roi_height, 231, samples);
-  } else {
-    entry = new Zone(entry_roi_width, entry_roi_height, 195, samples);
-    exit = new Zone(exit_roi_width, exit_roi_height, 60, samples);
+  if (!entry->roi->center) {
+    entry->roi->center = orientation_ == Parallel ? 167 : 195;
   }
-
-  current_zone = entry;
+  if (!exit->roi->center) {
+    exit->roi->center = orientation_ == Parallel ? 231 : 60;
+  }
 }
+
 VL53L1_Error Roode::getAlternatingZoneDistances() {
   sensor_status += this->current_zone->readDistance(distanceSensor);
   App.feed_wdt();
@@ -136,9 +123,33 @@ void Roode::doPathTracking(Zone *zone) {
   int CurrentZoneStatus = NOBODY;
   int AllZonesCurrentStatus = 0;
   int AnEventHasOccured = 0;
+
+  uint16_t Distances[2][samples];
+  uint16_t MinDistance;
+  uint8_t i;
+  uint8_t zoneId = zone == this->entry ? 0 : 1;
+  auto zoneName = zone == this->entry ? "entry" : "exit ";
+  if (DistancesTableSize[zoneId] < samples) {
+    ESP_LOGD(TAG, "Distances[%d][DistancesTableSize[zone]] = %d", zoneId, zone->getDistance());
+    Distances[zoneId][DistancesTableSize[zoneId]] = zone->getDistance();
+    DistancesTableSize[zoneId]++;
+  } else {
+    for (i = 1; i < samples; i++)
+      Distances[zoneId][i - 1] = Distances[zoneId][i];
+    Distances[zoneId][samples - 1] = zone->getDistance();
+    ESP_LOGD(SETUP, "Distance[%s] = %d", zoneName, Distances[zoneId][samples - 1]);
+  }
+  // pick up the min distance
+  MinDistance = Distances[zoneId][0];
+  if (DistancesTableSize[zoneId] >= 2) {
+    for (i = 1; i < DistancesTableSize[zoneId]; i++) {
+      if (Distances[zoneId][i] < MinDistance)
+        MinDistance = Distances[zoneId][i];
+    }
+  }
+
   // PathTrack algorithm
-  uint16_t sampledDistance = zone->getMinDistance();
-  if (sampledDistance < zone->getMaxThreshold() && sampledDistance > zone->getMinThreshold()) {
+  if (MinDistance < zone->threshold->max && MinDistance > zone->threshold->min) {
     // Someone is in the sensing area
     CurrentZoneStatus = SOMEONE;
     if (presence_sensor != nullptr) {
@@ -254,164 +265,112 @@ void Roode::updateCounter(int delta) {
   this->people_counter->set(next);
 }
 void Roode::recalibration() { calibrateZones(distanceSensor); }
-void Roode::setSensorMode(int sensor_mode, int new_timing_budget) {
-  switch (sensor_mode) {
-    case 0:  // short mode
-      time_budget_in_ms = time_budget_in_ms_short;
-      delay_between_measurements = time_budget_in_ms + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Short);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Short);
-      }
-      ESP_LOGI(SETUP, "Set short mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    case 1:  // medium mode
-      time_budget_in_ms = time_budget_in_ms_medium;
-      delay_between_measurements = time_budget_in_ms + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Long);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
-      }
-      ESP_LOGI(SETUP, "Set medium mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    case 2:  // medium_long mode
-      time_budget_in_ms = time_budget_in_ms_medium_long;
-      delay_between_measurements = time_budget_in_ms + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Long);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
-      }
-      ESP_LOGI(SETUP, "Set medium long range mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    case 3:  // long mode
-      time_budget_in_ms = time_budget_in_ms_long;
-      delay_between_measurements = time_budget_in_ms + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Long);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
-      }
-      ESP_LOGI(SETUP, "Set long range mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    case 4:  // max mode
-      time_budget_in_ms = time_budget_in_ms_max;
-      delay_between_measurements = time_budget_in_ms + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Long);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
-      }
-      ESP_LOGI(SETUP, "Set max range mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    case 5:  // custom mode
-      time_budget_in_ms = new_timing_budget;
-      delay_between_measurements = new_timing_budget + 5;
-      sensor_status = distanceSensor.SetDistanceMode(Long);
-      if (sensor_status != VL53L1_ERROR_NONE) {
-        ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", Long);
-      }
-      ESP_LOGI(SETUP, "Manually set custom range mode. timing_budget: %d", time_budget_in_ms);
-      break;
-    default:
-      break;
+
+void Roode::setRangingMode(const RangingConfig *mode) {
+  time_budget_in_ms = mode->timing_budget;
+  delay_between_measurements = mode->delay_between_measurements;
+
+  sensor_status = distanceSensor.SetDistanceMode(mode->mode);
+  if (sensor_status != VL53L1_ERROR_NONE) {
+    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", mode->mode);
   }
-  sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
-  if (sensor_status != 0) {
-    ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", time_budget_in_ms);
+  sensor_status = distanceSensor.SetTimingBudgetInMs(mode->timing_budget);
+  if (sensor_status != VL53L1_ERROR_NONE) {
+    ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", mode->timing_budget);
   }
+  sensor_status = distanceSensor.SetInterMeasurementInMs(mode->delay_between_measurements);
+  if (sensor_status != VL53L1_ERROR_NONE) {
+    ESP_LOGE(SETUP, "Could not set measurement delay.  %d ms", mode->delay_between_measurements);
+  }
+
+  ESP_LOGI(SETUP, "Set ranging mode. timing_budget: %d, delay: %d, distance_mode: %d", mode->timing_budget,
+           mode->delay_between_measurements, mode->mode);
 }
 
-void Roode::setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance) {
-  if (average_entry_zone_distance <= short_distance_threshold ||
-      average_exit_zone_distance <= short_distance_threshold) {
-    setSensorMode(0);
+const RangingConfig *Roode::determineRangingMode(uint16_t average_entry_zone_distance,
+                                                 uint16_t average_exit_zone_distance) {
+  if (this->timing_budget.has_value()) {
+    auto time_budget = this->timing_budget.value();
+    if (this->distance_mode.has_value()) {
+      EDistanceMode &mode = this->distance_mode.value();
+      return Ranging::Custom(time_budget, mode);
+    }
+    return Ranging::Custom(time_budget);
   }
 
-  if ((average_entry_zone_distance > short_distance_threshold &&
-       average_entry_zone_distance <= medium_distance_threshold) ||
-      (average_exit_zone_distance > short_distance_threshold &&
-       average_exit_zone_distance <= medium_distance_threshold)) {
-    setSensorMode(1);
+  uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
+                                                                          : average_exit_zone_distance;
+  uint16_t max = average_entry_zone_distance > average_exit_zone_distance ? average_entry_zone_distance
+                                                                          : average_exit_zone_distance;
+  if (min <= short_distance_threshold) {
+    return Ranging::Short;
   }
-
-  if ((average_entry_zone_distance > medium_distance_threshold &&
-       average_entry_zone_distance <= medium_long_distance_threshold) ||
-      (average_exit_zone_distance > medium_distance_threshold &&
-       average_exit_zone_distance <= medium_long_distance_threshold)) {
-    setSensorMode(2);
+  if (max > short_distance_threshold && min <= medium_distance_threshold) {
+    return Ranging::Medium;
   }
-  if ((average_entry_zone_distance > medium_long_distance_threshold &&
-       average_entry_zone_distance <= long_distance_threshold) ||
-      (average_exit_zone_distance > medium_long_distance_threshold &&
-       average_exit_zone_distance <= long_distance_threshold)) {
-    setSensorMode(3);
+  if (max > medium_distance_threshold && min <= medium_long_distance_threshold) {
+    return Ranging::MediumLong;
   }
-  if (average_entry_zone_distance > long_distance_threshold || average_exit_zone_distance > long_distance_threshold) {
-    setSensorMode(4);
+  if (max > medium_long_distance_threshold && min <= long_distance_threshold) {
+    return Ranging::Long;
   }
+  return Ranging::Longest;
 }
 
 void Roode::calibrateZones(VL53L1X_ULD distanceSensor) {
   ESP_LOGI(SETUP, "Calibrating sensor zone");
-  time_budget_in_ms = time_budget_in_ms_medium;
-  delay_between_measurements = time_budget_in_ms + 5;
-  distanceSensor.SetDistanceMode(Long);
-  sensor_status = distanceSensor.SetTimingBudgetInMs(time_budget_in_ms);
+  calibrateDistance();
 
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(CALIBRATION, "Could not set timing budget. timing_budget: %d ms, status: %d", time_budget_in_ms,
-             sensor_status);
-  }
-  int entry_threshold =
-      entry->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
-  int exit_threshold =
-      exit->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
-  setCorrectDistanceSettings(entry_threshold, exit_threshold);
-  if (roi_calibration_) {
-    entry->roi_calibration(distanceSensor, entry_threshold, exit_threshold, advised_sensor_orientation_);
-    entry->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
-    exit->roi_calibration(distanceSensor, entry_threshold, exit_threshold, advised_sensor_orientation_);
-    exit->calibrateThreshold(distanceSensor, number_attempts, max_threshold_percentage_, min_threshold_percentage_);
-  }
-  int hundred_threshold_zone_0 = entry->getMaxThreshold() / 100;
-  int hundred_threshold_zone_1 = exit->getMaxThreshold() / 100;
-  int unit_threshold_zone_0 = entry->getMaxThreshold() - 100 * hundred_threshold_zone_0;
-  int unit_threshold_zone_1 = exit->getMaxThreshold() - 100 * hundred_threshold_zone_1;
+  entry->roi_calibration(distanceSensor, entry->threshold->idle, exit->threshold->idle, orientation_);
+  entry->calibrateThreshold(distanceSensor, number_attempts);
+  exit->roi_calibration(distanceSensor, entry->threshold->idle, exit->threshold->idle, orientation_);
+  exit->calibrateThreshold(distanceSensor, number_attempts);
+
   publishSensorConfiguration(entry, exit, true);
   App.feed_wdt();
-  if (min_threshold_percentage_ != 0) {
-    publishSensorConfiguration(entry, exit, false);
-  }
+  publishSensorConfiguration(entry, exit, false);
+}
+
+void Roode::calibrateDistance() {
+  setRangingMode(Ranging::Medium);
+
+  entry->calibrateThreshold(distanceSensor, number_attempts);
+  exit->calibrateThreshold(distanceSensor, number_attempts);
+
+  auto *mode = determineRangingMode(entry->threshold->idle, exit->threshold->idle);
+  setRangingMode(mode);
 }
 
 void Roode::publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax) {
   if (isMax) {
     if (max_threshold_entry_sensor != nullptr) {
-      max_threshold_entry_sensor->publish_state(entry->getMaxThreshold());
+      max_threshold_entry_sensor->publish_state(entry->threshold->max);
     }
 
     if (max_threshold_exit_sensor != nullptr) {
-      max_threshold_exit_sensor->publish_state(exit->getMaxThreshold());
+      max_threshold_exit_sensor->publish_state(exit->threshold->max);
     }
   } else {
     if (min_threshold_entry_sensor != nullptr) {
-      min_threshold_entry_sensor->publish_state(entry->getMinThreshold());
+      min_threshold_entry_sensor->publish_state(entry->threshold->min);
     }
     if (min_threshold_exit_sensor != nullptr) {
-      min_threshold_exit_sensor->publish_state(exit->getMinThreshold());
+      min_threshold_exit_sensor->publish_state(exit->threshold->min);
     }
   }
 
   if (entry_roi_height_sensor != nullptr) {
-    entry_roi_height_sensor->publish_state(entry->getRoiHeight());
+    entry_roi_height_sensor->publish_state(entry->roi->height);
   }
   if (entry_roi_width_sensor != nullptr) {
-    entry_roi_width_sensor->publish_state(entry->getRoiWidth());
+    entry_roi_width_sensor->publish_state(entry->roi->width);
   }
 
   if (exit_roi_height_sensor != nullptr) {
-    exit_roi_height_sensor->publish_state(exit->getRoiHeight());
+    exit_roi_height_sensor->publish_state(exit->roi->height);
   }
   if (exit_roi_width_sensor != nullptr) {
-    exit_roi_width_sensor->publish_state(exit->getRoiWidth());
+    exit_roi_width_sensor->publish_state(exit->roi->width);
   }
 }
 }  // namespace roode

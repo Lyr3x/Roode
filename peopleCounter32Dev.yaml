@@ -53,28 +53,27 @@ i2c:
 roode:
   id: roode_platform
   i2c_address: 0x29
-  update_interval: 100ms
   calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-    # sensor_offset_calibration: 8
-    # sensor_xtalk_calibration: 53406
-  # manual:
-  #   sensor_mode: 3
-  #   manual_threshold: 1280
-  #   timing_budget: 200
-  # sampling: 3
+    sensor_mode: 3
+    timing_budget: 200
+    offset: 8
+    xtalk: 53406
+  sampling: 1
+  detection_thresholds:
+    max: 85%
+    min: 5%
+  roi:
+    height: 8
+    width: 8
   zones:
-    invert_direction: true
-    # entry:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
-    # exit:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
+    invert: true
+    entry:
+      roi:
+        height: 4
+        width: 4
+    exit:
+      roi:
+        width: 6
 
 button:
   - platform: restart

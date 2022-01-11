@@ -1,11 +1,17 @@
 from re import I
+from typing import Dict, Union, Any
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
+    CONF_HEIGHT,
     CONF_ID,
-    CONF_OR,
+    CONF_INTERRUPT,
+    CONF_INVERT,
+    CONF_OFFSET,
+    CONF_PINS,
+    CONF_WIDTH,
 )
-
+import esphome.pins as pins
 
 # DEPENDENCIES = ["i2c"]
 AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor", "number"]
@@ -16,208 +22,217 @@ CONF_ROODE_ID = "roode_id"
 roode_ns = cg.esphome_ns.namespace("roode")
 Roode = roode_ns.class_("Roode", cg.PollingComponent)
 
-CONF_ROI_HEIGHT = "roi_height"
-CONF_ROI_WIDTH = "roi_width"
-CONF_ADVISED_SENSOR_ORIENTATION = "advised_sensor_orientation"
+CONF_AUTO = "auto"
+CONF_ORIENTATION = "orientation"
 CONF_CALIBRATION = "calibration"
-CONF_ROI_CALIBRATION = "roi_calibration"
-CONF_INVERT_DIRECTION = "invert_direction"
-CONF_MAX_THRESHOLD_PERCENTAGE = "max_threshold_percentage"
-CONF_MIN_THRESHOLD_PERCENTAGE = "min_threshold_percentage"
-CONF_MANUAL_THRESHOLD = "manual_threshold"
-CONF_THRESHOLD_PERCENTAGE = "threshold_percentage"
+CONF_DETECTION_THRESHOLDS = "detection_thresholds"
+CONF_DISTANCE_MODE = "distance_mode"
 CONF_I2C_ADDRESS = "i2c_address"
-CONF_SENSOR_MODE = "sensor_mode"
-CONF_MANUAL = "manual"
-CONF_MANUAL_ACTIVE = "manual_active"
-CONF_CALIBRATION_ACTIVE = "calibration_active"
-CONF_TIMING_BUDGET = "timing_budget"
-CONF_SAMPLING = "sampling"
-CONF_SAMPLING_SIZE = "size"
-CONF_ROI = "roi"
-CONF_ROI_ACTIVE = "roi_active"
-CONF_ZONES = "zones"
 CONF_ENTRY_ZONE = "entry"
 CONF_EXIT_ZONE = "exit"
-CONF_SENSOR_OFFSET_CALIBRATION = "sensor_offset_calibration"
-CONF_SENSOR_XTALK_CALIBRATION = "sensor_xtalk_calibration"
-TYPES = [CONF_ADVISED_SENSOR_ORIENTATION, CONF_I2C_ADDRESS]
+CONF_CENTER = "center"
+CONF_MAX = "max"
+CONF_MIN = "min"
+CONF_ROI = "roi"
+CONF_SAMPLING = "sampling"
+CONF_TIMING_BUDGET = "timing_budget"
+CONF_XSHUT = "xshut"
+CONF_XTALK = "xtalk"
+CONF_ZONES = "zones"
+
+Orientation = roode_ns.enum("Orientation")
+ORIENTATION_VALUES = {
+    "parallel": Orientation.Parallel,
+    "perpendicular": Orientation.Perpendicular,
+}
+
+DistanceMode = cg.global_ns.enum("EDistanceMode")
+DISTANCE_MODES = {
+    CONF_AUTO: CONF_AUTO,
+    "short": DistanceMode.Short,
+    "long": DistanceMode.Long,
+}
+
+TIMING_BUDGET_ALIASES = {
+    CONF_AUTO: CONF_AUTO,
+    "shortest": 15,
+    "short": 20,
+    "medium": 33,
+    "medium long": 50,
+    "long": 100,
+    "longer": 200,
+    "longest": 500,
+    "15": 15,
+    "20": 20,
+    "33": 33,
+    "50": 50,
+    "100": 100,
+    "200": 200,
+    "500": 500,
+}
+
+int16_t = cv.int_range(min=-32768, max=32768)  # signed
+roi_range = cv.int_range(min=4, max=16)
+
+
+def NullableSchema(*args, default: Any = None, **kwargs):
+    """
+    Same as Schema but will convert nulls to empty objects. Useful when all the schema keys are optional.
+    Allows YAML lines to be commented out leaving an "empty dict" which is mistakenly parsed as None.
+    """
+
+    def none_to_empty(value):
+        if value is None:
+            return {} if default is None else default
+        raise cv.Invalid("Expected none")
+
+    return cv.Any(cv.Schema(*args, **kwargs), none_to_empty)
+
+
+ROI_SCHEMA = cv.Any(
+    NullableSchema(
+        {
+            cv.Optional(CONF_HEIGHT): roi_range,
+            cv.Optional(CONF_WIDTH): roi_range,
+            cv.Optional(CONF_CENTER): cv.uint8_t,
+        },
+    ),
+    cv.one_of(CONF_AUTO),
+)
+
+THRESHOLDS_SCHEMA = NullableSchema(
+    {
+        cv.Optional(CONF_MIN): cv.Any(cv.uint16_t, cv.percentage),
+        cv.Optional(CONF_MAX): cv.Any(cv.uint16_t, cv.percentage),
+    }
+)
+
+ZONE_SCHEMA = NullableSchema(
+    {
+        cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
+        cv.Optional(CONF_DETECTION_THRESHOLDS, default={}): THRESHOLDS_SCHEMA,
+    }
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
-        cv.Optional(CONF_ADVISED_SENSOR_ORIENTATION, default="true"): cv.boolean,
-        cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.uint8_t,
-        cv.Optional(CONF_SAMPLING, default=2): cv.Any(
-            cv.int_range(1, 255),
-            cv.Schema(
-                {
-                    cv.Optional(CONF_SAMPLING_SIZE, default=2): cv.int_range(1, 255),
-                }
-            ),
-        ),
-        cv.Exclusive(
-            CONF_CALIBRATION,
-            "mode",
-            f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable",
-        ): cv.Schema(
+        cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.i2c_address,
+        cv.Optional(CONF_PINS, default={}): NullableSchema(
             {
-                cv.Optional(CONF_CALIBRATION_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_MAX_THRESHOLD_PERCENTAGE, default=85): cv.int_range(
-                    min=50, max=100
-                ),
-                cv.Optional(CONF_MIN_THRESHOLD_PERCENTAGE, default=0): cv.int_range(
-                    min=0, max=100
-                ),
-                cv.Optional(CONF_ROI_CALIBRATION, default="false"): cv.boolean,
-                cv.Optional(CONF_SENSOR_OFFSET_CALIBRATION, default=-1): cv.int_,
-                cv.Optional(CONF_SENSOR_XTALK_CALIBRATION, default=-1): cv.int_,
+                cv.Optional(CONF_XSHUT): pins.gpio_input_pin_schema,
+                cv.Optional(CONF_INTERRUPT): pins.gpio_output_pin_schema,
             }
         ),
-        cv.Exclusive(
-            CONF_MANUAL,
-            "mode",
-            f"Only one mode, {CONF_MANUAL} or {CONF_CALIBRATION} is usable",
-        ): cv.Schema(
+        cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
             {
-                cv.Optional(CONF_MANUAL_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_TIMING_BUDGET, default=15): cv.one_of(
-                    15, 20, 33, 50, 100, 200, 500
+                cv.Optional(CONF_DISTANCE_MODE, default=CONF_AUTO): cv.enum(
+                    DISTANCE_MODES
                 ),
-                cv.Inclusive(
-                    CONF_SENSOR_MODE,
-                    "manual_mode",
-                    f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=-1, max=5),
-                cv.Inclusive(
-                    CONF_MANUAL_THRESHOLD,
-                    "manual_mode",
-                    f"{CONF_SENSOR_MODE}, {CONF_ROI_HEIGHT}, {CONF_ROI_WIDTH} and {CONF_MANUAL_THRESHOLD} must be used together",
-                ): cv.int_range(min=40, max=4000),
+                cv.Optional(CONF_TIMING_BUDGET, default=CONF_AUTO): cv.enum(
+                    TIMING_BUDGET_ALIASES
+                ),
+                cv.Optional(CONF_XTALK): cv.uint16_t,
+                cv.Optional(CONF_OFFSET): int16_t,
             }
         ),
-        cv.Optional(CONF_ROI): cv.Schema(
+        cv.Optional(CONF_ORIENTATION, default="parallel"): cv.enum(ORIENTATION_VALUES),
+        cv.Optional(CONF_SAMPLING, default=2): cv.All(cv.uint8_t, cv.Range(min=1)),
+        cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
+        cv.Optional(CONF_DETECTION_THRESHOLDS, default={}): THRESHOLDS_SCHEMA,
+        cv.Optional(CONF_ZONES, default={}): NullableSchema(
             {
-                cv.Optional(CONF_ROI_ACTIVE, default="true"): cv.boolean,
-                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(min=4, max=16),
-                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(min=4, max=16),
-            }
-        ),
-        cv.Optional(CONF_ZONES): cv.Schema(
-            {
-                cv.Optional(CONF_INVERT_DIRECTION, default="false"): cv.boolean,
-                cv.Optional(CONF_ENTRY_ZONE): cv.Schema(
-                    {
-                        cv.Optional(CONF_ROI): cv.Schema(
-                            {
-                                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(
-                                    min=4, max=16
-                                ),
-                                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(
-                                    min=4, max=16
-                                ),
-                            }
-                        ),
-                    }
-                ),
-                cv.Optional(CONF_EXIT_ZONE): cv.Schema(
-                    {
-                        cv.Optional(CONF_ROI): cv.Schema(
-                            {
-                                cv.Optional(CONF_ROI_HEIGHT, default=16): cv.int_range(
-                                    min=4, max=16
-                                ),
-                                cv.Optional(CONF_ROI_WIDTH, default=6): cv.int_range(
-                                    min=4, max=16
-                                ),
-                            }
-                        ),
-                    }
-                ),
+                cv.Optional(CONF_INVERT, default=False): cv.boolean,
+                cv.Optional(CONF_ENTRY_ZONE, default={}): ZONE_SCHEMA,
+                cv.Optional(CONF_EXIT_ZONE, default={}): ZONE_SCHEMA,
             }
         ),
     }
-).extend(cv.polling_component_schema("100ms"))
+)
 
 
-def validate_roi_settings(config):
-    roi = config.get(CONF_ZONES)
-    entry = roi.get(CONF_ENTRY_ZONE)
-    exit = roi.get(CONF_EXIT_ZONE)
-    manual = config.get(CONF_MANUAL)
-    if CONF_CALIBRATION in config:
-        roi_calibration = config.get(CONF_CALIBRATION).get(CONF_ROI_CALIBRATION)
-        if roi_calibration == True and (entry != None or exit != None):
-            raise cv.Invalid(
-                "ROI calibration cannot be used with manual ROI width and height"
-            )
-        if roi_calibration == False and (entry == None or exit == None):
-            raise cv.Invalid("You need to set the ROI manually or use ROI calibration")
-    if manual != None and (roi == None or entry == None or exit == None):
-        raise cv.Invalid("You need to set the ROI manually if manual mode is active")
-
-
-async def setup_conf(config, key, hub):
-    if key in config:
-        cg.add(getattr(hub, f"set_{key}")(config[key]))
-
-
-def setup_manual_mode(config, hub):
-    manual = config[CONF_MANUAL]
-    for key in manual:
-        cg.add(getattr(hub, f"set_{key}")(manual[key]))
-
-
-def setup_calibration_mode(config, hub):
-    calibration = config[CONF_CALIBRATION]
-    for key in calibration:
-        cg.add(getattr(hub, f"set_{key}")(calibration[key]))
-
-
-def setup_manual_roi(config, hub):
-    roi = config[CONF_ROI]
-    for key in roi:
-        cg.add(getattr(hub, f"set_{key}")(roi[key]))
-
-
-def setup_sampling(config, hub):
-    sampling = config[CONF_SAMPLING]
-    if isinstance(sampling, int):
-        cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling))
-    else:
-        for key in sampling:
-            cg.add(getattr(hub, f"set_sampling_{CONF_SAMPLING_SIZE}")(sampling[key]))
-
-
-def setup_zones(config, hub):
-    zones = config[CONF_ZONES]
-    for zone in zones:
-        if CONF_ENTRY_ZONE in zone or CONF_EXIT_ZONE in zone:
-            roi = zones[zone][CONF_ROI]
-            for key in roi:
-                cg.add(getattr(hub, f"set_{zone}_{key}")(roi[key]))
-        else:
-            cg.add(getattr(hub, f"set_{zone}")(zones[zone]))
-
-    if CONF_INVERT_DIRECTION in zones:
-        cg.add(getattr(hub, "set_invert_direction")(zones[CONF_INVERT_DIRECTION]))
-
-
-async def to_code(config):
-    hub = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(hub, config)
+async def to_code(config: Dict):
     cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
 
-    validate_roi_settings(config)
+    roode = cg.new_Pvariable(config[CONF_ID])
+    await cg.register_component(roode, config)
 
-    for key in TYPES:
-        await setup_conf(config, key, hub)
-    if CONF_MANUAL in config:
-        setup_manual_mode(config, hub)
-    if CONF_CALIBRATION in config:
-        setup_calibration_mode(config, hub)
-    if CONF_SAMPLING in config:
-        setup_sampling(config, hub)
-    if CONF_ZONES in config:
-        setup_zones(config, hub)
+    await setup_hardware(config, roode)
+    await setup_calibration(config[CONF_CALIBRATION], roode)
+    await setup_algorithm(config, roode)
+
+
+async def setup_hardware(config: Dict, roode: cg.Pvariable):
+    cg.add(roode.set_i2c_address(config[CONF_I2C_ADDRESS]))
+    pins = config[CONF_PINS]
+    if CONF_INTERRUPT in pins:
+        interrupt = await cg.gpio_pin_expression(pins[CONF_INTERRUPT])
+        cg.add(roode.set_interrupt_pin(interrupt))
+    if CONF_XSHUT in pins:
+        xshut = await cg.gpio_pin_expression(pins[CONF_XSHUT])
+        cg.add(roode.set_xshut_pin(xshut))
+
+
+async def setup_calibration(config: Dict, roode: cg.Pvariable):
+    if config.get(CONF_DISTANCE_MODE, CONF_AUTO) != CONF_AUTO:
+        cg.add(roode.set_distance_mode(config[CONF_DISTANCE_MODE]))
+    if config.get(CONF_TIMING_BUDGET, CONF_AUTO) != CONF_AUTO:
+        cg.add(roode.set_timing_budget(config[CONF_TIMING_BUDGET]))
+    if CONF_XTALK in config:
+        cg.add(roode.set_sensor_xtalk_calibration(config[CONF_XTALK]))
+    if CONF_OFFSET in config:
+        cg.add(roode.set_sensor_offset_calibration(config[CONF_OFFSET]))
+
+
+async def setup_algorithm(config: Dict, roode: cg.Pvariable):
+    cg.add(roode.set_orientation(config[CONF_ORIENTATION]))
+    cg.add(roode.set_sampling_size(config[CONF_SAMPLING]))
+    cg.add(roode.set_invert_direction(config[CONF_ZONES][CONF_INVERT]))
+    setup_zone(CONF_ENTRY_ZONE, config, roode)
+    setup_zone(CONF_EXIT_ZONE, config, roode)
+
+
+def setup_zone(name: str, config: Dict, roode: cg.Pvariable):
+    zone_config = config[CONF_ZONES][name]
+    zone_var = cg.MockObj(f"{roode}->{name}", "->")
+
+    roi_var = cg.MockObj(f"{zone_var}->roi", "->")
+    setup_roi(roi_var, zone_config.get(CONF_ROI, {}), config.get(CONF_ROI, {}))
+
+    threshold_var = cg.MockObj(f"{zone_var}->threshold", "->")
+    setup_thresholds(
+        threshold_var,
+        zone_config.get(CONF_DETECTION_THRESHOLDS, {}),
+        config.get(CONF_DETECTION_THRESHOLDS, {}),
+    )
+
+
+def setup_roi(var: cg.MockObj, config: Union[Dict, str], fallback: Union[Dict, str]):
+    config: Dict = (
+        config if config != "auto" else {CONF_HEIGHT: "auto", CONF_WIDTH: "auto"}
+    )
+    fallback: Dict = (
+        fallback if fallback != "auto" else {CONF_HEIGHT: "auto", CONF_WIDTH: "auto"}
+    )
+    height = config.get(CONF_HEIGHT, fallback.get(CONF_HEIGHT, 16))
+    width = config.get(CONF_WIDTH, fallback.get(CONF_WIDTH, 6))
+    if height != "auto":
+        cg.add(var.set_height(height))
+    if width != "auto":
+        cg.add(var.set_width(width))
+    if CONF_CENTER in config:
+        cg.add(var.set_center(config[CONF_CENTER]))
+
+
+def setup_thresholds(var: cg.MockObj, config: Dict, fallback: Dict):
+    min = config.get(CONF_MIN, fallback.get(CONF_MIN, 0.0))
+    max = config.get(CONF_MAX, fallback.get(CONF_MAX, 0.85))
+    if isinstance(min, float):
+        cg.add(var.set_min_percentage(int(min * 100)))
+    else:
+        cg.add(var.set_min(min))
+    if isinstance(max, float):
+        cg.add(var.set_max_percentage(int(max * 100)))
+    else:
+        cg.add(var.set_max(max))

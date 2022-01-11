@@ -9,7 +9,9 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/application.h"
 #include "esphome/core/component.h"
+#include "orientation.h"
 #include "zone.h"
+#include "ranging.h"
 
 namespace esphome {
 namespace roode {
@@ -59,24 +61,15 @@ class Roode : public PollingComponent {
   void loop() override;
   void dump_config() override;
 
-  void set_calibration_active(bool val) { calibration_active_ = val; }
-  void set_manual_active(bool val) { manual_active_ = val; }
-  void set_roi_active(bool val) { roi_active_ = val; }
-  void set_roi_calibration(bool val) { roi_calibration_ = val; }
   void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
   void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
-  void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
-  void set_manual_threshold(int val) { manual_threshold_ = val; }
-  void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
-  void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
-  void set_entry_roi_height(int height) { entry_roi_height = height; }
-  void set_entry_roi_width(int width) { entry_roi_width = width; }
-  void set_exit_roi_height(int height) { exit_roi_height = height; }
-  void set_exit_roi_width(int width) { exit_roi_width = width; }
+  void set_distance_mode(EDistanceMode mode) { this->distance_mode.value() = mode; }
+  void set_timing_budget(uint16_t budget) { this->timing_budget.value() = budget; }
   void set_i2c_address(uint8_t address) { this->address_ = address; }
+  void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin = pin; }
+  void set_xshut_pin(InternalGPIOPin *pin) { this->xshut_pin = pin; }
   void set_invert_direction(bool dir) { invert_direction_ = dir; }
-  void set_restore_values(bool val) { restore_values_ = val; }
-  void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
+  void set_orientation(Orientation val) { orientation_ = val; }
   void set_sampling_size(uint8_t size) { samples = size; }
   void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
   void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
@@ -105,18 +98,13 @@ class Roode : public PollingComponent {
   void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) {
     entry_exit_event_sensor = entry_exit_event_sensor_;
   }
-  void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
-  VL53L1_Error getAlternatingZoneDistances();
-  void doPathTracking(Zone *zone);
   void recalibration();
-  bool handleSensorStatus();
-  Configuration sensorConfiguration;
+  Zone *entry = new Zone(0);
+  Zone *exit = new Zone(1);
 
  protected:
   VL53L1X_ULD distanceSensor;
-  Zone *entry;
-  Zone *exit;
-  Zone *current_zone;
+  Zone *current_zone = entry;
   sensor::Sensor *distance_entry;
   sensor::Sensor *distance_exit;
   number::Number *people_counter;
@@ -133,39 +121,31 @@ class Roode : public PollingComponent {
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
+  VL53L1_Error getAlternatingZoneDistances();
+  void doPathTracking(Zone *zone);
+  bool handleSensorStatus();
   void createEntryAndExitZone();
+  void calibrateDistance();
   void calibrateZones(VL53L1X_ULD distanceSensor);
-  void setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance);
-  void setSensorMode(int sensor_mode, int timing_budget = 0);
+  const RangingConfig *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
+  void setRangingMode(const RangingConfig *mode);
   void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
-  uint16_t sampling(Zone *zone);
-  bool calibration_active_{false};
-  bool manual_active_{false};
-  bool roi_active_{false};
-  bool roi_calibration_{false};
+  InternalGPIOPin *xshut_pin;
+  InternalGPIOPin *interrupt_pin;
   int sensor_offset_calibration_{-1};
   int sensor_xtalk_calibration_{-1};
-  int sensor_mode{-1};
-  bool advised_sensor_orientation_{true};
-  bool sampling_active_{false};
+  optional<EDistanceMode> distance_mode;
+  optional<uint16_t> timing_budget;
+  Orientation orientation_{Parallel};
   uint8_t samples{2};
   uint8_t address_ = 0x29;
   bool invert_direction_{false};
-  bool restore_values_{false};
-  uint64_t max_threshold_percentage_{85};
-  uint64_t min_threshold_percentage_{0};
-  uint64_t manual_threshold_{2000};
   int number_attempts = 20;  // TO DO: make this configurable
-  int timing_budget_{-1};
   int short_distance_threshold = 1300;
   int medium_distance_threshold = 2000;
   int medium_long_distance_threshold = 2700;
   int long_distance_threshold = 3400;
-  int entry_roi_width{6};
-  int entry_roi_height{16};
-  int exit_roi_width{6};
-  int exit_roi_height{16};
 };
 
 }  // namespace roode

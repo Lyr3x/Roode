@@ -1,23 +1,11 @@
 #include "zone.h"
 
-static uint8_t zone_id = 0;
 namespace esphome {
 namespace roode {
-Zone::Zone(int roi_width, int roi_height, int roi_center, int sample_size) {
-  this->id = zone_id++;
-  ESP_LOGD(TAG, "Zone(%d, %d, %d)", roi_width, roi_height, roi_center);
-  this->roi_width = roi_width;
-  this->roi_height = roi_height;
-  this->roi_center = roi_center;
-  this->roi = {roi_width, roi_height, roi_center};
-  this->sample_size = sample_size;
-  this->Distances = new int[sample_size];
-}
-
 VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
   last_sensor_status = sensor_status;
-  sensor_status += distanceSensor.SetROI(this->getRoiWidth(), this->getRoiHeight());
-  sensor_status += distanceSensor.SetROICenter(this->getRoiCenter());
+  sensor_status += distanceSensor.SetROI(roi->width, roi->height);
+  sensor_status += distanceSensor.SetROICenter(roi->center);
   sensor_status += distanceSensor.StartRanging();
 
   // Wait for the measurement to be ready
@@ -68,8 +56,7 @@ VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
   return sensor_status;
 }
 
-int Zone::calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts, uint16_t max_threshold_percentage,
-                             uint16_t min_threshold_percentage) {
+void Zone::calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts) {
   int *zone_distances = new int[number_attempts];
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {
@@ -77,103 +64,68 @@ int Zone::calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts, u
     zone_distances[i] = this->getDistance();
     sum += zone_distances[i];
   };
-  int optimized_threshold = this->getOptimizedValues(zone_distances, sum, number_attempts);
-  this->setMaxThreshold(optimized_threshold * max_threshold_percentage / 100);
-  if (min_threshold_percentage > 0)
-    this->setMinThreshold(optimized_threshold * min_threshold_percentage / 100);
-  ESP_LOGI(CALIBRATION, "Calibrated threshold for zone. zoneId: %d, threshold: %d", this->getZoneId(),
-           optimized_threshold);
-  return optimized_threshold;
+  threshold->idle = this->getOptimizedValues(zone_distances, sum, number_attempts);
+
+  if (threshold->max_percentage.has_value()) {
+    threshold->max = (threshold->idle * threshold->max_percentage.value()) / 100;
+  }
+  if (threshold->min_percentage.has_value()) {
+    threshold->min = (threshold->idle * threshold->min_percentage.value()) / 100;
+  }
+  ESP_LOGI(CALIBRATION, "Calibrated threshold for zone. zoneId: %d, idle: %d, min: %d (%d%%), max: %d (%d%%)", id,
+           threshold->idle, threshold->min,
+           threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
+           threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle));
 }
-void Zone::roi_calibration(VL53L1X_ULD &distanceSensor, int entry_threshold, int exit_threshold,
-                           bool sensor_orientation) {
-  // the value of the average distance is used for computing the optimal size of
-  // the ROI and consequently also the center of the two zones
+
+void Zone::roi_calibration(VL53L1X_ULD &distanceSensor, uint16_t entry_threshold, uint16_t exit_threshold,
+                           Orientation orientation) {
+  // the value of the average distance is used for computing the optimal size of the ROI and consequently also the
+  // center of the two zones
   int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(entry_threshold, exit_threshold) / 1000)));
   int ROI_size = min(8, max(4, function_of_the_distance));
-  this->updateRoi(ROI_size, ROI_size * 2);
-  // now we set the position of the center of the two zones
-  if (sensor_orientation) {
-    switch (ROI_size) {
-      case 4:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(150);
+  if (!this->roi->width) {
+    this->roi->width = ROI_size;
+  }
+  if (!this->roi->height) {
+    this->roi->height = ROI_size * 2;
+  }
+  if (!this->roi->center) {
+    // now we set the position of the center of the two zones
+    if (orientation == Parallel) {
+      switch (ROI_size) {
+        case 4:
+          this->roi->center = this->id == 0U ? 150 : 247;
           break;
-        }
-        this->setRoiCenter(247);
-
-        break;
-      case 5:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(159);
+        case 5:
+        case 6:
+          this->roi->center = this->id == 0U ? 159 : 239;
           break;
-        }
-        this->setRoiCenter(239);
-        break;
-      case 6:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(159);
+        case 7:
+        case 8:
+          this->roi->center = this->id == 0U ? 167 : 231;
           break;
-        }
-        this->setRoiCenter(239);
-        break;
-      case 7:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(167);
+      }
+    } else {
+      switch (ROI_size) {
+        case 4:
+          this->roi->center = this->id == 0U ? 193 : 58;
           break;
-        }
-        this->setRoiCenter(231);
-        break;
-      case 8:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(167);
+        case 5:
+        case 6:
+          this->roi->center = this->id == 0U ? 194 : 59;
           break;
-        }
-        this->setRoiCenter(231);
-        break;
-    }
-  } else {
-    switch (ROI_size) {
-      case 4:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(193);
+        case 7:
+        case 8:
+          this->roi->center = this->id == 0U ? 195 : 60;
           break;
-        }
-        this->setRoiCenter(58);
-        break;
-      case 5:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(194);
-          break;
-        }
-        this->setRoiCenter(59);
-        break;
-      case 6:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(194);
-          break;
-        }
-        this->setRoiCenter(59);
-        break;
-      case 7:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(195);
-          break;
-        }
-        this->setRoiCenter(60);
-        break;
-      case 8:
-        if (this->getZoneId() == 0U) {
-          this->setRoiCenter(195);
-          break;
-        }
-        this->setRoiCenter(60);
-        break;
+      }
     }
   }
-  ESP_LOGI(CALIBRATION, "Calibrated ROI for zone. zoneId: %d, width: %d, height: %d, center: %d", this->getZoneId(),
-           this->getRoiWidth(), this->getRoiHeight(), this->getRoiCenter());
+  ESP_LOGI(CALIBRATION, "Calibrated ROI for zone. zoneId: %d, width: %d, height: %d, center: %d", id, roi->width,
+           roi->height, roi->center);
 }
+
 int Zone::getOptimizedValues(int *values, int sum, int size) {
   int sum_squared = 0;
   int variance = 0;
@@ -191,23 +143,7 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   return avg - sd;
 }
 
-uint16_t Zone::getDistance() { return this->distance; }
-uint16_t Zone::getMinDistance() { return this->min_distance; }
-uint16_t Zone::getRoiWidth() { return this->roi.width; }
-uint16_t Zone::getRoiHeight() { return this->roi.height; }
-uint16_t Zone::getRoiCenter() { return this->roi.center; }
-void Zone::setRoiWidth(uint16_t new_roi_width) { this->roi.width = new_roi_width; }
-void Zone::setRoiHeight(uint16_t new_roi_height) { this->roi.height = new_roi_height; }
-void Zone::setRoiCenter(uint16_t new_roi_center) { this->roi.center = new_roi_center; }
-void Zone::updateRoi(uint16_t new_width, uint16_t new_height) {
-  this->roi.width = new_width;
-  this->roi.height = new_height;
-}
-void Zone::setMinThreshold(uint16_t min) { this->threshold.min = min; }
-void Zone::setMaxThreshold(uint16_t max) { this->threshold.max = max; }
-uint16_t Zone::getMinThreshold() { return this->threshold.min; }
-uint16_t Zone::getMaxThreshold() { return this->threshold.max; }
-
-uint8_t Zone::getZoneId() { return this->id; }
+uint16_t Zone::getDistance() const { return this->distance; }
+uint16_t Zone::getMinDistance() const { return this->min_distance; }
 }  // namespace roode
 }  // namespace esphome
