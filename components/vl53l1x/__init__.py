@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from esphome.components import i2c
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
@@ -9,15 +10,14 @@ from esphome.const import (
 )
 import esphome.pins as pins
 
-# DEPENDENCIES = ["i2c"]
-AUTO_LOAD = []
+DEPENDENCIES = ["i2c"]
+AUTO_LOAD = ["i2c"]
 
 vl53l1x_ns = cg.esphome_ns.namespace("vl53l1x")
 VL53L1X = vl53l1x_ns.class_("VL53L1X", cg.Component)
 
 CONF_AUTO = "auto"
 CONF_CALIBRATION = "calibration"
-CONF_I2C_ADDRESS = "i2c_address"
 CONF_RANGING_MODE = "ranging"
 CONF_XSHUT = "xshut"
 CONF_XTALK = "xtalk"
@@ -53,7 +53,6 @@ def NullableSchema(*args, default: Any = None, **kwargs):
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(VL53L1X),
-        cv.Optional(CONF_I2C_ADDRESS): cv.i2c_address,
         cv.Optional(CONF_PINS, default={}): NullableSchema(
             {
                 cv.Optional(CONF_XSHUT): pins.gpio_input_pin_schema,
@@ -70,23 +69,21 @@ CONFIG_SCHEMA = cv.Schema(
             }
         ),
     }
-)
+).extend(i2c.i2c_device_schema(0x52))
 
 
 async def to_code(config: Dict):
-    cg.add_library("Wire", None)
     cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
 
     vl53l1x = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(vl53l1x, config)
+    await i2c.register_i2c_device(vl53l1x, config)
 
     await setup_hardware(vl53l1x, config)
     await setup_calibration(vl53l1x, config[CONF_CALIBRATION])
 
 
 async def setup_hardware(vl53l1x: cg.Pvariable, config: Dict):
-    if CONF_I2C_ADDRESS in config:
-        cg.add(vl53l1x.set_i2c_address(config[CONF_I2C_ADDRESS]))
     pins = config[CONF_PINS]
     if CONF_INTERRUPT in pins:
         interrupt = await cg.gpio_pin_expression(pins[CONF_INTERRUPT])

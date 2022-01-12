@@ -5,9 +5,7 @@ namespace vl53l1x {
 
 void VL53L1X::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
-  if (this->address.has_value()) {
-    ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address.value());
-  }
+  LOG_I2C_DEVICE(this)
 }
 
 void VL53L1X::setup() {
@@ -17,7 +15,7 @@ void VL53L1X::setup() {
   }
 
   // TODO use xshut_pin, if given, to change address
-  auto status = this->address.has_value() ? this->sensor.Begin(this->address.value()) : this->sensor.Begin();
+  auto status = this->sensor.Begin(this->address_);
   if (status != VL53L1_ERROR_NONE) {
     // If the sensor could not be initialized print out the error code. -7 is timeout
     ESP_LOGE(TAG, "Could not initialize the sensor, error code: %d", status);
