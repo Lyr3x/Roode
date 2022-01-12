@@ -1,9 +1,13 @@
 from typing import Dict, Any
 from esphome.components import i2c
+from esphome.core import CORE
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
+    CONF_FREQUENCY,
     CONF_ID,
+    CONF_I2C,
+    CONF_I2C_ID,
     CONF_INTERRUPT,
     CONF_OFFSET,
     CONF_PINS,
@@ -78,6 +82,15 @@ async def to_code(config: Dict):
     vl53l1x = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(vl53l1x, config)
     await i2c.register_i2c_device(vl53l1x, config)
+
+    # If i2c frequency has not been explicitly set, then increase it to our recommended
+    i2c_id = config[CONF_I2C_ID]
+    i2c_config = next(
+        entry for entry in CORE.config[CONF_I2C] if entry[CONF_ID] == i2c_id
+    )
+    if i2c_config[CONF_FREQUENCY] == 50000:  # default
+        i2c_var = await cg.get_variable(i2c_id)
+        cg.add(i2c_var.set_frequency(400000))
 
     await setup_hardware(vl53l1x, config)
     await setup_calibration(vl53l1x, config[CONF_CALIBRATION])
