@@ -10,24 +10,12 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
     return sensor_status;
   }
 
-  // Fill sampling array
-  if (samples < sample_size) {
-    Distances[samples] = result.value();
-    samples++;
-  } else {
-    for (int i = 1; i < sample_size; i++)
-      Distances[i - 1] = Distances[i];
-    Distances[sample_size - 1] = result.value();
-  }
-  min_distance = Distances[0];
-  if (sample_size >= 2) {
-    for (int i = 1; i < sample_size; i++) {
-      if (Distances[i] < min_distance) {
-        min_distance = Distances[i];
-      }
-    }
-  }
-  this->distance = result.value();
+  last_distance = result.value();
+  samples.insert(samples.begin(), result.value());
+  if (samples.size() > max_samples) {
+    samples.pop_back();
+  };
+  min_distance = *std::min_element(samples.begin(), samples.end());
 
   return sensor_status;
 }
@@ -119,7 +107,7 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   return avg - sd;
 }
 
-uint16_t Zone::getDistance() const { return this->distance; }
+uint16_t Zone::getDistance() const { return this->last_distance; }
 uint16_t Zone::getMinDistance() const { return this->min_distance; }
 }  // namespace roode
 }  // namespace esphome

@@ -66,7 +66,11 @@ class Roode : public PollingComponent {
   void set_tof_sensor(TofSensor *sensor) { this->distanceSensor = sensor; }
   void set_invert_direction(bool dir) { invert_direction_ = dir; }
   void set_orientation(Orientation val) { orientation_ = val; }
-  void set_sampling_size(uint8_t size) { samples = size; }
+  void set_sampling_size(uint8_t size) {
+    samples = size;
+    entry->set_max_samples(size);
+    exit->set_max_samples(size);
+  }
   void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
   void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
   void set_people_counter(number::Number *counter) { this->people_counter = counter; }

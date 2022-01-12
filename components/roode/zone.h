@@ -39,14 +39,14 @@ class Zone {
   uint16_t getMinDistance() const;
   ROI *roi = new ROI();
   Threshold *threshold = new Threshold();
+  void set_max_samples(uint8_t max) { max_samples = max; };
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);
-  uint16_t distance;
-  int *Distances;
-  uint8_t sample_size;
-  uint8_t samples;
+  uint16_t last_distance;
   uint16_t min_distance;
+  std::vector<uint16_t> samples;
+  uint8_t max_samples;
 };
 }  // namespace roode
 }  // namespace esphome
