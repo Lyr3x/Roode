@@ -16,6 +16,7 @@ import esphome.pins as pins
 
 DEPENDENCIES = ["i2c"]
 AUTO_LOAD = ["i2c"]
+MULTI_CONF = False  # TODO enable when we support multiple addresses
 
 vl53l1x_ns = cg.esphome_ns.namespace("vl53l1x")
 VL53L1X = vl53l1x_ns.class_("VL53L1X", cg.Component)
