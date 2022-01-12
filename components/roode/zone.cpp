@@ -33,6 +33,7 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
 }
 
 void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
+  ESP_LOGI(CALIBRATION, "Beginning. zoneId: %d", id);
   int *zone_distances = new int[number_attempts];
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {

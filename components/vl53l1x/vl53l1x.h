@@ -11,13 +11,14 @@
 #include "roi.h"
 
 namespace esphome {
-namespace roode {
+namespace vl53l1x {
+static const char *const TAG = "VL53L1X";
 
 /**
  * A wrapper for the VL53L1X, Time-of-Flight (ToF), laser-ranging sensor.
  * This stores user calibration info.
  */
-class TofSensor : public Component {
+class VL53L1X : public Component {
  public:
   void setup() override;
   void dump_config() override;
@@ -40,10 +41,11 @@ class TofSensor : public Component {
   optional<uint8_t> address{};
   optional<InternalGPIOPin *> xshut_pin{};
   optional<InternalGPIOPin *> interrupt_pin{};
+  /** Mode from user config, which can be get/set independently of current mode */
   optional<const RangingMode *> ranging_mode_override{};
   optional<int16_t> offset{};
   optional<uint16_t> xtalk{};
 };
 
-}  // namespace roode
+}  // namespace vl53l1x
 }  // namespace esphome

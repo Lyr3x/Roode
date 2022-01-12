@@ -1,14 +1,15 @@
 #pragma once
 #include <math.h>
 
-#include "VL53L1X_ULD.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
 #include "esphome/core/optional.h"
+#include "../vl53l1x/vl53l1x.h"
 #include "orientation.h"
 #include "configuration.h"
-#include "roi.h"
-#include "tof_sensor.h"
+
+using TofSensor = esphome::vl53l1x::VL53L1X;
+using esphome::vl53l1x::ROI;
 
 static const char *const TAG = "Zone";
 static const char *const CALIBRATION = "Zone calibration";

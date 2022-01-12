@@ -2,7 +2,7 @@
 #include "VL53L1X_ULD.h"
 
 namespace esphome {
-namespace roode {
+namespace vl53l1x {
 
 struct RangingMode {
   explicit RangingMode(uint16_t timing_budget, EDistanceMode mode = EDistanceMode::Long)
@@ -24,5 +24,5 @@ __attribute__((unused)) static const RangingMode *Longest = new RangingMode(200)
 // NOLINTEND(cert-err58-cpp)
 }  // namespace Ranging
 
-}  // namespace roode
+}  // namespace vl53l1x
 }  // namespace esphome

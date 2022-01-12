@@ -1,19 +1,16 @@
-from re import I
-from typing import Dict, Union, Any
+from typing import Dict, Union
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_HEIGHT,
     CONF_ID,
-    CONF_INTERRUPT,
     CONF_INVERT,
-    CONF_OFFSET,
-    CONF_PINS,
+    CONF_SENSOR,
     CONF_WIDTH,
 )
-import esphome.pins as pins
+from ..vl53l1x import NullableSchema, VL53L1X
 
-# DEPENDENCIES = ["i2c"]
+DEPENDENCIES = ["vl53l1x"]
 AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor", "number"]
 MULTI_CONF = True
 
@@ -24,19 +21,14 @@ Roode = roode_ns.class_("Roode", cg.PollingComponent)
 
 CONF_AUTO = "auto"
 CONF_ORIENTATION = "orientation"
-CONF_CALIBRATION = "calibration"
 CONF_DETECTION_THRESHOLDS = "detection_thresholds"
-CONF_I2C_ADDRESS = "i2c_address"
 CONF_ENTRY_ZONE = "entry"
 CONF_EXIT_ZONE = "exit"
 CONF_CENTER = "center"
 CONF_MAX = "max"
 CONF_MIN = "min"
-CONF_RANGING_MODE = "ranging"
 CONF_ROI = "roi"
 CONF_SAMPLING = "sampling"
-CONF_XSHUT = "xshut"
-CONF_XTALK = "xtalk"
 CONF_ZONES = "zones"
 
 Orientation = roode_ns.enum("Orientation")
@@ -45,33 +37,7 @@ ORIENTATION_VALUES = {
     "perpendicular": Orientation.Perpendicular,
 }
 
-Ranging = roode_ns.namespace("Ranging")
-RANGING_MODES = {
-    CONF_AUTO: CONF_AUTO,
-    "shortest": Ranging.Shortest,
-    "short": Ranging.Short,
-    "medium": Ranging.Medium,
-    "long": Ranging.Long,
-    "longer": Ranging.Longer,
-    "longest": Ranging.Longest,
-}
-
-int16_t = cv.int_range(min=-32768, max=32768)  # signed
 roi_range = cv.int_range(min=4, max=16)
-
-
-def NullableSchema(*args, default: Any = None, **kwargs):
-    """
-    Same as Schema but will convert nulls to empty objects. Useful when all the schema keys are optional.
-    Allows YAML lines to be commented out leaving an "empty dict" which is mistakenly parsed as None.
-    """
-
-    def none_to_empty(value):
-        if value is None:
-            return {} if default is None else default
-        raise cv.Invalid("Expected none")
-
-    return cv.Any(cv.Schema(*args, **kwargs), none_to_empty)
 
 
 ROI_SCHEMA = cv.Any(
@@ -102,22 +68,7 @@ ZONE_SCHEMA = NullableSchema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
-        cv.Optional(CONF_I2C_ADDRESS): cv.i2c_address,
-        cv.Optional(CONF_PINS, default={}): NullableSchema(
-            {
-                cv.Optional(CONF_XSHUT): pins.gpio_input_pin_schema,
-                cv.Optional(CONF_INTERRUPT): pins.gpio_output_pin_schema,
-            }
-        ),
-        cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
-            {
-                cv.Optional(CONF_RANGING_MODE, default=CONF_AUTO): cv.enum(
-                    RANGING_MODES
-                ),
-                cv.Optional(CONF_XTALK): cv.uint16_t,
-                cv.Optional(CONF_OFFSET): int16_t,
-            }
-        ),
+        cv.Required(CONF_SENSOR): cv.use_id(VL53L1X),
         cv.Optional(CONF_ORIENTATION, default="parallel"): cv.enum(ORIENTATION_VALUES),
         cv.Optional(CONF_SAMPLING, default=2): cv.All(cv.uint8_t, cv.Range(min=1)),
         cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
@@ -134,41 +85,12 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def to_code(config: Dict):
-    cg.add_library("Wire", None)
-    cg.add_library("rneurink", "1.2.3", "VL53L1X_ULD")
-
     roode = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(roode, config)
 
-    await setup_hardware(config, roode)
-    await setup_calibration(config[CONF_CALIBRATION], roode)
-    await setup_algorithm(config, roode)
+    sens = await cg.get_variable(config[CONF_SENSOR])
+    cg.add(roode.set_tof_sensor(sens))
 
-
-async def setup_hardware(config: Dict, roode: cg.Pvariable):
-    tof = cg.MockObj(f"{roode}->get_tof_sensor()", "->")
-    if CONF_I2C_ADDRESS in config:
-        cg.add(tof.set_i2c_address(config[CONF_I2C_ADDRESS]))
-    pins = config[CONF_PINS]
-    if CONF_INTERRUPT in pins:
-        interrupt = await cg.gpio_pin_expression(pins[CONF_INTERRUPT])
-        cg.add(tof.set_interrupt_pin(interrupt))
-    if CONF_XSHUT in pins:
-        xshut = await cg.gpio_pin_expression(pins[CONF_XSHUT])
-        cg.add(tof.set_xshut_pin(xshut))
-
-
-async def setup_calibration(config: Dict, roode: cg.Pvariable):
-    tof = cg.MockObj(f"{roode}->get_tof_sensor()", "->")
-    if config.get(CONF_RANGING_MODE, CONF_AUTO) != CONF_AUTO:
-        cg.add(tof.set_ranging_mode_override(config[CONF_RANGING_MODE]))
-    if CONF_XTALK in config:
-        cg.add(tof.set_xtalk(config[CONF_XTALK]))
-    if CONF_OFFSET in config:
-        cg.add(tof.set_offset(config[CONF_OFFSET]))
-
-
-async def setup_algorithm(config: Dict, roode: cg.Pvariable):
     cg.add(roode.set_orientation(config[CONF_ORIENTATION]))
     cg.add(roode.set_sampling_size(config[CONF_SAMPLING]))
     cg.add(roode.set_invert_direction(config[CONF_ZONES][CONF_INVERT]))
@@ -193,16 +115,20 @@ def setup_zone(name: str, config: Dict, roode: cg.Pvariable):
 
 def setup_roi(var: cg.MockObj, config: Union[Dict, str], fallback: Union[Dict, str]):
     config: Dict = (
-        config if config != "auto" else {CONF_HEIGHT: "auto", CONF_WIDTH: "auto"}
+        config
+        if config != CONF_AUTO
+        else {CONF_HEIGHT: CONF_AUTO, CONF_WIDTH: CONF_AUTO}
     )
     fallback: Dict = (
-        fallback if fallback != "auto" else {CONF_HEIGHT: "auto", CONF_WIDTH: "auto"}
+        fallback
+        if fallback != CONF_AUTO
+        else {CONF_HEIGHT: CONF_AUTO, CONF_WIDTH: CONF_AUTO}
     )
     height = config.get(CONF_HEIGHT, fallback.get(CONF_HEIGHT, 16))
     width = config.get(CONF_WIDTH, fallback.get(CONF_WIDTH, 6))
-    if height != "auto":
+    if height != CONF_AUTO:
         cg.add(var.set_height(height))
-    if width != "auto":
+    if width != CONF_AUTO:
         cg.add(var.set_width(width))
     if CONF_CENTER in config:
         cg.add(var.set_center(config[CONF_CENTER]))

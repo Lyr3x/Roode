@@ -1,7 +1,7 @@
 #pragma once
 
 namespace esphome {
-namespace roode {
+namespace vl53l1x {
 
 struct ROI {
   uint8_t width;
@@ -12,5 +12,5 @@ struct ROI {
   void set_center(uint8_t val) { this->center = val; }
 };
 
-}  // namespace roode
+}  // namespace vl53l1x
 }  // namespace esphome

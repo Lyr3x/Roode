@@ -1,18 +1,19 @@
 #pragma once
 #include <math.h>
 
-#include "VL53L1X_ULD.h"
 #include "configuration.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/i2c/i2c.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/application.h"
 #include "esphome/core/component.h"
+#include "esphome/core/log.h"
+#include "../vl53l1x/vl53l1x.h"
 #include "orientation.h"
 #include "zone.h"
-#include "ranging.h"
-#include "tof_sensor.h"
+
+using namespace esphome::vl53l1x;
+using TofSensor = esphome::vl53l1x::VL53L1X;
 
 namespace esphome {
 namespace roode {

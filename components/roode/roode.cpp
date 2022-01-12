@@ -1,6 +1,5 @@
 #include "roode.h"
 
-#include "esphome/core/log.h"
 namespace esphome {
 namespace roode {
 void Roode::dump_config() {
@@ -254,7 +253,7 @@ const RangingMode *Roode::determineRangingMode(uint16_t average_entry_zone_dista
 }
 
 void Roode::calibrateZones() {
-  ESP_LOGI(SETUP, "Calibrating sensor zone");
+  ESP_LOGI(SETUP, "Calibrating sensor zones");
   calibrateDistance();
 
   entry->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);
@@ -265,6 +264,7 @@ void Roode::calibrateZones() {
   publishSensorConfiguration(entry, exit, true);
   App.feed_wdt();
   publishSensorConfiguration(entry, exit, false);
+  ESP_LOGI(SETUP, "Finished calibrating sensor zones");
 }
 
 void Roode::calibrateDistance() {
