@@ -7,20 +7,13 @@
 #include "esphome/core/optional.h"
 #include "orientation.h"
 #include "configuration.h"
+#include "roi.h"
+#include "tof_sensor.h"
 
 static const char *const TAG = "Zone";
 static const char *const CALIBRATION = "Zone calibration";
 namespace esphome {
 namespace roode {
-struct ROI {
-  uint8_t width;
-  uint8_t height;
-  uint8_t center;
-  void set_width(uint8_t width) { this->width = width; }
-  void set_height(uint8_t height) { this->height = height; }
-  void set_center(uint8_t center) { this->center = center; }
-};
-
 struct Threshold {
   /** Automatically determined idling distance (average of several measurements) */
   uint16_t idle;
@@ -37,10 +30,9 @@ struct Threshold {
 class Zone {
  public:
   explicit Zone(uint8_t id) : id{id} {};
-  VL53L1_Error readDistance(VL53L1X_ULD &distanceSensor);
-  void calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts);
-  void roi_calibration(VL53L1X_ULD &distanceSensor, uint16_t entry_threshold, uint16_t exit_threshold,
-                       Orientation orientation);
+  VL53L1_Error readDistance(TofSensor *distanceSensor);
+  void calibrateThreshold(TofSensor *distanceSensor, int number_attempts);
+  void roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation);
   const uint8_t id;
   uint16_t getDistance() const;
   uint16_t getMinDistance() const;

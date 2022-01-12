@@ -5,8 +5,6 @@ namespace esphome {
 namespace roode {
 void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "dump config:");
-  LOG_I2C_DEVICE(this);
-
   LOG_UPDATE_INTERVAL(this);
 }
 void Roode::setup() {
@@ -14,46 +12,10 @@ void Roode::setup() {
   if (version_sensor != nullptr) {
     version_sensor->publish_state(VERSION);
   }
-  Wire.begin();
-  Wire.setClock(400000);
-
-  // Initialize the sensor, give the special I2C_address to the Begin function
-  // Set a different I2C address
-  // This address is stored as long as the sensor is powered. To revert this
-  // change you can unplug and replug the power to the sensor
-  distanceSensor.SetI2CAddress(VL53L1X_ULD_I2C_ADDRESS);
-
-  sensor_status = distanceSensor.Begin(VL53L1X_ULD_I2C_ADDRESS);
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    // If the sensor could not be initialized print out the error code. -7 is
-    // timeout
-    ESP_LOGE(SETUP, "Could not initialize the sensor, error code: %d", sensor_status);
-    this->mark_failed();
-    return;
-  }
-  if (sensor_offset_calibration_ != -1) {
-    ESP_LOGI(CALIBRATION, "Setting sensor offset calibration to %d", sensor_offset_calibration_);
-    sensor_status = distanceSensor.SetOffsetInMm(sensor_offset_calibration_);
-    if (sensor_status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
-      this->mark_failed();
-      return;
-    }
-  }
-  if (sensor_xtalk_calibration_ != -1) {
-    ESP_LOGI(CALIBRATION, "Setting sensor xtalk calibration to %d", sensor_xtalk_calibration_);
-    sensor_status = distanceSensor.SetXTalk(sensor_xtalk_calibration_);
-    if (sensor_status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(SETUP, "Could not set sensor offset calibration, error code: %d", sensor_status);
-      this->mark_failed();
-      return;
-    }
-  }
   ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
   ESP_LOGI(SETUP, "Creating entry and exit zones.");
   createEntryAndExitZone();
-
-  calibrateZones(distanceSensor);
+  calibrateZones();
 }
 
 void Roode::update() {
@@ -109,7 +71,7 @@ void Roode::createEntryAndExitZone() {
 }
 
 VL53L1_Error Roode::getAlternatingZoneDistances() {
-  sensor_status += this->current_zone->readDistance(distanceSensor);
+  this->current_zone->readDistance(distanceSensor);
   App.feed_wdt();
   return sensor_status;
 }
@@ -264,33 +226,12 @@ void Roode::updateCounter(int delta) {
   ESP_LOGI(TAG, "Updating people count: %d", (int) next);
   this->people_counter->set(next);
 }
-void Roode::recalibration() { calibrateZones(distanceSensor); }
-
-void Roode::setRangingMode(const RangingMode *mode) {
-  time_budget_in_ms = mode->timing_budget;
-  delay_between_measurements = mode->delay_between_measurements;
-
-  sensor_status = distanceSensor.SetDistanceMode(mode->mode);
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(SETUP, "Could not set distance mode.  mode: %d", mode->mode);
-  }
-  sensor_status = distanceSensor.SetTimingBudgetInMs(mode->timing_budget);
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(SETUP, "Could not set timing budget.  timing_budget: %d ms", mode->timing_budget);
-  }
-  sensor_status = distanceSensor.SetInterMeasurementInMs(mode->delay_between_measurements);
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(SETUP, "Could not set measurement delay.  %d ms", mode->delay_between_measurements);
-  }
-
-  ESP_LOGI(SETUP, "Set ranging mode. timing_budget: %d, delay: %d, distance_mode: %d", mode->timing_budget,
-           mode->delay_between_measurements, mode->mode);
-}
+void Roode::recalibration() { calibrateZones(); }
 
 const RangingMode *Roode::determineRangingMode(uint16_t average_entry_zone_distance,
                                                  uint16_t average_exit_zone_distance) {
-  if (this->ranging_mode.has_value()) {
-    return this->ranging_mode.value();
+  if (this->distanceSensor->get_ranging_mode_override().has_value()) {
+    return this->distanceSensor->get_ranging_mode_override().value();
   }
 
   uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
@@ -312,13 +253,13 @@ const RangingMode *Roode::determineRangingMode(uint16_t average_entry_zone_dista
   return Ranging::Longest;
 }
 
-void Roode::calibrateZones(VL53L1X_ULD distanceSensor) {
+void Roode::calibrateZones() {
   ESP_LOGI(SETUP, "Calibrating sensor zone");
   calibrateDistance();
 
-  entry->roi_calibration(distanceSensor, entry->threshold->idle, exit->threshold->idle, orientation_);
+  entry->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);
   entry->calibrateThreshold(distanceSensor, number_attempts);
-  exit->roi_calibration(distanceSensor, entry->threshold->idle, exit->threshold->idle, orientation_);
+  exit->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);
   exit->calibrateThreshold(distanceSensor, number_attempts);
 
   publishSensorConfiguration(entry, exit, true);
@@ -327,13 +268,13 @@ void Roode::calibrateZones(VL53L1X_ULD distanceSensor) {
 }
 
 void Roode::calibrateDistance() {
-  setRangingMode(Ranging::Medium);
+  distanceSensor->set_ranging_mode(Ranging::Medium);
 
   entry->calibrateThreshold(distanceSensor, number_attempts);
   exit->calibrateThreshold(distanceSensor, number_attempts);
 
   auto *mode = determineRangingMode(entry->threshold->idle, exit->threshold->idle);
-  setRangingMode(mode);
+  distanceSensor->set_ranging_mode(mode);
 }
 
 void Roode::publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax) {

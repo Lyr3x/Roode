@@ -102,7 +102,7 @@ ZONE_SCHEMA = NullableSchema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
-        cv.Optional(CONF_I2C_ADDRESS, default=0x29): cv.i2c_address,
+        cv.Optional(CONF_I2C_ADDRESS): cv.i2c_address,
         cv.Optional(CONF_PINS, default={}): NullableSchema(
             {
                 cv.Optional(CONF_XSHUT): pins.gpio_input_pin_schema,
@@ -146,23 +146,26 @@ async def to_code(config: Dict):
 
 
 async def setup_hardware(config: Dict, roode: cg.Pvariable):
-    cg.add(roode.set_i2c_address(config[CONF_I2C_ADDRESS]))
+    tof = cg.MockObj(f"{roode}->get_tof_sensor()", "->")
+    if CONF_I2C_ADDRESS in config:
+        cg.add(tof.set_i2c_address(config[CONF_I2C_ADDRESS]))
     pins = config[CONF_PINS]
     if CONF_INTERRUPT in pins:
         interrupt = await cg.gpio_pin_expression(pins[CONF_INTERRUPT])
-        cg.add(roode.set_interrupt_pin(interrupt))
+        cg.add(tof.set_interrupt_pin(interrupt))
     if CONF_XSHUT in pins:
         xshut = await cg.gpio_pin_expression(pins[CONF_XSHUT])
-        cg.add(roode.set_xshut_pin(xshut))
+        cg.add(tof.set_xshut_pin(xshut))
 
 
 async def setup_calibration(config: Dict, roode: cg.Pvariable):
+    tof = cg.MockObj(f"{roode}->get_tof_sensor()", "->")
     if config.get(CONF_RANGING_MODE, CONF_AUTO) != CONF_AUTO:
-        cg.add(roode.set_ranging_mode(config[CONF_RANGING_MODE]))
+        cg.add(tof.set_ranging_mode_override(config[CONF_RANGING_MODE]))
     if CONF_XTALK in config:
-        cg.add(roode.set_sensor_xtalk_calibration(config[CONF_XTALK]))
+        cg.add(tof.set_xtalk(config[CONF_XTALK]))
     if CONF_OFFSET in config:
-        cg.add(roode.set_sensor_offset_calibration(config[CONF_OFFSET]))
+        cg.add(tof.set_offset(config[CONF_OFFSET]))
 
 
 async def setup_algorithm(config: Dict, roode: cg.Pvariable):

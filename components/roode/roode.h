@@ -12,13 +12,13 @@
 #include "orientation.h"
 #include "zone.h"
 #include "ranging.h"
+#include "tof_sensor.h"
 
 namespace esphome {
 namespace roode {
 #define NOBODY 0
 #define SOMEONE 1
 #define VERSION "v1.4.1-beta"
-#define VL53L1X_ULD_I2C_ADDRESS 0x52  // Default address is 0x52
 static const char *const TAG = "Roode";
 static const char *const SETUP = "Setup";
 static const char *const CALIBRATION = "Sensor Calibration";
@@ -61,12 +61,8 @@ class Roode : public PollingComponent {
   void loop() override;
   void dump_config() override;
 
-  void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
-  void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
-  void set_ranging_mode(const RangingMode *mode) { this->ranging_mode = mode; }
-  void set_i2c_address(uint8_t address) { this->address_ = address; }
-  void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin = pin; }
-  void set_xshut_pin(InternalGPIOPin *pin) { this->xshut_pin = pin; }
+  TofSensor *get_tof_sensor() { return this->distanceSensor; }
+  void set_tof_sensor(TofSensor *sensor) { this->distanceSensor = sensor; }
   void set_invert_direction(bool dir) { invert_direction_ = dir; }
   void set_orientation(Orientation val) { orientation_ = val; }
   void set_sampling_size(uint8_t size) { samples = size; }
@@ -102,7 +98,7 @@ class Roode : public PollingComponent {
   Zone *exit = new Zone(1);
 
  protected:
-  VL53L1X_ULD distanceSensor;
+  TofSensor *distanceSensor;
   Zone *current_zone = entry;
   sensor::Sensor *distance_entry;
   sensor::Sensor *distance_exit;
@@ -125,19 +121,12 @@ class Roode : public PollingComponent {
   bool handleSensorStatus();
   void createEntryAndExitZone();
   void calibrateDistance();
-  void calibrateZones(VL53L1X_ULD distanceSensor);
+  void calibrateZones();
   const RangingMode *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
-  void setRangingMode(const RangingMode *mode);
   void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
-  InternalGPIOPin *xshut_pin;
-  InternalGPIOPin *interrupt_pin;
-  int sensor_offset_calibration_{-1};
-  int sensor_xtalk_calibration_{-1};
-  optional<const RangingMode *> ranging_mode{};
   Orientation orientation_{Parallel};
   uint8_t samples{2};
-  uint8_t address_ = 0x29;
   bool invert_direction_{false};
   int number_attempts = 20;  // TO DO: make this configurable
   int short_distance_threshold = 1300;

@@ -5,7 +5,7 @@ namespace esphome {
 namespace roode {
 
 struct RangingMode {
-  explicit RangingMode(uint16_t timing_budget, EDistanceMode mode = Long)
+  explicit RangingMode(uint16_t timing_budget, EDistanceMode mode = EDistanceMode::Long)
       : timing_budget{timing_budget}, mode{mode} {}
 
   uint16_t const timing_budget;

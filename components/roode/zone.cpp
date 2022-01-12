@@ -2,38 +2,22 @@
 
 namespace esphome {
 namespace roode {
-VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
+VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   last_sensor_status = sensor_status;
-  sensor_status += distanceSensor.SetROI(roi->width, roi->height);
-  sensor_status += distanceSensor.SetROICenter(roi->center);
-  sensor_status += distanceSensor.StartRanging();
 
-  // Wait for the measurement to be ready
-  uint8_t dataReady = false;
-  while (!dataReady) {
-    sensor_status += distanceSensor.CheckForDataReady(&dataReady);
-    if (sensor_status != VL53L1_ERROR_NONE) {
-      ESP_LOGD(TAG, "Data not ready yet. error code: %d", sensor_status);
-      return sensor_status;
-    }
-    delay(1);
-  }
-
-  // Get the results
-  sensor_status += distanceSensor.GetDistanceInMm(&distance);
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGD(TAG, "Could not get distance, error code: %d", sensor_status);
+  auto result = distanceSensor->read_distance(roi, sensor_status);
+  if (!result.has_value()) {
     return sensor_status;
   }
 
   // Fill sampling array
   if (samples < sample_size) {
-    Distances[samples] = this->getDistance();
+    Distances[samples] = result.value();
     samples++;
   } else {
     for (int i = 1; i < sample_size; i++)
       Distances[i - 1] = Distances[i];
-    Distances[sample_size - 1] = this->getDistance();
+    Distances[sample_size - 1] = result.value();
   }
   min_distance = Distances[0];
   if (sample_size >= 2) {
@@ -43,20 +27,12 @@ VL53L1_Error Zone::readDistance(VL53L1X_ULD &distanceSensor) {
       }
     }
   }
-
-  // After reading the results reset the interrupt to be able to take another
-  // measurement
-  sensor_status += distanceSensor.ClearInterrupt();
-  sensor_status += distanceSensor.StopRanging();
-  if (sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGD(TAG, "Could not stop ranging, error code: %d", sensor_status);
-    return sensor_status;
-  }
+  this->distance = result.value();
 
   return sensor_status;
 }
 
-void Zone::calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts) {
+void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
   int *zone_distances = new int[number_attempts];
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {
@@ -78,8 +54,7 @@ void Zone::calibrateThreshold(VL53L1X_ULD &distanceSensor, int number_attempts) 
            threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle));
 }
 
-void Zone::roi_calibration(VL53L1X_ULD &distanceSensor, uint16_t entry_threshold, uint16_t exit_threshold,
-                           Orientation orientation) {
+void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation) {
   // the value of the average distance is used for computing the optimal size of the ROI and consequently also the
   // center of the two zones
   int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(entry_threshold, exit_threshold) / 1000)));
