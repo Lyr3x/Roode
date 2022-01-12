@@ -26,16 +26,15 @@ CONF_AUTO = "auto"
 CONF_ORIENTATION = "orientation"
 CONF_CALIBRATION = "calibration"
 CONF_DETECTION_THRESHOLDS = "detection_thresholds"
-CONF_DISTANCE_MODE = "distance_mode"
 CONF_I2C_ADDRESS = "i2c_address"
 CONF_ENTRY_ZONE = "entry"
 CONF_EXIT_ZONE = "exit"
 CONF_CENTER = "center"
 CONF_MAX = "max"
 CONF_MIN = "min"
+CONF_RANGING_MODE = "ranging"
 CONF_ROI = "roi"
 CONF_SAMPLING = "sampling"
-CONF_TIMING_BUDGET = "timing_budget"
 CONF_XSHUT = "xshut"
 CONF_XTALK = "xtalk"
 CONF_ZONES = "zones"
@@ -46,29 +45,15 @@ ORIENTATION_VALUES = {
     "perpendicular": Orientation.Perpendicular,
 }
 
-DistanceMode = cg.global_ns.enum("EDistanceMode")
-DISTANCE_MODES = {
+Ranging = roode_ns.namespace("Ranging")
+RANGING_MODES = {
     CONF_AUTO: CONF_AUTO,
-    "short": DistanceMode.Short,
-    "long": DistanceMode.Long,
-}
-
-TIMING_BUDGET_ALIASES = {
-    CONF_AUTO: CONF_AUTO,
-    "shortest": 15,
-    "short": 20,
-    "medium": 33,
-    "medium long": 50,
-    "long": 100,
-    "longer": 200,
-    "longest": 500,
-    "15": 15,
-    "20": 20,
-    "33": 33,
-    "50": 50,
-    "100": 100,
-    "200": 200,
-    "500": 500,
+    "shortest": Ranging.Shortest,
+    "short": Ranging.Short,
+    "medium": Ranging.Medium,
+    "long": Ranging.Long,
+    "longer": Ranging.Longer,
+    "longest": Ranging.Longest,
 }
 
 int16_t = cv.int_range(min=-32768, max=32768)  # signed
@@ -126,11 +111,8 @@ CONFIG_SCHEMA = cv.Schema(
         ),
         cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
             {
-                cv.Optional(CONF_DISTANCE_MODE, default=CONF_AUTO): cv.enum(
-                    DISTANCE_MODES
-                ),
-                cv.Optional(CONF_TIMING_BUDGET, default=CONF_AUTO): cv.enum(
-                    TIMING_BUDGET_ALIASES
+                cv.Optional(CONF_RANGING_MODE, default=CONF_AUTO): cv.enum(
+                    RANGING_MODES
                 ),
                 cv.Optional(CONF_XTALK): cv.uint16_t,
                 cv.Optional(CONF_OFFSET): int16_t,
@@ -175,10 +157,8 @@ async def setup_hardware(config: Dict, roode: cg.Pvariable):
 
 
 async def setup_calibration(config: Dict, roode: cg.Pvariable):
-    if config.get(CONF_DISTANCE_MODE, CONF_AUTO) != CONF_AUTO:
-        cg.add(roode.set_distance_mode(config[CONF_DISTANCE_MODE]))
-    if config.get(CONF_TIMING_BUDGET, CONF_AUTO) != CONF_AUTO:
-        cg.add(roode.set_timing_budget(config[CONF_TIMING_BUDGET]))
+    if config.get(CONF_RANGING_MODE, CONF_AUTO) != CONF_AUTO:
+        cg.add(roode.set_ranging_mode(config[CONF_RANGING_MODE]))
     if CONF_XTALK in config:
         cg.add(roode.set_sensor_xtalk_calibration(config[CONF_XTALK]))
     if CONF_OFFSET in config:

@@ -63,8 +63,7 @@ class Roode : public PollingComponent {
 
   void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
   void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
-  void set_distance_mode(EDistanceMode mode) { this->distance_mode.value() = mode; }
-  void set_timing_budget(uint16_t budget) { this->timing_budget.value() = budget; }
+  void set_ranging_mode(const RangingMode *mode) { this->ranging_mode = mode; }
   void set_i2c_address(uint8_t address) { this->address_ = address; }
   void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin = pin; }
   void set_xshut_pin(InternalGPIOPin *pin) { this->xshut_pin = pin; }
@@ -127,16 +126,15 @@ class Roode : public PollingComponent {
   void createEntryAndExitZone();
   void calibrateDistance();
   void calibrateZones(VL53L1X_ULD distanceSensor);
-  const RangingConfig *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
-  void setRangingMode(const RangingConfig *mode);
+  const RangingMode *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
+  void setRangingMode(const RangingMode *mode);
   void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
   InternalGPIOPin *xshut_pin;
   InternalGPIOPin *interrupt_pin;
   int sensor_offset_calibration_{-1};
   int sensor_xtalk_calibration_{-1};
-  optional<EDistanceMode> distance_mode;
-  optional<uint16_t> timing_budget;
+  optional<const RangingMode *> ranging_mode{};
   Orientation orientation_{Parallel};
   uint8_t samples{2};
   uint8_t address_ = 0x29;

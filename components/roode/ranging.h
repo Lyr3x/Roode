@@ -4,30 +4,24 @@
 namespace esphome {
 namespace roode {
 
-struct RangingConfig {
-  explicit RangingConfig(uint16_t timing_budget)
-      : mode{timing_budget == 15 ? Short : Long}, timing_budget{timing_budget} {}
+struct RangingMode {
+  explicit RangingMode(uint16_t timing_budget, EDistanceMode mode = Long)
+      : timing_budget{timing_budget}, mode{mode} {}
 
-  explicit RangingConfig(uint16_t timing_budget, EDistanceMode mode) : mode{mode}, timing_budget{timing_budget} {}
-
-  EDistanceMode const mode;
   uint16_t const timing_budget;
   uint16_t const delay_between_measurements = timing_budget + 5;
+  EDistanceMode const mode;
 };
 
 namespace Ranging {
-static const RangingConfig *Shortest = new RangingConfig(15);
-static const RangingConfig *Short = new RangingConfig(20);
-static const RangingConfig *Medium = new RangingConfig(33);
-static const RangingConfig *MediumLong = new RangingConfig(50);
-static const RangingConfig *Long = new RangingConfig(100);
-static const RangingConfig *Longer = new RangingConfig(200);
-static const RangingConfig *Longest = new RangingConfig(500);
-
-static const RangingConfig *Custom(uint16_t timing_budget) { return new RangingConfig(timing_budget); };
-static const RangingConfig *Custom(uint16_t timing_budget, EDistanceMode mode) {
-  return new RangingConfig(timing_budget, mode);
-};
+// NOLINTBEGIN(cert-err58-cpp)
+__attribute__((unused)) static const RangingMode *Shortest = new RangingMode(15, Short);
+__attribute__((unused)) static const RangingMode *Short = new RangingMode(20);
+__attribute__((unused)) static const RangingMode *Medium = new RangingMode(33);
+__attribute__((unused)) static const RangingMode *Long = new RangingMode(50);
+__attribute__((unused)) static const RangingMode *Longer = new RangingMode(100);
+__attribute__((unused)) static const RangingMode *Longest = new RangingMode(200);
+// NOLINTEND(cert-err58-cpp)
 }  // namespace Ranging
 
 }  // namespace roode

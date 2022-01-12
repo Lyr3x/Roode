@@ -266,7 +266,7 @@ void Roode::updateCounter(int delta) {
 }
 void Roode::recalibration() { calibrateZones(distanceSensor); }
 
-void Roode::setRangingMode(const RangingConfig *mode) {
+void Roode::setRangingMode(const RangingMode *mode) {
   time_budget_in_ms = mode->timing_budget;
   delay_between_measurements = mode->delay_between_measurements;
 
@@ -287,15 +287,10 @@ void Roode::setRangingMode(const RangingConfig *mode) {
            mode->delay_between_measurements, mode->mode);
 }
 
-const RangingConfig *Roode::determineRangingMode(uint16_t average_entry_zone_distance,
+const RangingMode *Roode::determineRangingMode(uint16_t average_entry_zone_distance,
                                                  uint16_t average_exit_zone_distance) {
-  if (this->timing_budget.has_value()) {
-    auto time_budget = this->timing_budget.value();
-    if (this->distance_mode.has_value()) {
-      EDistanceMode &mode = this->distance_mode.value();
-      return Ranging::Custom(time_budget, mode);
-    }
-    return Ranging::Custom(time_budget);
+  if (this->ranging_mode.has_value()) {
+    return this->ranging_mode.value();
   }
 
   uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
@@ -309,10 +304,10 @@ const RangingConfig *Roode::determineRangingMode(uint16_t average_entry_zone_dis
     return Ranging::Medium;
   }
   if (max > medium_distance_threshold && min <= medium_long_distance_threshold) {
-    return Ranging::MediumLong;
+    return Ranging::Long;
   }
   if (max > medium_long_distance_threshold && min <= long_distance_threshold) {
-    return Ranging::Long;
+    return Ranging::Longer;
   }
   return Ranging::Longest;
 }
