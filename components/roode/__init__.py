@@ -11,7 +11,7 @@ from esphome.const import (
 from ..vl53l1x import NullableSchema, VL53L1X
 
 DEPENDENCIES = ["vl53l1x"]
-AUTO_LOAD = ["sensor", "binary_sensor", "text_sensor", "number"]
+AUTO_LOAD = ["vl53l1x", "sensor", "binary_sensor", "text_sensor", "number"]
 MULTI_CONF = True
 
 CONF_ROODE_ID = "roode_id"
@@ -68,7 +68,7 @@ ZONE_SCHEMA = NullableSchema(
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
-        cv.Required(CONF_SENSOR): cv.use_id(VL53L1X),
+        cv.GenerateID(CONF_SENSOR): cv.use_id(VL53L1X),
         cv.Optional(CONF_ORIENTATION, default="parallel"): cv.enum(ORIENTATION_VALUES),
         cv.Optional(CONF_SAMPLING, default=2): cv.All(cv.uint8_t, cv.Range(min=1)),
         cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
