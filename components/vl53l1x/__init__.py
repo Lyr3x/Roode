@@ -61,7 +61,7 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_PINS, default={}): NullableSchema(
             {
                 cv.Optional(CONF_XSHUT): pins.gpio_output_pin_schema,
-                cv.Optional(CONF_INTERRUPT): pins.gpio_input_pin_schema,
+                cv.Optional(CONF_INTERRUPT): pins.internal_gpio_input_pin_schema,
             }
         ),
         cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
