@@ -54,17 +54,17 @@ void VL53L1X::set_ranging_mode(const RangingMode *mode) {
 
   auto status = this->sensor.SetDistanceMode(mode->mode);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set distance mode.  mode: %d", mode->mode);
+    ESP_LOGE(TAG, "Could not set distance mode: %d, error code: %d", mode->mode, status);
   }
 
   status = this->sensor.SetTimingBudgetInMs(mode->timing_budget);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set timing budget.  timing_budget: %d ms", mode->timing_budget);
+    ESP_LOGE(TAG, "Could not set timing budget: %d ms, error code: %d", mode->timing_budget, status);
   }
 
   status = this->sensor.SetInterMeasurementInMs(mode->delay_between_measurements);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set measurement delay.  %d ms", mode->delay_between_measurements);
+    ESP_LOGE(TAG, "Could not set measurement delay: %d ms, error code: %d", mode->delay_between_measurements, status);
   }
 
   ESP_LOGI(TAG, "Set ranging mode. timing_budget: %d, delay: %d, distance_mode: %d", mode->timing_budget,
