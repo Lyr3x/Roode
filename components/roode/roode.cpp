@@ -12,8 +12,7 @@ void Roode::setup() {
     version_sensor->publish_state(VERSION);
   }
   ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
-  ESP_LOGI(SETUP, "Creating entry and exit zones.");
-  createEntryAndExitZone();
+
   calibrateZones();
 }
 
@@ -58,15 +57,6 @@ bool Roode::handleSensorStatus() {
   last_sensor_status = sensor_status;
   sensor_status = VL53L1_ERROR_NONE;
   return check_status;
-}
-
-void Roode::createEntryAndExitZone() {
-  if (!entry->roi->center) {
-    entry->roi->center = orientation_ == Parallel ? 167 : 195;
-  }
-  if (!exit->roi->center) {
-    exit->roi->center = orientation_ == Parallel ? 231 : 60;
-  }
 }
 
 VL53L1_Error Roode::getAlternatingZoneDistances() {
@@ -254,6 +244,10 @@ const RangingMode *Roode::determineRangingMode(uint16_t average_entry_zone_dista
 
 void Roode::calibrateZones() {
   ESP_LOGI(SETUP, "Calibrating sensor zones");
+
+  entry->reset_roi(orientation_ == Parallel ? 167 : 195);
+  exit->reset_roi(orientation_ == Parallel ? 231 : 60);
+
   calibrateDistance();
 
   entry->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);

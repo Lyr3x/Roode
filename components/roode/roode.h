@@ -124,7 +124,6 @@ class Roode : public PollingComponent {
   VL53L1_Error getAlternatingZoneDistances();
   void doPathTracking(Zone *zone);
   bool handleSensorStatus();
-  void createEntryAndExitZone();
   void calibrateDistance();
   void calibrateZones();
   const RangingMode *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);

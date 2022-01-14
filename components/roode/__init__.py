@@ -102,7 +102,7 @@ def setup_zone(name: str, config: Dict, roode: cg.Pvariable):
     zone_config = config[CONF_ZONES][name]
     zone_var = cg.MockObj(f"{roode}->{name}", "->")
 
-    roi_var = cg.MockObj(f"{zone_var}->roi", "->")
+    roi_var = cg.MockObj(f"{zone_var}->roi_override", "->")
     setup_roi(roi_var, zone_config.get(CONF_ROI, {}), config.get(CONF_ROI, {}))
 
     threshold_var = cg.MockObj(f"{zone_var}->threshold", "->")

@@ -20,8 +20,18 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   return sensor_status;
 }
 
+/**
+ * This sets the ROI for the zone to the given overrides or the standard default.
+ * This is needed to do initial calibration of thresholds & ROI.
+ */
+void Zone::reset_roi(uint8_t default_center) {
+  roi->width = roi_override->width ?: 6;
+  roi->height = roi_override->height ?: 16;
+  roi->center = roi_override->center ?: default_center;
+}
+
 void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
-  ESP_LOGI(CALIBRATION, "Beginning. zoneId: %d", id);
+  ESP_LOGD(CALIBRATION, "Beginning. zoneId: %d", id);
   int *zone_distances = new int[number_attempts];
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {
@@ -48,13 +58,11 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
   // center of the two zones
   int function_of_the_distance = 16 * (1 - (0.15 * 2) / (0.34 * (min(entry_threshold, exit_threshold) / 1000)));
   int ROI_size = min(8, max(4, function_of_the_distance));
-  if (!this->roi->width) {
-    this->roi->width = ROI_size;
-  }
-  if (!this->roi->height) {
-    this->roi->height = ROI_size * 2;
-  }
-  if (!this->roi->center) {
+  this->roi->width = this->roi_override->width ?: ROI_size;
+  this->roi->height = this->roi_override->height ?: ROI_size * 2;
+  if (this->roi_override->center) {
+    this->roi->center = this->roi_override->center;
+  } else {
     // now we set the position of the center of the two zones
     if (orientation == Parallel) {
       switch (ROI_size) {
