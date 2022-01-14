@@ -39,7 +39,6 @@ ORIENTATION_VALUES = {
 
 roi_range = cv.int_range(min=4, max=16)
 
-
 ROI_SCHEMA = cv.Any(
     NullableSchema(
         {
@@ -51,10 +50,23 @@ ROI_SCHEMA = cv.Any(
     cv.one_of(CONF_AUTO),
 )
 
+
+def distance_as_mm():
+    dval = cv.distance
+
+    def validator(value):
+        meters = dval(value)
+        return int(meters * 1000)
+
+    return cv.All(validator, cv.Range(min=0, max=65535))
+
+
+threshold = cv.Any(cv.percentage, distance_as_mm())
+
 THRESHOLDS_SCHEMA = NullableSchema(
     {
-        cv.Optional(CONF_MIN): cv.Any(cv.uint16_t, cv.percentage),
-        cv.Optional(CONF_MAX): cv.Any(cv.uint16_t, cv.percentage),
+        cv.Optional(CONF_MIN): threshold,
+        cv.Optional(CONF_MAX): threshold,
     }
 )
 
