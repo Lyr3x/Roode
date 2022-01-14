@@ -28,7 +28,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   optional<uint16_t> read_distance(ROI *roi, VL53L1_Error &error);
   void set_ranging_mode(const RangingMode *mode);
 
-  void set_xshut_pin(InternalGPIOPin *pin) { this->xshut_pin = pin; }
+  void set_xshut_pin(GPIOPin *pin) { this->xshut_pin = pin; }
   void set_interrupt_pin(InternalGPIOPin *pin) { this->interrupt_pin = pin; }
   optional<const RangingMode *> get_ranging_mode_override() { return this->ranging_mode_override; }
   void set_ranging_mode_override(const RangingMode *mode) { this->ranging_mode_override = {mode}; }
@@ -37,7 +37,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
 
  protected:
   VL53L1X_ULD sensor;
-  optional<InternalGPIOPin *> xshut_pin{};
+  optional<GPIOPin *> xshut_pin{};
   optional<InternalGPIOPin *> interrupt_pin{};
   /** Mode from user config, which can be get/set independently of current mode */
   optional<const RangingMode *> ranging_mode_override{};
