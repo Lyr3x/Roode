@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any
 from esphome.components import i2c
 from esphome.core import CORE
@@ -13,6 +14,8 @@ from esphome.const import (
     CONF_PINS,
 )
 import esphome.pins as pins
+
+_LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ["i2c"]
 AUTO_LOAD = ["i2c"]
@@ -89,9 +92,12 @@ async def to_code(config: Dict):
     i2c_config = next(
         entry for entry in CORE.config[CONF_I2C] if entry[CONF_ID] == i2c_id
     )
-    if i2c_config[CONF_FREQUENCY] == 50000:  # default
+    frequency = i2c_config[CONF_FREQUENCY]
+    if frequency == 50000:  # default
         i2c_var = await cg.get_variable(i2c_id)
         cg.add(i2c_var.set_frequency(400000))
+    elif frequency < 400000:
+        _LOGGER.warning("Recommended I2C frequency for VL53L1X is 400kHz. Currently: %dkHz", frequency / 1000)
 
     await setup_hardware(vl53l1x, config)
     await setup_calibration(vl53l1x, config[CONF_CALIBRATION])

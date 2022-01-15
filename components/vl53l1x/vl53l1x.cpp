@@ -9,13 +9,6 @@ void VL53L1X::dump_config() {
 }
 
 void VL53L1X::setup() {
-#ifdef USE_ESP32
-  auto speed = Wire.getClock();
-  if (speed < 400000) {
-    ESP_LOGW(TAG, "Slow clock speed, speed: %d", speed);
-  }
-#endif
-
   // TODO use xshut_pin, if given, to change address
   auto status = this->sensor.Begin(this->address_);
   if (status != VL53L1_ERROR_NONE) {

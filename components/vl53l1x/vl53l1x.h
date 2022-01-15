@@ -1,6 +1,5 @@
 #pragma once
 #include <math.h>
-#include <Wire.h>
 
 #include "VL53L1X_ULD.h"
 #include "esphome/components/i2c/i2c.h"
