@@ -28,6 +28,7 @@ void VL53L1X::setup() {
     this->mark_failed();
     return;
   }
+  this->address_ = sensor.GetI2CAddress();
 
   if (this->offset.has_value()) {
     ESP_LOGI(TAG, "Setting sensor offset calibration to %d", this->offset.value());
