@@ -8,7 +8,7 @@ from esphome.const import (
     CONF_SENSOR,
     CONF_WIDTH,
 )
-from ..vl53l1x import NullableSchema, VL53L1X
+from ..vl53l1x import distance_as_mm, NullableSchema, VL53L1X
 
 DEPENDENCIES = ["vl53l1x"]
 AUTO_LOAD = ["vl53l1x", "sensor", "binary_sensor", "text_sensor", "number"]
@@ -50,18 +50,7 @@ ROI_SCHEMA = cv.Any(
     cv.one_of(CONF_AUTO),
 )
 
-
-def distance_as_mm():
-    dval = cv.distance
-
-    def validator(value):
-        meters = dval(value)
-        return int(meters * 1000)
-
-    return cv.All(validator, cv.Range(min=0, max=65535))
-
-
-threshold = cv.Any(cv.percentage, distance_as_mm())
+threshold = cv.Any(cv.percentage, cv.All(distance_as_mm, cv.uint16_t))
 
 THRESHOLDS_SCHEMA = NullableSchema(
     {

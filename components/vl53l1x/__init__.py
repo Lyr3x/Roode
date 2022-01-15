@@ -44,6 +44,20 @@ RANGING_MODES = {
 int16_t = cv.int_range(min=-32768, max=32768)  # signed
 
 
+def distance_as_mm(value):
+    meters = cv.distance(value)
+    return int(meters * 1000)
+
+
+def int_with_unit(*args, **kwargs):
+    validator = cv.float_with_unit(*args, **kwargs)
+
+    def int_validator(val):
+        return int(validator(val))
+
+    return int_validator
+
+
 def NullableSchema(*args, default: Any = None, **kwargs):
     """
     Same as Schema but will convert nulls to empty objects. Useful when all the schema keys are optional.
@@ -72,8 +86,10 @@ CONFIG_SCHEMA = cv.Schema(
                 cv.Optional(CONF_RANGING_MODE, default=CONF_AUTO): cv.enum(
                     RANGING_MODES
                 ),
-                cv.Optional(CONF_XTALK): cv.uint16_t,
-                cv.Optional(CONF_OFFSET): int16_t,
+                cv.Optional(CONF_XTALK): cv.All(
+                    int_with_unit("correction value", "(cps)"), cv.uint16_t
+                ),
+                cv.Optional(CONF_OFFSET): cv.All(distance_as_mm, int16_t),
             }
         ),
     }
@@ -97,7 +113,10 @@ async def to_code(config: Dict):
         i2c_var = await cg.get_variable(i2c_id)
         cg.add(i2c_var.set_frequency(400000))
     elif frequency < 400000:
-        _LOGGER.warning("Recommended I2C frequency for VL53L1X is 400kHz. Currently: %dkHz", frequency / 1000)
+        _LOGGER.warning(
+            "Recommended I2C frequency for VL53L1X is 400kHz. Currently: %dkHz",
+            frequency / 1000,
+        )
 
     await setup_hardware(vl53l1x, config)
     await setup_calibration(vl53l1x, config[CONF_CALIBRATION])
