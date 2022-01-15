@@ -63,7 +63,7 @@ roode:
   # Smooth out measurements by using the minimum distance from this number of readings
   sampling: 2
   # This controls the size of the Region of Interest the sensor should take readings in.
-  roi: auto
+  roi: { height: 16, width: 6 }
   # The detection thresholds for determining whether a measurement should count as a person crossing.
   # A reading must be greater than the minimum and less than the maximum to count as a crossing.
   # These can be given as absolute distances or as percentages.
