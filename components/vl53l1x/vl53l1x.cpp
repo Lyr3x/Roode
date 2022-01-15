@@ -20,31 +20,34 @@ void VL53L1X::dump_config() {
 }
 
 void VL53L1X::setup() {
+  ESP_LOGD(TAG, "Beginning setup");
+
   // TODO use xshut_pin, if given, to change address
   auto status = this->sensor.Begin(this->address_);
+  ESP_LOGD(TAG, "VL53L1_ULD begin() returned");
   if (status != VL53L1_ERROR_NONE) {
     // If the sensor could not be initialized print out the error code. -7 is timeout
-    ESP_LOGE(TAG, "Could not initialize the sensor, error code: %d", status);
+    ESP_LOGE(TAG, "Could not initialize, error code: %d", status);
     this->mark_failed();
     return;
   }
   this->address_ = sensor.GetI2CAddress();
 
   if (this->offset.has_value()) {
-    ESP_LOGI(TAG, "Setting sensor offset calibration to %d", this->offset.value());
+    ESP_LOGI(TAG, "Setting offset calibration to %d", this->offset.value());
     status = this->sensor.SetOffsetInMm(this->offset.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set sensor offset calibration, error code: %d", status);
+      ESP_LOGE(TAG, "Could not set offset calibration, error code: %d", status);
       this->mark_failed();
       return;
     }
   }
 
   if (this->xtalk.has_value()) {
-    ESP_LOGI(TAG, "Setting sensor xtalk calibration to %d", this->xtalk.value());
+    ESP_LOGI(TAG, "Setting crosstalk calibration to %d", this->xtalk.value());
     status = this->sensor.SetXTalk(this->xtalk.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set sensor offset calibration, error code: %d", status);
+      ESP_LOGE(TAG, "Could not set crosstalk calibration, error code: %d", status);
       this->mark_failed();
       return;
     }
