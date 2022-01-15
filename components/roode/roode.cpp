@@ -225,19 +225,15 @@ void Roode::calibrate_zones() {
 }
 
 void Roode::calibrateDistance() {
-  distanceSensor->set_ranging_mode(distanceSensor->get_ranging_mode_override().value_or(Ranging::Longest));
+  auto *const initial = distanceSensor->get_ranging_mode_override().value_or(Ranging::Longest);
+  distanceSensor->set_ranging_mode(initial);
 
   entry->calibrateThreshold(distanceSensor, number_attempts);
   exit->calibrateThreshold(distanceSensor, number_attempts);
 
   auto *mode = determine_raning_mode(entry->threshold->idle, exit->threshold->idle);
-  if (mode != Ranging::Longest &&
-      distanceSensor->get_ranging_mode_override().value() != Ranging::Longest) {  // already set above
-    if (distanceSensor->get_ranging_mode_override().has_value()) {
-      distanceSensor->set_ranging_mode(distanceSensor->get_ranging_mode_override().value());
-    } else {
-      distanceSensor->set_ranging_mode(mode);
-    }
+  if (mode != initial) {
+    distanceSensor->set_ranging_mode(mode);
   }
 }
 
