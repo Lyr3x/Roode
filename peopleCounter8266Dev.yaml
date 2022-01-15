@@ -1,21 +1,15 @@
 substitutions:
-  devicename: roode32
+  devicename: roode8266dev
   friendly_name: $devicename
 
 external_components:
   refresh: always
-  source:
-    type: git
-    url: https://github.com/Lyr3x/Roode
-    ref: master
+  source: components
 
 esphome:
   name: $devicename
-
-esp32:
-  board: wemos_d1_mini32
-  framework:
-    type: arduino
+  platform: ESP8266
+  board: d1_mini
 
 wifi:
   networks:
@@ -23,7 +17,7 @@ wifi:
       password: !secret ssid1_password
   use_address: $devicename
   fast_connect: True
-  power_save_mode: light
+  power_save_mode: none
   domain: .local
 
 captive_portal:
@@ -35,16 +29,6 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-    - service: set_max_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
-    - service: set_min_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
@@ -60,34 +44,41 @@ logger:
   level: INFO
 
 i2c:
-  sda: 21
-  scl: 22
-
-# VL53L1X sensor configuration is separate from Roode people counting algorithm
+  sda: 4
+  scl: 5
+# Sensor is configured separately from Roode people counting algorithm
 vl53l1x:
   calibration:
-    # The ranging mode is different based on how long the distance is that the sensor need to measure.
-    # The longer the distance, the more time the sensor needs to take a measurement.
-    # Available options are: auto, shortest, short, medium, long, longer, longest
-    ranging: auto
-
+    # ranging: longest # defaults to "auto" for formerly "calibration: true"
+    # offset: 8
+    # xtalk: 53406
+  # These pins are not yet implemented but they are passed into class now
+  pins:
+    # xshut: 3 # shutdown pin to change address or multiple sensors
+    # interrupt: 1 # hardware callback when measurement is ready
 roode:
   id: roode_platform
-  # Smooth out measurements by using the minimum distance from this number of readings
-  sampling: 2
-  # This controls the size of the Region of Interest the sensor should take readings in.
-  roi: auto
-  # The detection thresholds for determining whether a measurement should count as a person crossing.
-  # A reading must be greater than the minimum and less than the maximum to count as a crossing.
-  # These can be given as absolute distances or as percentages.
-  # Percentages are based on the automatically determined idle or resting distance.
+  # I removed the { size: 1 } option here since it was redundant.
+  # Can always add back later if we have more sampling paramaters.
+  sampling: 1
+  # defaults for both zones
+  roi:
+    # height: 14
+    # width: 6
   detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
     # min: 234mm # absolute distance
     max: 85% # percent based on idle distance
-  # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
-  # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
   zones:
     invert: true
+    entry:
+      roi: auto
+    exit:
+      # roi:
+      #   height: 4
+      #   width: 4
+      #   center: 124
+      # detection_thresholds:
+      #   max: 70% # override max for exit zone
 
 button:
   - platform: restart
@@ -102,6 +93,7 @@ button:
 number:
   - platform: roode
     people_counter:
+      id: peopleCounter
       name: $friendly_name people counter
 
 binary_sensor:
@@ -116,10 +108,12 @@ sensor:
     id: roode_sensors
     distance_entry:
       name: $friendly_name distance zone 0
+      id: entryDist
       filters:
         - delta: 100
     distance_exit:
       name: $friendly_name distance zone 1
+      id: exitDist
       filters:
         - delta: 100
     max_threshold_entry:
@@ -140,6 +134,7 @@ sensor:
       name: $friendly_name ROI width zone 1
     sensor_status:
       name: Sensor Status
+
   - platform: wifi_signal
     name: $friendly_name RSSI
     update_interval: 60s
@@ -179,3 +174,19 @@ text_sensor:
     name: $friendly_name Uptime Human Readable
     id: uptime_human
     icon: mdi:clock-start
+
+font:
+  - file: "fonts/Roboto-Regular.ttf"
+    id: my_font
+    size: 18
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x64"
+    id: screen
+    reset_pin: D0
+    address: 0x3C
+    update_interval: 500ms
+    lambda: |-
+      it.printf(0, 0, id(my_font), "Counter: %d", (int)id(peopleCounter).state);
+      it.printf(0, 20, id(my_font), "Entry dist: %d", (int)id(entryDist).state);
+      it.printf(0, 40, id(my_font), "Exit dist: %d", (int)id(exitDist).state);

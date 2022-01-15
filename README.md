@@ -11,8 +11,8 @@ People counter working with any smart home system which supports ESPHome and the
   - [ESP32](#esp32)
   - [ESP8266](#esp8266)
 - [Configuration](#configuration)
-  - [Configuration variables](#configuration-variables)
-  - [Sensor](#sensor)
+  - [Platform Setup](#platform-setup)
+  - [Sensors](#sensors)
   - [Threshold distance](#threshold-distance)
 - [Algorithm](#algorithm)
 - [FAQ/Troubleshoot](#faqtroubleshoot)
@@ -66,61 +66,123 @@ Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by 
 
 ## Configuration
 
+## Platform Setup
+
 Roode is provided as an external_component which means it is easy to setup in any ESPHome sensor configuration file.
 
-Example configuration
+Other than base ESPHome configuration the only config that's needed for Roode is
+```yaml
+external_components:
+  - source: github://Lyr3x/Roode
+    refresh: always
 
-```
 roode:
-  id: roode_platform
-  i2c_address: 0x29
-  update_interval: 200ms
-  calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-  # manual:
-  #   sensor_mode: 2
-  #   roi_height: 16
-  #   roi_width: 6
-  #   manual_threshold: 1300
-  #   timing_budget: 100
-  invert_direction: true
+```
+This uses the recommended default configuration.
 
+However, we offer a lot of flexibility. Here's the full configuration spelled out. 
+
+```yml
+external_components:
+  - source: github://Lyr3x/Roode
+    refresh: always
+
+# VL53L1X sensor configuration is separate from Roode people counting algorithm
+vl53l1x:
+  # A non-standard I2C address
+  address:
+
+  # Sensor calibration options
+  calibration:
+    # The ranging mode is different based on how long the distance is that the sensor need to measure.
+    # The longer the distance, the more time the sensor needs to take a measurement.
+    # Available options are: auto, shortest, short, medium, long, longer, longest
+    ranging: auto
+    # The offset correction distance. See calibration section (WIP) for more details.
+    offset: 8mm
+    # The corrected photon count in counts per second. See calibration section (WIP) for more details.
+    crosstalk: 53406cps
+
+  # Hardware pins
+  pins:
+    # Shutdown/Enable pin, which is needed to change the I2C address. Required with multiple sensors.
+    xshut: GPIO3
+    # Interrupt pin. Use to notify us when a measurement is ready. This feature is WIP.
+    # This needs to be an internal pin.
+    interrupt: GPIO1
+
+# Roode people counting algorithm
+roode:
+  # Smooth out measurements by using the minimum distance from this number of readings
+  sampling: 2
+
+  # The orientation of the two sensor pads in relation to the entryway being tracked.
+  # The advised orientation is parallel, but if needed this can be changed to perpendicular.
+  orientation: parallel
+
+  # This controls the size of the Region of Interest the sensor should take readings in.
+  # The current default is
+  roi: { height: 16, width: 6 }
+  # We have an experiential automatic mode that can be enabled with
+  roi: auto
+  # or only automatic for one dimension
+  roi: { height: 16, width: auto }
+
+  # The detection thresholds for determining whether a measurement should count as a person crossing.
+  # A reading must be greater than the minimum and less than the maximum to count as a crossing.
+  # These can be given as absolute distances or as percentages.
+  # Percentages are based on the automatically determined idle or resting distance. 
+  detection_thresholds:
+    min: 0% # default minimum is any distance 
+    max: 85% # default maximum is 85%
+    # an example of absolute units
+    min: 50mm
+    max: 234cm
+
+  # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
+  # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
+  zones:
+    # Flip the entry/exit zones. If Roode seems to be counting backwards, set this to true.
+    invert: false
+
+    # Entry/Exit zones can set overrides for individual ROI & detection thresholds here. 
+    # If omitted, they use the options configured above.
+    entry:
+      # Entry zone will automatically configure ROI, regardless of ROI above. 
+      roi: auto
+    exit:
+      roi:
+        # Exit zone will have a height of 8 and a width of number set above or default or auto 
+        height: 8
+        # Additionally, zones can manually set their center point.
+        # Usually though, this is left for Roode to automatically determine.
+        center: 124
+
+      detection_thresholds:
+        # Exit zone's min detection threshold will be 5% of idle/resting distance, regardless of setting above.
+        min: 5%
+        # Exit zone's max detection threshold will be 70% of idle/resting distance, regardless of setting above.
+        max: 70%
+```
+
+### Sensors
+
+#### People Counter
+
+The most important one is the people counter.
+```yaml
 number:
   - platform: roode
     people_counter:
       name: People Count
 ```
+Regardless of how close we can get, people counting will never be perfect.
+This allows the current people count to be adjusted easily via Home Assistant.
 
-### Configuration variables
+#### Other sensors available
 
-- **i2c_address (Optional, integer)**: The I²C address of the sensor. Defaults to `0x29`.
-- **update_interval (Optional, Time)**: The interval to check the sensor. Defaults to `100ms`.
-- **calibration (Optional, exclusive-mode)**: Enables automatic zone calibration:
-  - **max_threshold_percentage (Optional, int)**: The maxium threshold in % which needs to be reached to detect a person. Min: `50` Max: `100`. Defaults to `85`.
-  - **min_threshold_percentage (Optional, int)**: The minimum threshold in % which needs to be reached to detect a person. Min: `0` Max: `100`. Defaults to `0`.
-  - **roi_calibration (Optional, bool)**: Enables automatic ROI calibration (experimental). Defaults to `false`.
-- **manual (Optional, exclusiv-modee)**: Enables manual sensor setup:
-  - **manual_threshold (required, int)**: The threshold for both zones. Min: `40` Max: `4000`. Defaults to `2000`.
-  - **roi_height (required, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `16`.
-  - **roi_width (required, int)**: The height of the ROI zones. Min: `4` Max: `16`. Defaults to `6`.
-  - **sensor_mode(required, int)**: Sets the distance mode of the sensor if `calibration=false`.
-    - Options: `0=short`, `1=long`, `2=max`. Defaults to `true`.
-  - **timing_budget (optional, int)**: The timing budget for the sensor. Increasing this slows down detection but increases accuracy. Min: `10ms` Max: `1000s`. Defaults to `10ms`.
-- **invert_direction (Optional, bool)**: Inverts the counting direction. Switch to `true` if the movement count appears backwards. Defaults to `false`.
-- **advised_sensor_orientation(Optional, bool)**: Advised orientation has the two sensor pads parallel to the entryway.
-                                                  So `false` means the pads are perpendicular to the entryway.
-                                                  Defaults to `true`.
-
-### Sensor
-
-Example Sensor setup to use all available features:
-
-```
+```yaml
 binary_sensor:
-  - platform: status
-    name: $friendly_name Status
   - platform: roode
     presence_sensor:
       name: $friendly_name presence
@@ -132,42 +194,14 @@ sensor:
       name: $friendly_name distance
       filters:
         - delta: 100.0
-    threshold_zone0:
+    threshold_entry:
       name: $friendly_name Zone 0
-    threshold_zone1:
+    threshold_exit:
       name: $friendly_name Zone 1
     roi_height:
       name: $friendly_name ROI height
     roi_width:
       name: $friendly_name ROI width
-
-  - platform: wifi_signal
-    name: $friendly_name RSSI
-    update_interval: 60s
-
-  - platform: uptime
-    name: Uptime Sensor
-    id: uptime_sensor
-    update_interval: 120s
-    internal: true
-    on_raw_value:
-      then:
-        - text_sensor.template.publish:
-            id: uptime_human
-            state: !lambda |-
-              int seconds = round(id(uptime_sensor).raw_state);
-              int days = seconds / (24 * 3600);
-              seconds = seconds % (24 * 3600);
-              int hours = seconds / 3600;
-              seconds = seconds % 3600;
-              int minutes = seconds /  60;
-              seconds = seconds % 60;
-              return (
-                (days ? String(days) + "d " : "") +
-                (hours ? String(hours) + "h " : "") +
-                (minutes ? String(minutes) + "m " : "") +
-                (String(seconds) + "s")
-              ).c_str();
 
 text_sensor:
   - platform: roode
@@ -176,11 +210,6 @@ text_sensor:
   - platform: roode
     entry_exit_event:
       name: $friendly_name last direction
-
-  - platform: template
-    name: $friendly_name Uptime Human Readable
-    id: uptime_human
-    icon: mdi:clock-start
 ```
 
 ### Threshold distance
@@ -290,6 +319,7 @@ lower right.
 4. Bad connections
 
 ## Sponsors
-Thank you very much for you sponsorship!
-* sunshine-hass
 
+Thank you very much for you sponsorship!
+
+- sunshine-hass
