@@ -74,7 +74,7 @@ CONFIG_SCHEMA = cv.Schema(
             }
         ),
     }
-).extend(i2c.i2c_device_schema(0x52))
+).extend(i2c.i2c_device_schema(0x29))
 
 
 async def to_code(config: Dict):
