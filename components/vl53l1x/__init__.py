@@ -28,7 +28,7 @@ CONF_AUTO = "auto"
 CONF_CALIBRATION = "calibration"
 CONF_RANGING_MODE = "ranging"
 CONF_XSHUT = "xshut"
-CONF_XTALK = "xtalk"
+CONF_XTALK = "crosstalk"
 
 Ranging = vl53l1x_ns.namespace("Ranging")
 RANGING_MODES = {
@@ -87,7 +87,7 @@ CONFIG_SCHEMA = cv.Schema(
                     RANGING_MODES
                 ),
                 cv.Optional(CONF_XTALK): cv.All(
-                    int_with_unit("correction value", "(cps)"), cv.uint16_t
+                    int_with_unit("corrected photon count as cps (counts per second)", "(cps)"), cv.uint16_t
                 ),
                 cv.Optional(CONF_OFFSET): cv.All(distance_as_mm, int16_t),
             }
