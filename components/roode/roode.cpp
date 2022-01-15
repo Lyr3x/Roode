@@ -231,8 +231,8 @@ void Roode::calibrateDistance() {
   exit->calibrateThreshold(distanceSensor, number_attempts);
 
   auto *mode = determine_raning_mode(entry->threshold->idle, exit->threshold->idle);
-
-  if (mode->timing_budget != Ranging::Longest->timing_budget) {  // already set above
+  if (mode != Ranging::Longest &&
+      distanceSensor->get_ranging_mode_override().value() != Ranging::Longest) {  // already set above
     if (distanceSensor->get_ranging_mode_override().has_value()) {
       distanceSensor->set_ranging_mode(distanceSensor->get_ranging_mode_override().value());
     } else {
