@@ -1,7 +1,6 @@
 #pragma once
 #include <math.h>
 
-#include "configuration.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
@@ -52,8 +51,6 @@ static int time_budget_in_ms_medium = 33;
 static int time_budget_in_ms_medium_long = 50;
 static int time_budget_in_ms_long = 100;
 static int time_budget_in_ms_max = 200;  // max range: 4m
-
-static uint8_t DistancesTableSize[2] = {0, 0};
 
 class Roode : public PollingComponent {
  public:
@@ -121,13 +118,15 @@ class Roode : public PollingComponent {
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
-  VL53L1_Error getAlternatingZoneDistances();
-  void doPathTracking(Zone *zone);
-  bool handleSensorStatus();
+  VL53L1_Error get_alternating_zone_distances();
+  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
+  void path_tracking(Zone *zone);
+  bool handle_sensor_status();
   void calibrateDistance();
-  void calibrateZones();
-  const RangingMode *determineRangingMode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
-  void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
+  void calibrate_zones();
+  const RangingMode *determine_raning_mode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
+  void publish_sensor_configuration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
   Orientation orientation_{Parallel};
   uint8_t samples{2};

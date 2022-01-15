@@ -6,7 +6,6 @@
 #include "esphome/core/optional.h"
 #include "../vl53l1x/vl53l1x.h"
 #include "orientation.h"
-#include "configuration.h"
 
 using TofSensor = esphome::vl53l1x::VL53L1X;
 using esphome::vl53l1x::ROI;
@@ -45,6 +44,8 @@ class Zone {
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);
+  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
   uint16_t last_distance;
   uint16_t min_distance;
   std::vector<uint16_t> samples;

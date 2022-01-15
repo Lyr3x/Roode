@@ -70,27 +70,38 @@ Roode is provided as an external_component which means it is easy to setup in an
 
 Example configuration
 
-```
+```yml
+# Sensor is configured separately from Roode people counting algorithm
+vl53l1x:
+  calibration:
+    # ranging: longest # defaults to "auto" for formerly "calibration: true"
+    # offset: 8
+    # xtalk: 53406
+  # These pins are not yet implemented but they are passed into class now
+  pins:
+    # xshut: 3 # shutdown pin to change address or multiple sensors
+    # interrupt: 1 # hardware callback when measurement is ready
 roode:
   id: roode_platform
-  i2c_address: 0x29
-  update_interval: 200ms
-  calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-  # manual:
-  #   sensor_mode: 2
-  #   roi_height: 16
-  #   roi_width: 6
-  #   manual_threshold: 1300
-  #   timing_budget: 100
-  invert_direction: true
-
-number:
-  - platform: roode
-    people_counter:
-      name: People Count
+  sampling: 2
+  # defaults for both zones
+  roi:
+    # height: 14
+    # width: 6
+  detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
+    # min: 234mm # absolute distance
+    max: 85% # percent based on idle distance
+  zones:
+    invert: true
+    entry:
+      roi: auto # defaults to auto
+    exit:
+      roi:
+        # height: 8
+        # width: 4
+        # center: 124
+      detection_thresholds:
+        max: 70% # override max for exit zone
 ```
 
 ### Configuration variables
@@ -110,8 +121,8 @@ number:
   - **timing_budget (optional, int)**: The timing budget for the sensor. Increasing this slows down detection but increases accuracy. Min: `10ms` Max: `1000s`. Defaults to `10ms`.
 - **invert_direction (Optional, bool)**: Inverts the counting direction. Switch to `true` if the movement count appears backwards. Defaults to `false`.
 - **advised_sensor_orientation(Optional, bool)**: Advised orientation has the two sensor pads parallel to the entryway.
-                                                  So `false` means the pads are perpendicular to the entryway.
-                                                  Defaults to `true`.
+  So `false` means the pads are perpendicular to the entryway.
+  Defaults to `true`.
 
 ### Sensor
 
@@ -290,6 +301,7 @@ lower right.
 4. Bad connections
 
 ## Sponsors
-Thank you very much for you sponsorship!
-* sunshine-hass
 
+Thank you very much for you sponsorship!
+
+- sunshine-hass

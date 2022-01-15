@@ -46,32 +46,39 @@ logger:
 i2c:
   sda: 4
   scl: 5
-
+# Sensor is configured separately from Roode people counting algorithm
+vl53l1x:
+  calibration:
+    # ranging: longest # defaults to "auto" for formerly "calibration: true"
+    # offset: 8
+    # xtalk: 53406
+  # These pins are not yet implemented but they are passed into class now
+  pins:
+    # xshut: 3 # shutdown pin to change address or multiple sensors
+    # interrupt: 1 # hardware callback when measurement is ready
 roode:
   id: roode_platform
-  i2c_address: 0x29
-  update_interval: 100ms
-  calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-    # sensor_offset_calibration: 8
-    # sensor_xtalk_calibration: 53406
-  # manual:
-  #   sensor_mode: 3
-  #   manual_threshold: 1280
-  #   timing_budget: 200
-  # sampling: 3
+  # I removed the { size: 1 } option here since it was redundant.
+  # Can always add back later if we have more sampling paramaters.
+  sampling: 1
+  # defaults for both zones
+  roi:
+    # height: 14
+    # width: 6
+  detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
+    # min: 234mm # absolute distance
+    max: 85% # percent based on idle distance
   zones:
-    invert_direction: true
-    # entry:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
-    # exit:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
+    invert: true
+    entry:
+      roi: auto
+    exit:
+      # roi:
+      #   height: 4
+      #   width: 4
+      #   center: 124
+      # detection_thresholds:
+      #   max: 70% # override max for exit zone
 
 button:
   - platform: restart
@@ -171,7 +178,7 @@ text_sensor:
 font:
   - file: "fonts/Roboto-Regular.ttf"
     id: my_font
-    size: 14
+    size: 18
 display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x64"

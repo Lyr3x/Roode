@@ -50,31 +50,28 @@ i2c:
   sda: 4
   scl: 5
 
+# Sensor is configured separately from Roode people counting algorithm
+vl53l1x:
+  calibration:
+    # ranging: longest # defaults to "auto" for formerly "calibration: true"
 roode:
   id: roode_platform
-  i2c_address: 0x29
-  update_interval: 10ms
-  calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-    # sensor_offset_calibration: 8
-    # sensor_xtalk_calibration: 53406
-  # manual:
-  #   sensor_mode: 3
-  #   manual_threshold: 1280
-  #   timing_budget: 200
-  # sampling: 3
+  # I removed the { size: 1 } option here since it was redundant.
+  # Can always add back later if we have more sampling paramaters.
+  sampling: 2
+  # defaults for both zones
+  roi:
+    # height: 14
+    # width: 6
+  detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
+    # min: 234mm # absolute distance
+    max: 85% # percent based on idle distance
   zones:
-    invert_direction: true
-    # entry:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
-    # exit:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
+    invert: true
+    entry:
+      roi: auto
+    exit:
+      roi: auto
 
 button:
   - platform: restart
