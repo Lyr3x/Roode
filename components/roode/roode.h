@@ -1,22 +1,24 @@
 #pragma once
 #include <math.h>
 
-#include "VL53L1X_ULD.h"
-#include "configuration.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include "esphome/components/i2c/i2c.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/application.h"
 #include "esphome/core/component.h"
+#include "esphome/core/log.h"
+#include "../vl53l1x/vl53l1x.h"
+#include "orientation.h"
 #include "zone.h"
+
+using namespace esphome::vl53l1x;
+using TofSensor = esphome::vl53l1x::VL53L1X;
 
 namespace esphome {
 namespace roode {
 #define NOBODY 0
 #define SOMEONE 1
 #define VERSION "v1.4.1-beta"
-#define VL53L1X_ULD_I2C_ADDRESS 0x52  // Default address is 0x52
 static const char *const TAG = "Roode";
 static const char *const SETUP = "Setup";
 static const char *const CALIBRATION = "Sensor Calibration";
@@ -50,8 +52,6 @@ static int time_budget_in_ms_medium_long = 50;
 static int time_budget_in_ms_long = 100;
 static int time_budget_in_ms_max = 200;  // max range: 4m
 
-static uint8_t DistancesTableSize[2] = {0, 0};
-
 class Roode : public PollingComponent {
  public:
   void setup() override;
@@ -59,25 +59,15 @@ class Roode : public PollingComponent {
   void loop() override;
   void dump_config() override;
 
-  void set_calibration_active(bool val) { calibration_active_ = val; }
-  void set_manual_active(bool val) { manual_active_ = val; }
-  void set_roi_active(bool val) { roi_active_ = val; }
-  void set_roi_calibration(bool val) { roi_calibration_ = val; }
-  void set_sensor_offset_calibration(int val) { sensor_offset_calibration_ = val; }
-  void set_sensor_xtalk_calibration(int val) { sensor_xtalk_calibration_ = val; }
-  void set_timing_budget(int timing_budget) { timing_budget_ = timing_budget; }
-  void set_manual_threshold(int val) { manual_threshold_ = val; }
-  void set_max_threshold_percentage(int val) { max_threshold_percentage_ = val; }
-  void set_min_threshold_percentage(int val) { min_threshold_percentage_ = val; }
-  void set_entry_roi_height(int height) { entry_roi_height = height; }
-  void set_entry_roi_width(int width) { entry_roi_width = width; }
-  void set_exit_roi_height(int height) { exit_roi_height = height; }
-  void set_exit_roi_width(int width) { exit_roi_width = width; }
-  void set_i2c_address(uint8_t address) { this->address_ = address; }
+  TofSensor *get_tof_sensor() { return this->distanceSensor; }
+  void set_tof_sensor(TofSensor *sensor) { this->distanceSensor = sensor; }
   void set_invert_direction(bool dir) { invert_direction_ = dir; }
-  void set_restore_values(bool val) { restore_values_ = val; }
-  void set_advised_sensor_orientation(bool val) { advised_sensor_orientation_ = val; }
-  void set_sampling_size(uint8_t size) { samples = size; }
+  void set_orientation(Orientation val) { orientation_ = val; }
+  void set_sampling_size(uint8_t size) {
+    samples = size;
+    entry->set_max_samples(size);
+    exit->set_max_samples(size);
+  }
   void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
   void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
   void set_people_counter(number::Number *counter) { this->people_counter = counter; }
@@ -105,18 +95,13 @@ class Roode : public PollingComponent {
   void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) {
     entry_exit_event_sensor = entry_exit_event_sensor_;
   }
-  void set_sensor_mode(int sensor_mode_) { sensor_mode = sensor_mode_; }
-  VL53L1_Error getAlternatingZoneDistances();
-  void doPathTracking(Zone *zone);
   void recalibration();
-  bool handleSensorStatus();
-  Configuration sensorConfiguration;
+  Zone *entry = new Zone(0);
+  Zone *exit = new Zone(1);
 
  protected:
-  VL53L1X_ULD distanceSensor;
-  Zone *entry;
-  Zone *exit;
-  Zone *current_zone;
+  TofSensor *distanceSensor;
+  Zone *current_zone = entry;
   sensor::Sensor *distance_entry;
   sensor::Sensor *distance_exit;
   number::Number *people_counter;
@@ -133,39 +118,24 @@ class Roode : public PollingComponent {
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
-  void createEntryAndExitZone();
-  void calibrateZones(VL53L1X_ULD distanceSensor);
-  void setCorrectDistanceSettings(float average_entry_zone_distance, float average_exit_zone_distance);
-  void setSensorMode(int sensor_mode, int timing_budget = 0);
-  void publishSensorConfiguration(Zone *entry, Zone *exit, bool isMax);
+  VL53L1_Error get_alternating_zone_distances();
+  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
+  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
+  void path_tracking(Zone *zone);
+  bool handle_sensor_status();
+  void calibrateDistance();
+  void calibrate_zones();
+  const RangingMode *determine_raning_mode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
+  void publish_sensor_configuration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
-  uint16_t sampling(Zone *zone);
-  bool calibration_active_{false};
-  bool manual_active_{false};
-  bool roi_active_{false};
-  bool roi_calibration_{false};
-  int sensor_offset_calibration_{-1};
-  int sensor_xtalk_calibration_{-1};
-  int sensor_mode{-1};
-  bool advised_sensor_orientation_{true};
-  bool sampling_active_{false};
+  Orientation orientation_{Parallel};
   uint8_t samples{2};
-  uint8_t address_ = 0x29;
   bool invert_direction_{false};
-  bool restore_values_{false};
-  uint64_t max_threshold_percentage_{85};
-  uint64_t min_threshold_percentage_{0};
-  uint64_t manual_threshold_{2000};
   int number_attempts = 20;  // TO DO: make this configurable
-  int timing_budget_{-1};
   int short_distance_threshold = 1300;
   int medium_distance_threshold = 2000;
   int medium_long_distance_threshold = 2700;
   int long_distance_threshold = 3400;
-  int entry_roi_width{6};
-  int entry_roi_height{16};
-  int exit_roi_width{6};
-  int exit_roi_height{16};
 };
 
 }  // namespace roode

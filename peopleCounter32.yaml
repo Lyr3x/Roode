@@ -63,31 +63,31 @@ i2c:
   sda: 21
   scl: 22
 
+# VL53L1X sensor configuration is separate from Roode people counting algorithm
+vl53l1x:
+  calibration:
+    # The ranging mode is different based on how long the distance is that the sensor need to measure.
+    # The longer the distance, the more time the sensor needs to take a measurement.
+    # Available options are: auto, shortest, short, medium, long, longer, longest
+    ranging: auto
+
 roode:
   id: roode_platform
-  i2c_address: 0x29
-  update_interval: 10ms
-  calibration:
-    max_threshold_percentage: 85
-    min_threshold_percentage: 5
-    roi_calibration: true
-    # sensor_offset_calibration: 8
-    # sensor_xtalk_calibration: 53406
-  # manual:
-  #   sensor_mode: 3
-  #   manual_threshold: 1280
-  #   timing_budget: 200
-  # sampling: 3
+  # Smooth out measurements by using the minimum distance from this number of readings
+  sampling: 2
+  # This controls the size of the Region of Interest the sensor should take readings in.
+  roi: auto
+  # The detection thresholds for determining whether a measurement should count as a person crossing.
+  # A reading must be greater than the minimum and less than the maximum to count as a crossing.
+  # These can be given as absolute distances or as percentages.
+  # Percentages are based on the automatically determined idle or resting distance.
+  detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
+    # min: 234mm # absolute distance
+    max: 85% # percent based on idle distance
+  # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
+  # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
   zones:
-    invert_direction: true
-    # entry:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
-    # exit:
-    #   roi:
-    #     roi_height: 12
-    #     roi_width: 6
+    invert: true
 
 button:
   - platform: restart
