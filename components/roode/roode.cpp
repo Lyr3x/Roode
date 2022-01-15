@@ -3,7 +3,7 @@
 namespace esphome {
 namespace roode {
 void Roode::dump_config() {
-  ESP_LOGCONFIG(TAG, "dump config:");
+  ESP_LOGCONFIG(TAG, "Roode:");
   LOG_UPDATE_INTERVAL(this);
 }
 void Roode::setup() {

@@ -4,8 +4,19 @@ namespace esphome {
 namespace vl53l1x {
 
 void VL53L1X::dump_config() {
-  ESP_LOGCONFIG(TAG, "dump config:");
-  LOG_I2C_DEVICE(this)
+  ESP_LOGCONFIG(TAG, "VL53L1X:");
+  LOG_I2C_DEVICE(this);
+  if (this->ranging_mode != nullptr) {
+    ESP_LOGCONFIG(TAG, "  Ranging: %s", this->ranging_mode->name);
+  }
+  if (offset.has_value()) {
+    ESP_LOGCONFIG(TAG, "  Offset: %dmm", this->offset.value());
+  }
+  if (xtalk.has_value()) {
+    ESP_LOGCONFIG(TAG, "  XTalk: %dcps", this->xtalk.value());
+  }
+  LOG_PIN("  Interrupt Pin: ", this->interrupt_pin.value());
+  LOG_PIN("  XShut Pin: ", this->xshut_pin.value());
 }
 
 void VL53L1X::setup() {
@@ -62,8 +73,8 @@ void VL53L1X::set_ranging_mode(const RangingMode *mode) {
     ESP_LOGE(TAG, "Could not set measurement delay: %d ms, error code: %d", mode->delay_between_measurements, status);
   }
 
-  ESP_LOGI(TAG, "Set ranging mode. timing_budget: %d, delay: %d, distance_mode: %d", mode->timing_budget,
-           mode->delay_between_measurements, mode->mode);
+  this->ranging_mode = mode;
+  ESP_LOGI(TAG, "Set ranging mode: %s", mode->name);
 }
 
 optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
