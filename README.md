@@ -1,10 +1,12 @@
 # RooDe
 
-[![Build](https://github.com/Lyr3x/Roode/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/main.yml)
-
-People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
+[![GitHub release](https://img.shields.io/github/v/tag/Lyr3x/Roode?style=flat-square)](https://GitHub.com/Lyr3x/Roode/releases/)
+[![Build](https://img.shields.io/github/workflow/status/Lyr3x/Roode/CI?style=flat-square)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/ci.yml)
+[![Maintenance](https://img.shields.io/maintenance/yes/2023?style=flat-square)](https://GitHub.com/Lyr3x/Roode/graphs/commit-activity)
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/hU9SvSXMHs)
+
+People counter working with any smart home system which supports ESPHome/MQTT like Home Assistant. All necessary entities are created automatically. 
 
 - [Hardware Recommendation](#hardware-recommendation)
 - [Wiring](#wiring)
@@ -71,6 +73,7 @@ Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by 
 Roode is provided as an external_component which means it is easy to setup in any ESPHome sensor configuration file.
 
 Other than base ESPHome configuration the only config that's needed for Roode is
+
 ```yaml
 external_components:
   - source: github://Lyr3x/Roode
@@ -78,9 +81,10 @@ external_components:
 
 roode:
 ```
+
 This uses the recommended default configuration.
 
-However, we offer a lot of flexibility. Here's the full configuration spelled out. 
+However, we offer a lot of flexibility. Here's the full configuration spelled out.
 
 ```yml
 external_components:
@@ -131,9 +135,9 @@ roode:
   # The detection thresholds for determining whether a measurement should count as a person crossing.
   # A reading must be greater than the minimum and less than the maximum to count as a crossing.
   # These can be given as absolute distances or as percentages.
-  # Percentages are based on the automatically determined idle or resting distance. 
+  # Percentages are based on the automatically determined idle or resting distance.
   detection_thresholds:
-    min: 0% # default minimum is any distance 
+    min: 0% # default minimum is any distance
     max: 85% # default maximum is 85%
     # an example of absolute units
     min: 50mm
@@ -145,14 +149,14 @@ roode:
     # Flip the entry/exit zones. If Roode seems to be counting backwards, set this to true.
     invert: false
 
-    # Entry/Exit zones can set overrides for individual ROI & detection thresholds here. 
+    # Entry/Exit zones can set overrides for individual ROI & detection thresholds here.
     # If omitted, they use the options configured above.
     entry:
-      # Entry zone will automatically configure ROI, regardless of ROI above. 
+      # Entry zone will automatically configure ROI, regardless of ROI above.
       roi: auto
     exit:
       roi:
-        # Exit zone will have a height of 8 and a width of number set above or default or auto 
+        # Exit zone will have a height of 8 and a width of number set above or default or auto
         height: 8
         # Additionally, zones can manually set their center point.
         # Usually though, this is left for Roode to automatically determine.
@@ -170,12 +174,14 @@ roode:
 #### People Counter
 
 The most important one is the people counter.
+
 ```yaml
 number:
   - platform: roode
     people_counter:
       name: People Count
 ```
+
 Regardless of how close we can get, people counting will never be perfect.
 This allows the current people count to be adjusted easily via Home Assistant.
 
