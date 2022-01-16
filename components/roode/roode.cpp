@@ -4,8 +4,12 @@ namespace esphome {
 namespace roode {
 void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "Roode:");
+  ESP_LOGCONFIG(TAG, "  Sample size: %d", samples);
   LOG_UPDATE_INTERVAL(this);
+  entry->dump_config();
+  exit->dump_config();
 }
+
 void Roode::setup() {
   ESP_LOGI(SETUP, "Booting Roode %s", VERSION);
   if (version_sensor != nullptr) {

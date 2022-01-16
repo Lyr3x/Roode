@@ -2,6 +2,15 @@
 
 namespace esphome {
 namespace roode {
+
+void Zone::dump_config() const {
+  ESP_LOGCONFIG(TAG, "   %s", id == 0U ? "Entry" : "Exit");
+  ESP_LOGCONFIG(TAG, "     ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
+  ESP_LOGCONFIG(TAG, "     Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
+                threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
+                threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle), threshold->idle);
+}
+
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   last_sensor_status = sensor_status;
 
