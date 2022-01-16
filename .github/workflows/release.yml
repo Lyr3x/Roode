@@ -6,8 +6,7 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 jobs:
-  master-release:
-    if: github.ref == 'refs/heads/master'
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Create release
@@ -17,14 +16,3 @@ jobs:
           automatic_release_tag: ${{ github.ref }}
           prerelease: false
           title: ${{ github.ref }}
-  beta-release:
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: ${{ github.ref }}-beta
-          prerelease: true
-          title: ${{ github.ref }}-beta
