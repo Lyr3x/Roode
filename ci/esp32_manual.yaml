@@ -15,3 +15,7 @@ roode:
       roi: { height: 15, width: 6 }
       detection_thresholds:
         max: 80%
+    exit:
+      roi: { height: 14, width: 6 }
+      detection_thresholds:
+        max: 75%
