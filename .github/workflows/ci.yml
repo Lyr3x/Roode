@@ -2,8 +2,8 @@ name: CI
 on:
   push:
     paths:
-      - "components"
-      - "ci"
+      - "components/**"
+      - "ci/**"
   workflow_dispatch:
 
 jobs:
