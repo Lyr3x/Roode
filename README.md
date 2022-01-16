@@ -78,7 +78,7 @@ Other than base ESPHome configuration the only config that's needed for Roode is
 external_components:
   - source: github://Lyr3x/Roode
     refresh: always
-
+vl53l1x:
 roode:
 ```
 
@@ -90,6 +90,7 @@ However, we offer a lot of flexibility. Here's the full configuration spelled ou
 external_components:
   - source: github://Lyr3x/Roode
     refresh: always
+    ref: master
 
 # VL53L1X sensor configuration is separate from Roode people counting algorithm
 vl53l1x:
