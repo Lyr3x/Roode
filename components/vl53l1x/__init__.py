@@ -12,6 +12,7 @@ from esphome.const import (
     CONF_INTERRUPT,
     CONF_OFFSET,
     CONF_PINS,
+    CONF_TIMEOUT,
 )
 import esphome.pins as pins
 
@@ -76,6 +77,7 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(VL53L1X),
+            cv.Optional(CONF_TIMEOUT, default="2s"): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PINS, default={}): NullableSchema(
                 {
                     cv.Optional(CONF_XSHUT): pins.gpio_output_pin_schema,
@@ -125,6 +127,7 @@ async def to_code(config: Dict):
             frequency / 1000,
         )
 
+    cg.add(vl53l1x.set_timeout(config[CONF_TIMEOUT]))
     await setup_hardware(vl53l1x, config)
     await setup_calibration(vl53l1x, config[CONF_CALIBRATION])
 
