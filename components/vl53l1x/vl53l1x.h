@@ -3,6 +3,7 @@
 
 #include "VL53L1X_ULD.h"
 #include "esphome/components/i2c/i2c.h"
+#include "esphome/core/application.h"
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 #include "esphome/core/log.h"
@@ -21,7 +22,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
  public:
   void setup() override;
   void dump_config() override;
-  // After GPIO, but before default...Is this needed? not sure.
+  /** This connects directly to a sensor */
   float get_setup_priority() const override { return setup_priority::DATA; };
 
   optional<uint16_t> read_distance(ROI *roi, VL53L1_Error &error);

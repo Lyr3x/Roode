@@ -58,6 +58,8 @@ class Roode : public PollingComponent {
   void update() override;
   void loop() override;
   void dump_config() override;
+  /** Roode uses data from sensors */
+  float get_setup_priority() const override { return setup_priority::PROCESSOR; };
 
   TofSensor *get_tof_sensor() { return this->distanceSensor; }
   void set_tof_sensor(TofSensor *sensor) { this->distanceSensor = sensor; }

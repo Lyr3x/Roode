@@ -72,28 +72,35 @@ def NullableSchema(*args, default: Any = None, **kwargs):
     return cv.Any(cv.Schema(*args, **kwargs), none_to_empty)
 
 
-CONFIG_SCHEMA = cv.Schema(
-    {
-        cv.GenerateID(): cv.declare_id(VL53L1X),
-        cv.Optional(CONF_PINS, default={}): NullableSchema(
-            {
-                cv.Optional(CONF_XSHUT): pins.gpio_output_pin_schema,
-                cv.Optional(CONF_INTERRUPT): pins.internal_gpio_input_pin_schema,
-            }
-        ),
-        cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
-            {
-                cv.Optional(CONF_RANGING_MODE, default=CONF_AUTO): cv.enum(
-                    RANGING_MODES
-                ),
-                cv.Optional(CONF_XTALK): cv.All(
-                    int_with_unit("corrected photon count as cps (counts per second)", "(cps)"), cv.uint16_t
-                ),
-                cv.Optional(CONF_OFFSET): cv.All(distance_as_mm, int16_t),
-            }
-        ),
-    }
-).extend(i2c.i2c_device_schema(0x29))
+CONFIG_SCHEMA = (
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.declare_id(VL53L1X),
+            cv.Optional(CONF_PINS, default={}): NullableSchema(
+                {
+                    cv.Optional(CONF_XSHUT): pins.gpio_output_pin_schema,
+                    cv.Optional(CONF_INTERRUPT): pins.internal_gpio_input_pin_schema,
+                }
+            ),
+            cv.Optional(CONF_CALIBRATION, default={}): NullableSchema(
+                {
+                    cv.Optional(CONF_RANGING_MODE, default=CONF_AUTO): cv.enum(
+                        RANGING_MODES
+                    ),
+                    cv.Optional(CONF_XTALK): cv.All(
+                        int_with_unit(
+                            "corrected photon count as cps (counts per second)", "(cps)"
+                        ),
+                        cv.uint16_t,
+                    ),
+                    cv.Optional(CONF_OFFSET): cv.All(distance_as_mm, int16_t),
+                }
+            ),
+        }
+    )
+    .extend(i2c.i2c_device_schema(0x29))
+    .extend(cv.COMPONENT_SCHEMA)
+)
 
 
 async def to_code(config: Dict):

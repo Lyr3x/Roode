@@ -13,6 +13,12 @@ void Roode::setup() {
   }
   ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
 
+  if (this->distanceSensor->is_failed()) {
+    this->mark_failed();
+    ESP_LOGE(TAG, "Roode cannot be setup without a valid VL53L1X sensor");
+    return;
+  }
+
   calibrate_zones();
 }
 

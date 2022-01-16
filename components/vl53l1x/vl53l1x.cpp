@@ -20,31 +20,51 @@ void VL53L1X::dump_config() {
 }
 
 void VL53L1X::setup() {
+  ESP_LOGD(TAG, "Beginning setup");
+
+  // Wait for boot while feeding watch dog
+  // This is the same as what Begin() starts with, but we feed the watch dog
+  // So that ESPHome doesn't think we've hung and panic restart.
+  uint8_t isBooted = 0;
+  uint16_t startTime = millis();
+  while (!(isBooted & 1) && (millis() < (startTime + 100))) {
+    this->sensor.GetBootState(&isBooted);
+    App.feed_wdt();
+    delay(5);
+  }
+
+  if (isBooted != 1) {
+    ESP_LOGE(TAG, "Timed out waiting for initialization");
+    this->mark_failed();
+    return;
+  }
+
   // TODO use xshut_pin, if given, to change address
   auto status = this->sensor.Begin(this->address_);
+  ESP_LOGD(TAG, "VL53L1_ULD begin() returned");
   if (status != VL53L1_ERROR_NONE) {
     // If the sensor could not be initialized print out the error code. -7 is timeout
-    ESP_LOGE(TAG, "Could not initialize the sensor, error code: %d", status);
+    ESP_LOGE(TAG, "Could not initialize, error code: %d", status);
     this->mark_failed();
     return;
   }
   this->address_ = sensor.GetI2CAddress();
 
   if (this->offset.has_value()) {
-    ESP_LOGI(TAG, "Setting sensor offset calibration to %d", this->offset.value());
+    ESP_LOGI(TAG, "Setting offset calibration to %d", this->offset.value());
     status = this->sensor.SetOffsetInMm(this->offset.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set sensor offset calibration, error code: %d", status);
+      ESP_LOGE(TAG, "Could not set offset calibration, error code: %d", status);
       this->mark_failed();
       return;
     }
   }
 
   if (this->xtalk.has_value()) {
-    ESP_LOGI(TAG, "Setting sensor xtalk calibration to %d", this->xtalk.value());
+    ESP_LOGI(TAG, "Setting crosstalk calibration to %d", this->xtalk.value());
     status = this->sensor.SetXTalk(this->xtalk.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set sensor offset calibration, error code: %d", status);
+      ESP_LOGE(TAG, "Could not set crosstalk calibration, error code: %d", status);
       this->mark_failed();
       return;
     }
