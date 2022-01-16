@@ -2,7 +2,7 @@
 
 vl53l1x:
   calibration:
-    ranging: auto
+    ranging: short
 
 roode:
   id: roode_platform
