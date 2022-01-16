@@ -1,5 +1,11 @@
-name: Build ESP
-on: push
+name: CI
+on:
+  push:
+    paths:
+      - "components"
+      - "ci"
+  workflow_dispatch:
+
 jobs:
   validate:
     strategy:
