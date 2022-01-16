@@ -22,6 +22,23 @@ void VL53L1X::dump_config() {
 void VL53L1X::setup() {
   ESP_LOGD(TAG, "Beginning setup");
 
+  // Wait for boot while feeding watch dog
+  // This is the same as what Begin() starts with, but we feed the watch dog
+  // So that ESPHome doesn't think we've hung and panic restart.
+  uint8_t isBooted = 0;
+  uint16_t startTime = millis();
+  while (!(isBooted & 1) && (millis() < (startTime + 100))) {
+    this->sensor.GetBootState(&isBooted);
+    App.feed_wdt();
+    delay(5);
+  }
+
+  if (isBooted != 1) {
+    ESP_LOGE(TAG, "Timed out waiting for initialization");
+    this->mark_failed();
+    return;
+  }
+
   // TODO use xshut_pin, if given, to change address
   auto status = this->sensor.Begin(this->address_);
   ESP_LOGD(TAG, "VL53L1_ULD begin() returned");

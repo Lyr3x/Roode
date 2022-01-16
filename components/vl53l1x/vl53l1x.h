@@ -3,6 +3,7 @@
 
 #include "VL53L1X_ULD.h"
 #include "esphome/components/i2c/i2c.h"
+#include "esphome/core/application.h"
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 #include "esphome/core/log.h"
