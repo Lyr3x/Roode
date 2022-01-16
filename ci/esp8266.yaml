@@ -1,0 +1,16 @@
+<<: !include common.yaml
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: d1_mini
+
+i2c:
+  sda: 4
+  scl: 5
+
+# VL53L1X sensor configuration is separate from Roode people counting algorithm
+vl53l1x:
+  calibration:
+
+roode:
+  id: roode_platform
