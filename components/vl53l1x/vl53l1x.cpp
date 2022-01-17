@@ -68,7 +68,11 @@ VL53L1_Error VL53L1X::init() {
     ESP_LOGD(TAG, "Setting new I2C address. new: %#x old: %#x", address_, this->sensor.GetI2CAddress());
     // Begin was initialized with another I2C address. This could mean the init would fail as the sensor was already
     // initialized before. The I2C address only changes when calling SetI2CAddress or by being powered down.
-    this->sensor.SetI2CAddress(address_);
+    status = this->sensor.SetI2CAddress(address_);
+    if (status != VL53L1_ERROR_NONE) {
+      ESP_LOGE(TAG, "Could not set I2C address, error code: %d", status);
+    }
+    ESP_LOGD(TAG, "I2C address set. new: %#x", this->sensor.GetI2CAddress());
     delay(100);
     status = wait_for_boot();
     if (status != VL53L1_ERROR_NONE) {
