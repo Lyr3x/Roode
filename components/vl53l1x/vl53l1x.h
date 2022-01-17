@@ -40,7 +40,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   VL53L1X_ULD sensor;
   optional<GPIOPin *> xshut_pin{};
   optional<InternalGPIOPin *> interrupt_pin{};
-  const RangingMode * ranging_mode{};
+  const RangingMode *ranging_mode{};
   /** Mode from user config, which can be get/set independently of current mode */
   optional<const RangingMode *> ranging_mode_override{};
   optional<int16_t> offset{};
