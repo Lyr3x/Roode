@@ -28,6 +28,7 @@ void VL53L1X::setup() {
     this->mark_failed();
     return;
   }
+  this->sensor.Init();
   ESP_LOGD(TAG, "Device initialized");
 
   if (this->offset.has_value()) {
@@ -57,71 +58,54 @@ VL53L1_Error VL53L1X::init() {
   ESP_LOGD(TAG, "Trying to initialize");
 
   VL53L1_Error status;
-
-  // If address is non-default, set and try again.
-  if (address_ != (sensor.GetI2CAddress() >> 1)) {
-    ESP_LOGD(TAG, "Setting different address");
-    status = sensor.SetI2CAddress(address_ << 1);
-    if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Failed to change address. Error: %d", status);
-      return status;
-    }
-  }
-
   status = wait_for_boot();
   if (status != VL53L1_ERROR_NONE) {
     return status;
   }
 
-  ESP_LOGD(TAG, "Found device, initializing...");
-  status = sensor.Init();
-  if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not initialize device, error code: %d", status);
+  // Check if the device has booted. If not a timeout has occured
+  if (address_ != this->sensor.GetI2CAddress()) {
+    ESP_LOGD(TAG, "Setting new I2C address. new: %#x old: %#x", address_, this->sensor.GetI2CAddress());
+    // Begin was initialized with another I2C address. This could mean the init would fail as the sensor was already
+    // initialized before. The I2C address only changes when calling SetI2CAddress or by being powered down.
+    this->sensor.SetI2CAddress(address_);
+    delay(100);
+    status = wait_for_boot();
+    if (status != VL53L1_ERROR_NONE) {
+      return status;
+    }
+    ESP_LOGD(TAG, "Found device, initializing...");
+    status = this->sensor.Init();
+    if (status != VL53L1_ERROR_NONE) {
+      ESP_LOGE(TAG, "Could not initialize device, error code: %d", status);
+      return status;
+    }
     return status;
   }
-
-  return status;
 }
 
 VL53L1_Error VL53L1X::wait_for_boot() {
   // Wait for firmware to copy NVM device_state into registers
   delayMicroseconds(1200);
 
-  uint8_t device_state;
+  uint8_t isBooted = 0;
+  uint16_t startTime = millis();
   VL53L1_Error status;
-  auto start = millis();
-  while ((millis() - start) < this->timeout) {
-    status = get_device_state(&device_state);
+
+  ESP_LOGD(TAG, "Waiting for boot with timeout: %d", this->timeout);
+  while (!(isBooted & 1) && (millis() < this->timeout)) {
+    status = this->sensor.GetBootState(&isBooted);
+    delay(5);
     if (status != VL53L1_ERROR_NONE) {
       return status;
-    }
-    if ((device_state & 0x01) == 0x01) {
-      ESP_LOGD(TAG, "Finished waiting for boot. Device state: %d", device_state);
-      return VL53L1_ERROR_NONE;
     }
     App.feed_wdt();
   }
 
-  ESP_LOGW(TAG, "Timed out waiting for boot. state: %d", device_state);
-  return VL53L1_ERROR_TIME_OUT;
-}
-
-VL53L1_Error VL53L1X::get_device_state(uint8_t *device_state) {
-  VL53L1_Error status = sensor.GetBootState(device_state);
-  if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Failed to read device state. error: %d", status);
-    return status;
+  if (!(isBooted & 1)) {
+    ESP_LOGW(TAG, "Timed out waiting for boot. state: %d", isBooted);
+    return VL53L1_ERROR_TIME_OUT;
   }
-
-  // Our own logic...device_state is 255 when unable to complete read
-  // Not sure why and why other libraries don't account for this.
-  // Maybe somehow this is supposed to be 0, and it is getting messed up in I2C layer.
-  if (*device_state == 255) {
-    *device_state = 98;  // Unknown
-  }
-
-  ESP_LOGV(TAG, "Device state: %d", *device_state);
-
   return VL53L1_ERROR_NONE;
 }
 

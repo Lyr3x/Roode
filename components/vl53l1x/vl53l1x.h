@@ -50,7 +50,6 @@ class VL53L1X : public i2c::I2CDevice, public Component {
 
   VL53L1_Error init();
   VL53L1_Error wait_for_boot();
-  VL53L1_Error get_device_state(uint8_t *device_state);
 };
 
 }  // namespace vl53l1x
