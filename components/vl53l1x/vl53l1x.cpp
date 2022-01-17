@@ -158,11 +158,14 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
 
   ESP_LOGV(TAG, "Beginning distance read");
 
-  status = this->sensor.SetROI(roi->width, roi->height);
-  status += this->sensor.SetROICenter(roi->center);
-  if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set ROI, error code: %d", status);
-    return {};
+  if (last_roi != nullptr && *roi != *last_roi) {
+    status = this->sensor.SetROI(roi->width, roi->height);
+    status += this->sensor.SetROICenter(roi->center);
+    if (status != VL53L1_ERROR_NONE) {
+      ESP_LOGE(TAG, "Could not set ROI, error code: %d", status);
+      return {};
+    }
+    last_roi = roi;
   }
 
   status = this->sensor.StartRanging();

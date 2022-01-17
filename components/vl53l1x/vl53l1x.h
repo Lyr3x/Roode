@@ -46,6 +46,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   optional<int16_t> offset{};
   optional<uint16_t> xtalk{};
   uint16_t timeout{};
+  ROI *last_roi{};
 
   VL53L1_Error init();
   VL53L1_Error wait_for_boot();
