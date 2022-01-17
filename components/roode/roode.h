@@ -120,7 +120,6 @@ class Roode : public PollingComponent {
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
-  VL53L1_Error get_alternating_zone_distances();
   VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
   VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
   void path_tracking(Zone *zone);
