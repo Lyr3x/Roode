@@ -37,7 +37,7 @@ void Roode::update() {
 
 void Roode::loop() {
   // unsigned long start = micros();
-  get_alternating_zone_distances();
+  this->current_zone->readDistance(distanceSensor);
   // uint16_t samplingDistance = sampling(this->current_zone);
   path_tracking(this->current_zone);
   handle_sensor_status();
@@ -50,7 +50,6 @@ void Roode::loop() {
 }
 
 bool Roode::handle_sensor_status() {
-  ESP_LOGV(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
   bool check_status = false;
   if (last_sensor_status != sensor_status && sensor_status == VL53L1_ERROR_NONE) {
     if (status_sensor != nullptr) {
@@ -67,12 +66,6 @@ bool Roode::handle_sensor_status() {
   last_sensor_status = sensor_status;
   sensor_status = VL53L1_ERROR_NONE;
   return check_status;
-}
-
-VL53L1_Error Roode::get_alternating_zone_distances() {
-  this->current_zone->readDistance(distanceSensor);
-  App.feed_wdt();
-  return sensor_status;
 }
 
 void Roode::path_tracking(Zone *zone) {

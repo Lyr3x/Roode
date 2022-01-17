@@ -152,11 +152,11 @@ void VL53L1X::set_ranging_mode(const RangingMode *mode) {
 
 optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
   if (this->is_failed()) {
-    ESP_LOGE(TAG, "Cannot read distance while component is failed");
+    ESP_LOGW(TAG, "Cannot read distance while component is failed");
     return {};
   }
 
-  ESP_LOGV(TAG, "Beginning distance read");
+  ESP_LOGVV(TAG, "Beginning distance read");
 
   if (last_roi != nullptr && *roi != *last_roi) {
     status = this->sensor.SetROI(roi->width, roi->height);
@@ -174,17 +174,18 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
   // TODO use interrupt_pin, if given, to await data ready instead of polling
   uint8_t dataReady = false;
   while (!dataReady) {
-    status += this->sensor.CheckForDataReady(&dataReady);
+    status = this->sensor.CheckForDataReady(&dataReady);
     if (status != VL53L1_ERROR_NONE) {
       ESP_LOGE(TAG, "Failed to check if data is ready, error code: %d", status);
       return {};
     }
     delay(1);
+    App.feed_wdt();
   }
 
   // Get the results
   uint16_t distance;
-  status += this->sensor.GetDistanceInMm(&distance);
+  status = this->sensor.GetDistanceInMm(&distance);
   if (status != VL53L1_ERROR_NONE) {
     ESP_LOGE(TAG, "Could not get distance, error code: %d", status);
     return {};
@@ -198,7 +199,7 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
     return {};
   }
 
-  ESP_LOGV(TAG, "Finished distance read");
+  ESP_LOGV(TAG, "Finished distance read: %d", distance);
   return {distance};
 }
 
