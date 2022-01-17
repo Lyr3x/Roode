@@ -76,7 +76,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
   } else {
     // now we set the position of the center of the two zones
     if (orientation == Parallel) {
-      switch (ROI_size) {
+      switch (this->roi->width) {
         case 4:
           this->roi->center = this->id == 0U ? 150 : 247;
           break;
@@ -90,7 +90,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
           break;
       }
     } else {
-      switch (ROI_size) {
+      switch (this->roi->width) {
         case 4:
           this->roi->center = this->id == 0U ? 193 : 58;
           break;
