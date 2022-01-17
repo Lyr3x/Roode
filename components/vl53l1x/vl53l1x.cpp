@@ -71,17 +71,18 @@ VL53L1_Error VL53L1X::init() {
     status = this->sensor.SetI2CAddress(address_);
     if (status != VL53L1_ERROR_NONE) {
       ESP_LOGE(TAG, "Could not set I2C address, error code: %d", status);
+      this->mark_failed();
     }
     ESP_LOGD(TAG, "I2C address set. new: %#x", this->sensor.GetI2CAddress());
     delay(100);
-    status = wait_for_boot();
-    if (status != VL53L1_ERROR_NONE) {
-      return status;
-    }
+
+    wait_for_boot();
+
     ESP_LOGD(TAG, "Found device, initializing...");
     status = this->sensor.Init();
     if (status != VL53L1_ERROR_NONE) {
       ESP_LOGE(TAG, "Could not initialize device, error code: %d", status);
+      this->mark_failed();
       return status;
     }
     return status;
@@ -101,6 +102,7 @@ VL53L1_Error VL53L1X::wait_for_boot() {
     status = this->sensor.GetBootState(&isBooted);
     delay(5);
     if (status != VL53L1_ERROR_NONE) {
+      this->mark_failed();
       return status;
     }
     App.feed_wdt();
@@ -108,6 +110,7 @@ VL53L1_Error VL53L1X::wait_for_boot() {
 
   if (!(isBooted & 1)) {
     ESP_LOGW(TAG, "Timed out waiting for boot. state: %d", isBooted);
+    this->mark_failed();
     return VL53L1_ERROR_TIME_OUT;
   }
   return VL53L1_ERROR_NONE;
