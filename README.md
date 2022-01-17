@@ -130,8 +130,6 @@ roode:
   roi: { height: 16, width: 6 }
   # We have an experiential automatic mode that can be enabled with
   roi: auto
-  # or only automatic for one dimension
-  roi: { height: 16, width: auto }
 
   # The detection thresholds for determining whether a measurement should count as a person crossing.
   # A reading must be greater than the minimum and less than the maximum to count as a crossing.
