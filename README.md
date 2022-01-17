@@ -6,7 +6,7 @@
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/hU9SvSXMHs)
 
-People counter working with any smart home system which supports ESPHome/MQTT like Home Assistant. All necessary entities are created automatically. 
+People counter working with any smart home system which supports ESPHome/MQTT like Home Assistant. All necessary entities are created automatically.
 
 - [Hardware Recommendation](#hardware-recommendation)
 - [Wiring](#wiring)
@@ -29,6 +29,7 @@ People counter working with any smart home system which supports ESPHome/MQTT li
   - **Pololu** <-- Recommended
   - GY-53
   - Black PCB chinese sensor
+  - Pimoroni
 - 1A Power Supply **Do not use an USB port of your computer!**
 - Encolsure (see .stl files) - will be updated soon!
   Pins:
@@ -76,7 +77,7 @@ Other than base ESPHome configuration the only config that's needed for Roode is
 
 ```yaml
 external_components:
-  - source: github://Lyr3x/Roode
+  - source: github://Lyr3x/Roode@master
     refresh: always
 vl53l1x:
 roode:
@@ -129,9 +130,9 @@ roode:
   # The current default is
   roi: { height: 16, width: 6 }
   # We have an experiential automatic mode that can be enabled with
-  roi: auto
+  # roi: auto
   # or only automatic for one dimension
-  roi: { height: 16, width: auto }
+  # roi: { height: 16, width: auto }
 
   # The detection thresholds for determining whether a measurement should count as a person crossing.
   # A reading must be greater than the minimum and less than the maximum to count as a crossing.
@@ -141,8 +142,8 @@ roode:
     min: 0% # default minimum is any distance
     max: 85% # default maximum is 85%
     # an example of absolute units
-    min: 50mm
-    max: 234cm
+    # min: 50mm
+    # max: 234cm
 
   # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
   # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
@@ -169,6 +170,10 @@ roode:
         # Exit zone's max detection threshold will be 70% of idle/resting distance, regardless of setting above.
         max: 70%
 ```
+
+Also feel free to check out running examples for:
+- [Wemos D1 mini with ESP32](peopleCounter32.yaml)
+- [Wemos D1 mini with ESP8266](peopleCounter8266.yaml)
 
 ### Sensors
 
