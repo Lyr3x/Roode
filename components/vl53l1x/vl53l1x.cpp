@@ -158,7 +158,7 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
 
   ESP_LOGVV(TAG, "Beginning distance read");
 
-  if (last_roi != nullptr && *roi != *last_roi) {
+  if (last_roi == nullptr || *roi != *last_roi) {
     status = this->sensor.SetROI(roi->width, roi->height);
     status += this->sensor.SetROICenter(roi->center);
     if (status != VL53L1_ERROR_NONE) {
