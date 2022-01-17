@@ -37,6 +37,8 @@ void Zone::reset_roi(uint8_t default_center) {
   roi->width = roi_override->width ?: 6;
   roi->height = roi_override->height ?: 16;
   roi->center = roi_override->center ?: default_center;
+  ESP_LOGD(TAG, "%s ROI reset: { width: %d, height: %d, center: %d }", id == 0U ? "Entry" : "Exit", roi->width,
+           roi->height, roi->center);
 }
 
 void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {

@@ -159,10 +159,16 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
   ESP_LOGVV(TAG, "Beginning distance read");
 
   if (last_roi == nullptr || *roi != *last_roi) {
+    ESP_LOGVV(TAG, "Setting new ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
+
     status = this->sensor.SetROI(roi->width, roi->height);
-    status += this->sensor.SetROICenter(roi->center);
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set ROI, error code: %d", status);
+      ESP_LOGE(TAG, "Could not set ROI width/height, error code: %d", status);
+      return {};
+    }
+    status = this->sensor.SetROICenter(roi->center);
+    if (status != VL53L1_ERROR_NONE) {
+      ESP_LOGE(TAG, "Could not set ROI center, error code: %d", status);
       return {};
     }
     last_roi = roi;
@@ -193,7 +199,11 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
 
   // After reading the results reset the interrupt to be able to take another measurement
   status = this->sensor.ClearInterrupt();
-  status += this->sensor.StopRanging();
+  if (status != VL53L1_ERROR_NONE) {
+    ESP_LOGE(TAG, "Could not clear interrupt, error code: %d", status);
+    return {};
+  }
+  status = this->sensor.StopRanging();
   if (status != VL53L1_ERROR_NONE) {
     ESP_LOGE(TAG, "Could not stop ranging, error code: %d", status);
     return {};
