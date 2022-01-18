@@ -1,0 +1,70 @@
+name: Prepare release
+
+on:
+  pull_request:
+    types: [labeled]
+    branches:
+      - master
+
+jobs:
+  prepare-release:
+    name: Prepare release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set major release
+        if: ${{ github.event.label.name == 'release-major' }}
+        run: echo "RELEASE=major" >> $GITHUB_ENV
+      - name: Set minor release
+        if: ${{ github.event.label.name == 'release-minor' }}
+        run: echo "RELEASE=minor" >> $GITHUB_ENV
+      - name: Set patch release
+        if: ${{ github.event.label.name == 'release-patch' }}
+        run: echo "RELEASE=patch" >> $GITHUB_ENV
+      - name: Check release env
+        run: |
+          if [[ -z "${{ env.RELEASE }}" ]];
+          then
+            echo "You need to set a release label on PRs to the main branch"
+            exit 1
+          else
+            exit 0
+          fi
+      - name: Install semver-tool
+        run: |
+          export DIR=$(mktemp -d)
+          cd $DIR
+          curl https://github.com/fsaintjacques/semver-tool/archive/3.2.0.tar.gz -L -o semver.tar.gz
+          tar -xvf semver.tar.gz
+          sudo cp semver-tool-3.2.0/src/semver /usr/local/bin
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Bump version
+        run: |
+          export CURRENT=$(grep -m1 '##' CHANGELOG.md | tr -d '## ')
+          export NEW_VERSION=$(semver bump ${{ env.RELEASE }} $CURRENT)
+          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+      - name: Setup git
+        run: |
+          git config user.email "ci@roode.de"
+          git config user.name "CI"
+          git fetch
+          git checkout ${{ github.event.pull_request.head.ref }}
+      - name: Prepare CHANGELOG
+        run: |
+          echo "# Changelog\n 
+          ## ${{ env.VERSION }}
+          " >> CHANGELOG.tmp
+          echo "${{ github.event.pull_request.body }}" >> CHANGELOG.tmp
+          grep -v "^# " CHANGELOG.md >> CHANGELOG.tmp;
+          cp CHANGELOG.tmp CHANGELOG.md
+      - name: Prepare README
+        run: |
+          export MAJOR=$(echo "${{ env.VERSION }}" | cut -d'.' -f1)
+          export MINOR=$(echo "${{ env.VERSION }}" | cut -d'.' -f2)
+      - name: Commit changes
+        run: |
+          git add CHANGELOG.md README.md
+          git commit -m "Bump to version ${{ env.VERSION }}"
+      - name: Push
+        run: git push
