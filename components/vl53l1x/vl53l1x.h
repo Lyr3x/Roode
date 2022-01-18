@@ -3,6 +3,7 @@
 
 #include "VL53L1X_ULD.h"
 #include "esphome/components/i2c/i2c.h"
+#include "esphome/core/application.h"
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 #include "esphome/core/log.h"
@@ -21,7 +22,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
  public:
   void setup() override;
   void dump_config() override;
-  // After GPIO, but before default...Is this needed? not sure.
+  /** This connects directly to a sensor */
   float get_setup_priority() const override { return setup_priority::DATA; };
 
   optional<uint16_t> read_distance(ROI *roi, VL53L1_Error &error);
@@ -33,6 +34,7 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   void set_ranging_mode_override(const RangingMode *mode) { this->ranging_mode_override = {mode}; }
   void set_offset(int16_t val) { this->offset = val; }
   void set_xtalk(uint16_t val) { this->xtalk = val; }
+  void set_timeout(uint16_t val) { this->timeout = val; }
 
  protected:
   VL53L1X_ULD sensor;
@@ -43,6 +45,12 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   optional<const RangingMode *> ranging_mode_override{};
   optional<int16_t> offset{};
   optional<uint16_t> xtalk{};
+  uint16_t timeout{};
+  ROI *last_roi{};
+
+  VL53L1_Error init();
+  VL53L1_Error wait_for_boot();
+  VL53L1_Error get_device_state(uint8_t *device_state);
 };
 
 }  // namespace vl53l1x

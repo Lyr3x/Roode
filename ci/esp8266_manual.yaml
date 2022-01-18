@@ -1,0 +1,21 @@
+<<: !include esp8266.yaml
+
+vl53l1x:
+  calibration:
+    ranging: short
+
+roode:
+  id: roode_platform
+  sampling: 1
+  roi: { height: 16, width: 6 }
+  detection_thresholds:
+    max: 85%
+  zones:
+    entry:
+      roi: { height: 15, width: 6 }
+      detection_thresholds:
+        max: 80%
+    exit:
+      roi: { height: 14, width: 6 }
+      detection_thresholds:
+        max: 75%

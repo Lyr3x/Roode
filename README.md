@@ -1,10 +1,12 @@
 # RooDe
 
-[![Build](https://github.com/Lyr3x/Roode/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/main.yml)
-
-People counter working with any smart home system which supports ESPHome and therefore Home Assistant. All necessary entities are created automatically.
+[![GitHub release](https://img.shields.io/github/v/tag/Lyr3x/Roode?style=flat-square)](https://GitHub.com/Lyr3x/Roode/releases/)
+[![Build](https://img.shields.io/github/workflow/status/Lyr3x/Roode/CI?style=flat-square)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/ci.yml)
+[![Maintenance](https://img.shields.io/maintenance/yes/2023?style=flat-square)](https://GitHub.com/Lyr3x/Roode/graphs/commit-activity)
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/hU9SvSXMHs)
+
+People counter working with any smart home system which supports ESPHome/MQTT like Home Assistant. All necessary entities are created automatically.
 
 - [Hardware Recommendation](#hardware-recommendation)
 - [Wiring](#wiring)
@@ -27,6 +29,7 @@ People counter working with any smart home system which supports ESPHome and the
   - **Pololu** <-- Recommended
   - GY-53
   - Black PCB chinese sensor
+  - Pimoroni
 - 1A Power Supply **Do not use an USB port of your computer!**
 - Encolsure (see .stl files) - will be updated soon!
   Pins:
@@ -71,21 +74,24 @@ Ps=0 (when connected to GND): In the IIC mode, the user can operate the chip by 
 Roode is provided as an external_component which means it is easy to setup in any ESPHome sensor configuration file.
 
 Other than base ESPHome configuration the only config that's needed for Roode is
+
 ```yaml
 external_components:
-  - source: github://Lyr3x/Roode
+  - source: github://Lyr3x/Roode@master
     refresh: always
-
+vl53l1x:
 roode:
 ```
+
 This uses the recommended default configuration.
 
-However, we offer a lot of flexibility. Here's the full configuration spelled out. 
+However, we offer a lot of flexibility. Here's the full configuration spelled out.
 
 ```yml
 external_components:
   - source: github://Lyr3x/Roode
     refresh: always
+    ref: master
 
 # VL53L1X sensor configuration is separate from Roode people counting algorithm
 vl53l1x:
@@ -124,20 +130,20 @@ roode:
   # The current default is
   roi: { height: 16, width: 6 }
   # We have an experiential automatic mode that can be enabled with
-  roi: auto
+  # roi: auto
   # or only automatic for one dimension
-  roi: { height: 16, width: auto }
+  # roi: { height: 16, width: auto }
 
   # The detection thresholds for determining whether a measurement should count as a person crossing.
   # A reading must be greater than the minimum and less than the maximum to count as a crossing.
   # These can be given as absolute distances or as percentages.
-  # Percentages are based on the automatically determined idle or resting distance. 
+  # Percentages are based on the automatically determined idle or resting distance.
   detection_thresholds:
-    min: 0% # default minimum is any distance 
+    min: 0% # default minimum is any distance
     max: 85% # default maximum is 85%
     # an example of absolute units
-    min: 50mm
-    max: 234cm
+    # min: 50mm
+    # max: 234cm
 
   # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
   # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
@@ -145,14 +151,14 @@ roode:
     # Flip the entry/exit zones. If Roode seems to be counting backwards, set this to true.
     invert: false
 
-    # Entry/Exit zones can set overrides for individual ROI & detection thresholds here. 
+    # Entry/Exit zones can set overrides for individual ROI & detection thresholds here.
     # If omitted, they use the options configured above.
     entry:
-      # Entry zone will automatically configure ROI, regardless of ROI above. 
+      # Entry zone will automatically configure ROI, regardless of ROI above.
       roi: auto
     exit:
       roi:
-        # Exit zone will have a height of 8 and a width of number set above or default or auto 
+        # Exit zone will have a height of 8 and a width of number set above or default or auto
         height: 8
         # Additionally, zones can manually set their center point.
         # Usually though, this is left for Roode to automatically determine.
@@ -165,17 +171,23 @@ roode:
         max: 70%
 ```
 
+Also feel free to check out running examples for:
+- [Wemos D1 mini with ESP32](peopleCounter32.yaml)
+- [Wemos D1 mini with ESP8266](peopleCounter8266.yaml)
+
 ### Sensors
 
 #### People Counter
 
 The most important one is the people counter.
+
 ```yaml
 number:
   - platform: roode
     people_counter:
       name: People Count
 ```
+
 Regardless of how close we can get, people counting will never be perfect.
 This allows the current people count to be adjusted easily via Home Assistant.
 

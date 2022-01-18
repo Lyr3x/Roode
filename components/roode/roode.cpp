@@ -4,14 +4,24 @@ namespace esphome {
 namespace roode {
 void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "Roode:");
+  ESP_LOGCONFIG(TAG, "  Sample size: %d", samples);
   LOG_UPDATE_INTERVAL(this);
+  entry->dump_config();
+  exit->dump_config();
 }
+
 void Roode::setup() {
   ESP_LOGI(SETUP, "Booting Roode %s", VERSION);
   if (version_sensor != nullptr) {
     version_sensor->publish_state(VERSION);
   }
   ESP_LOGI(SETUP, "Using sampling with sampling size: %d", samples);
+
+  if (this->distanceSensor->is_failed()) {
+    this->mark_failed();
+    ESP_LOGE(TAG, "Roode cannot be setup without a valid VL53L1X sensor");
+    return;
+  }
 
   calibrate_zones();
 }
@@ -27,7 +37,7 @@ void Roode::update() {
 
 void Roode::loop() {
   // unsigned long start = micros();
-  get_alternating_zone_distances();
+  this->current_zone->readDistance(distanceSensor);
   // uint16_t samplingDistance = sampling(this->current_zone);
   path_tracking(this->current_zone);
   handle_sensor_status();
@@ -40,7 +50,6 @@ void Roode::loop() {
 }
 
 bool Roode::handle_sensor_status() {
-  ESP_LOGV(TAG, "Sensor status: %d, Last sensor status: %d", sensor_status, last_sensor_status);
   bool check_status = false;
   if (last_sensor_status != sensor_status && sensor_status == VL53L1_ERROR_NONE) {
     if (status_sensor != nullptr) {
@@ -57,12 +66,6 @@ bool Roode::handle_sensor_status() {
   last_sensor_status = sensor_status;
   sensor_status = VL53L1_ERROR_NONE;
   return check_status;
-}
-
-VL53L1_Error Roode::get_alternating_zone_distances() {
-  this->current_zone->readDistance(distanceSensor);
-  App.feed_wdt();
-  return sensor_status;
 }
 
 void Roode::path_tracking(Zone *zone) {
@@ -231,6 +234,9 @@ void Roode::calibrateDistance() {
   entry->calibrateThreshold(distanceSensor, number_attempts);
   exit->calibrateThreshold(distanceSensor, number_attempts);
 
+  if (distanceSensor->get_ranging_mode_override().has_value()) {
+    return;
+  }
   auto *mode = determine_raning_mode(entry->threshold->idle, exit->threshold->idle);
   if (mode != initial) {
     distanceSensor->set_ranging_mode(mode);

@@ -2,6 +2,15 @@
 
 namespace esphome {
 namespace roode {
+
+void Zone::dump_config() const {
+  ESP_LOGCONFIG(TAG, "   %s", id == 0U ? "Entry" : "Exit");
+  ESP_LOGCONFIG(TAG, "     ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
+  ESP_LOGCONFIG(TAG, "     Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
+                threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
+                threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle), threshold->idle);
+}
+
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   last_sensor_status = sensor_status;
 
@@ -28,6 +37,8 @@ void Zone::reset_roi(uint8_t default_center) {
   roi->width = roi_override->width ?: 6;
   roi->height = roi_override->height ?: 16;
   roi->center = roi_override->center ?: default_center;
+  ESP_LOGD(TAG, "%s ROI reset: { width: %d, height: %d, center: %d }", id == 0U ? "Entry" : "Exit", roi->width,
+           roi->height, roi->center);
 }
 
 void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
@@ -65,7 +76,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
   } else {
     // now we set the position of the center of the two zones
     if (orientation == Parallel) {
-      switch (ROI_size) {
+      switch (this->roi->width) {
         case 4:
           this->roi->center = this->id == 0U ? 150 : 247;
           break;
@@ -79,7 +90,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
           break;
       }
     } else {
-      switch (ROI_size) {
+      switch (this->roi->width) {
         case 4:
           this->roi->center = this->id == 0U ? 193 : 58;
           break;

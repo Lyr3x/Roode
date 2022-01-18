@@ -30,6 +30,7 @@ struct Threshold {
 class Zone {
  public:
   explicit Zone(uint8_t id) : id{id} {};
+  void dump_config() const;
   VL53L1_Error readDistance(TofSensor *distanceSensor);
   void reset_roi(uint8_t default_center);
   void calibrateThreshold(TofSensor *distanceSensor, int number_attempts);

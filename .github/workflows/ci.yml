@@ -1,0 +1,54 @@
+name: CI
+on:
+  push:
+    paths:
+      - "components/**"
+      - "ci/**"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    strategy:
+      matrix:
+        esp: ["esp32", "esp8266"]
+    name: Validate ${{ matrix.esp }} config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: "3.x"
+      - name: Install ESPHome
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U esphome
+          pip install -U pillow
+
+      - name: Validate ${{ matrix.esp }} default Config
+        run: esphome config ci/${{ matrix.esp }}.yaml
+
+      - name: Validate ${{ matrix.esp }} manual Config
+        run: esphome config ci/${{ matrix.esp }}_manual.yaml
+  build:
+    strategy:
+      matrix:
+        esp: ["esp32", "esp8266"]
+    name: Build ${{ matrix.esp }} firmware
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup Python
+        uses: actions/setup-python@master
+        with:
+          python-version: "3.x"
+      - name: Install ESPHome
+        run: |
+          python -m pip install --upgrade pip
+          pip install -U esphome
+          pip install -U pillow
+      - name: Build ${{ matrix.esp }} default config
+        run: esphome compile ci/${{ matrix.esp }}.yaml
+
+      - name: Build ${{ matrix.esp }} manual config
+        run: esphome compile ci/${{ matrix.esp }}_manual.yaml
