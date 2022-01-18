@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+- Manual ROI configuration fixed
+- Sensor initialization fixed
+- Fix setup priorities to ensure proper boot up
+- Code formatting
+- Cleanup
+
 ## 1.4.1
 
 - Timing budget test by @Lyr3x in #60
