@@ -52,8 +52,10 @@ jobs:
           git checkout ${{ github.event.pull_request.head.ref }}
       - name: Prepare CHANGELOG
         run: |
-          echo "# Changelog" >> CHANGELOG.tmp
-          echo "\n## $NEW_VERSION" >> CHANGELOG.tmp
+          echo "# Changelog
+          
+          ## ${{ env.VERSION }}
+          " >> CHANGELOG.tmp
           echo "${{ github.event.pull_request.body }}" >> CHANGELOG.tmp
           grep -v "^# " CHANGELOG.md >> CHANGELOG.tmp;
           cp CHANGELOG.tmp CHANGELOG.md
@@ -70,5 +72,3 @@ jobs:
           git commit -m "Bump to version ${{ env.VERSION }}"
       - name: Push
         run: git push
-
-
