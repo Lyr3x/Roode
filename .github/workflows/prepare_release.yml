@@ -66,7 +66,7 @@ jobs:
           sed -i -e 's/#define VERSION.*/#define VERSION "${{ env.VERSION }}"/g' components/roode/roode.h
       - name: Commit changes
         run: |
-          git add CHANGELOG.md README.md
+          git add CHANGELOG.md README.md components/roode/roode.h
           git commit -m "Bump to version ${{ env.VERSION }}"
       - name: Push
         run: git push
