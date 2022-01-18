@@ -61,9 +61,14 @@ jobs:
         run: |
           export MAJOR=$(echo "${{ env.VERSION }}" | cut -d'.' -f1)
           export MINOR=$(echo "${{ env.VERSION }}" | cut -d'.' -f2)
+      - name: Prepare update
+        run: |
+          sed -i -e 's/#define VERSION.*/#define VERSION "${{ env.VERSION }}"/g' components/roode/roode.h
       - name: Commit changes
         run: |
           git add CHANGELOG.md README.md
           git commit -m "Bump to version ${{ env.VERSION }}"
       - name: Push
         run: git push
+
+
