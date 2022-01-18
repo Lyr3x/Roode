@@ -1,4 +1,10 @@
-# Changelog
+# Changelog\n 
+## 1.5.0
+
+- Manual ROI configuration fixed
+- Sensor initialization fixed
+- Fix setup priorities to ensure proper boot up
+- Code formatting
 
 ## 1.4.1
 
