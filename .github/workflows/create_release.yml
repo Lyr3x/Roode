@@ -24,12 +24,12 @@ jobs:
           export TAG=$(head -1 CHANGELOG.tmp | cut -d' ' -f2)
           echo "TAG=$TAG" >> $GITHUB_ENV
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ env.TAG }}
-          release_name: ${{ env.TAG }}
-          body_path: CHANGELOG.tmp
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          bodyFile: "CHANGELOG.tmp"
           draft: false
           prerelease: false
+          generateReleaseNotes: true
