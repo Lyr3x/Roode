@@ -77,7 +77,9 @@ CONFIG_SCHEMA = (
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(VL53L1X),
-            cv.Optional(CONF_TIMEOUT, default="2s"): cv.positive_time_period_milliseconds,
+            cv.Optional(
+                CONF_TIMEOUT, default="2s"
+            ): cv.positive_time_period_milliseconds,
             cv.Optional(CONF_PINS, default={}): NullableSchema(
                 {
                     cv.Optional(CONF_XSHUT): pins.gpio_output_pin_schema,
