@@ -79,7 +79,7 @@ void Roode::path_tracking(Zone *zone) {
   int AnEventHasOccured = 0;
 
   // PathTrack algorithm
-  if (zone->getMinDistance() < zone->threshold->max && zone->getMinDistance() > zone->threshold->min) {
+  if (zone->is_occupied()) {
     // Someone is in the sensing area
     CurrentZoneStatus = SOMEONE;
     if (presence_sensor != nullptr) {

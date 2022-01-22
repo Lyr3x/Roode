@@ -126,7 +126,8 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   return avg - sd;
 }
 
+bool Zone::is_occupied() const { return min_distance < threshold->max && min_distance > threshold->min; }
+
 uint16_t Zone::getDistance() const { return this->last_distance; }
-uint16_t Zone::getMinDistance() const { return this->min_distance; }
 }  // namespace roode
 }  // namespace esphome
