@@ -37,7 +37,7 @@ class Zone {
   void roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation);
   const uint8_t id;
   uint16_t getDistance() const;
-  uint16_t getMinDistance() const;
+  bool is_occupied() const;
   ROI *roi = new ROI();
   ROI *roi_override = new ROI();
   Threshold *threshold = new Threshold();

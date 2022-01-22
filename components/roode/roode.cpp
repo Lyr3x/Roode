@@ -68,20 +68,20 @@ bool Roode::handle_sensor_status() {
   return check_status;
 }
 
-void Roode::path_tracking(Zone *zone) {
-  static int PathTrack[] = {0, 0, 0, 0};
-  static int PathTrackFillingSize = 1;  // init this to 1 as we start from state
+void Roode::path_tracking(const Zone *const zone) {
+  static int path_track[] = {0, 0, 0, 0};
+  static int path_track_filling_size = 1;  // init this to 1 as we start from state
                                         // where nobody is any of the zones
-  static int LeftPreviousStatus = NOBODY;
-  static int RightPreviousStatus = NOBODY;
-  int CurrentZoneStatus = NOBODY;
-  int AllZonesCurrentStatus = 0;
-  int AnEventHasOccured = 0;
+  static bool left_previously_occupied = false;
+  static bool right_previously_occupied = false;
+  bool current_zone_occupied = false;
+  int all_zones_current_status = 0;
+  bool an_event_has_occurred = false;
 
-  // PathTrack algorithm
-  if (zone->getMinDistance() < zone->threshold->max && zone->getMinDistance() > zone->threshold->min) {
+  // path_track algorithm
+  if (zone->is_occupied()) {
     // Someone is in the sensing area
-    CurrentZoneStatus = SOMEONE;
+    current_zone_occupied = true;
     if (presence_sensor != nullptr) {
       presence_sensor->publish_state(true);
     }
@@ -89,57 +89,57 @@ void Roode::path_tracking(Zone *zone) {
 
   // left zone
   if (zone == (this->invert_direction_ ? this->exit : this->entry)) {
-    if (CurrentZoneStatus != LeftPreviousStatus) {
-      // event in left zone has occured
-      AnEventHasOccured = 1;
+    if (current_zone_occupied != left_previously_occupied) {
+      // event in left zone has occurred
+      an_event_has_occurred = true;
 
-      if (CurrentZoneStatus == SOMEONE) {
-        AllZonesCurrentStatus += 1;
+      if (current_zone_occupied) {
+        all_zones_current_status += 1;
       }
       // need to check right zone as well ...
-      if (RightPreviousStatus == SOMEONE) {
-        // event in right zone has occured
-        AllZonesCurrentStatus += 2;
+      if (right_previously_occupied) {
+        // event in right zone has occurred
+        all_zones_current_status += 2;
       }
       // remember for next time
-      LeftPreviousStatus = CurrentZoneStatus;
+      left_previously_occupied = current_zone_occupied;
     }
   }
   // right zone
   else {
-    if (CurrentZoneStatus != RightPreviousStatus) {
-      // event in right zone has occured
-      AnEventHasOccured = 1;
-      if (CurrentZoneStatus == SOMEONE) {
-        AllZonesCurrentStatus += 2;
+    if (current_zone_occupied != right_previously_occupied) {
+      // event in right zone has occurred
+      an_event_has_occurred = true;
+      if (current_zone_occupied) {
+        all_zones_current_status += 2;
       }
       // need to check left zone as well ...
-      if (LeftPreviousStatus == SOMEONE) {
-        // event in left zone has occured
-        AllZonesCurrentStatus += 1;
+      if (left_previously_occupied) {
+        // event in left zone has occurred
+        all_zones_current_status += 1;
       }
       // remember for next time
-      RightPreviousStatus = CurrentZoneStatus;
+      right_previously_occupied = current_zone_occupied;
     }
   }
 
-  // if an event has occured
-  if (AnEventHasOccured) {
-    ESP_LOGD(TAG, "Event has occured, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
-    if (PathTrackFillingSize < 4) {
-      PathTrackFillingSize++;
+  // if an event has occurred
+  if (an_event_has_occurred) {
+    ESP_LOGD(TAG, "Event has occurred, all_zones_current_status: %d", all_zones_current_status);
+    if (path_track_filling_size < 4) {
+      path_track_filling_size++;
     }
 
     // if nobody anywhere lets check if an exit or entry has happened
-    if ((LeftPreviousStatus == NOBODY) && (RightPreviousStatus == NOBODY)) {
-      ESP_LOGD(TAG, "Nobody anywhere, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
-      // check exit or entry only if PathTrackFillingSize is 4 (for example 0 1
-      // 3 2) and last event is 0 (nobobdy anywhere)
-      if (PathTrackFillingSize == 4) {
-        // check exit or entry. no need to check PathTrack[0] == 0 , it is
+    if (!left_previously_occupied && !right_previously_occupied) {
+      ESP_LOGD(TAG, "Nobody anywhere, all_zones_current_status: %d", all_zones_current_status);
+      // check exit or entry only if path_track_filling_size is 4 (for example 0 1
+      // 3 2) and last event is 0 (nobody anywhere)
+      if (path_track_filling_size == 4) {
+        // check exit or entry. no need to check path_track[0] == 0 , it is
         // always the case
 
-        if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2)) {
+        if ((path_track[1] == 1) && (path_track[2] == 3) && (path_track[3] == 2)) {
           // This an exit
           ESP_LOGI("Roode pathTracking", "Exit detected.");
 
@@ -147,7 +147,7 @@ void Roode::path_tracking(Zone *zone) {
           if (entry_exit_event_sensor != nullptr) {
             entry_exit_event_sensor->publish_state("Exit");
           }
-        } else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1)) {
+        } else if ((path_track[1] == 2) && (path_track[2] == 3) && (path_track[3] == 1)) {
           // This an entry
           ESP_LOGI("Roode pathTracking", "Entry detected.");
           this->updateCounter(1);
@@ -157,21 +157,21 @@ void Roode::path_tracking(Zone *zone) {
         }
       }
 
-      PathTrackFillingSize = 1;
+      path_track_filling_size = 1;
     } else {
-      // update PathTrack
-      // example of PathTrack update
+      // update path_track
+      // example of path_track update
       // 0
       // 0 1
       // 0 1 3
       // 0 1 3 1
       // 0 1 3 3
       // 0 1 3 2 ==> if next is 0 : check if exit
-      PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
+      path_track[path_track_filling_size - 1] = all_zones_current_status;
     }
   }
   if (presence_sensor != nullptr) {
-    if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY) {
+    if (!current_zone_occupied && !left_previously_occupied && !right_previously_occupied) {
       // nobody is in the sensing area
       presence_sensor->publish_state(false);
     }
@@ -187,8 +187,8 @@ void Roode::updateCounter(int delta) {
 }
 void Roode::recalibration() { calibrate_zones(); }
 
-const RangingMode *Roode::determine_raning_mode(uint16_t average_entry_zone_distance,
-                                                uint16_t average_exit_zone_distance) {
+const RangingMode *Roode::determine_ranging_mode(uint16_t average_entry_zone_distance,
+                                                uint16_t average_exit_zone_distance) const {
   uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
                                                                           : average_exit_zone_distance;
   uint16_t max = average_entry_zone_distance > average_exit_zone_distance ? average_entry_zone_distance
@@ -237,7 +237,7 @@ void Roode::calibrateDistance() {
   if (distanceSensor->get_ranging_mode_override().has_value()) {
     return;
   }
-  auto *mode = determine_raning_mode(entry->threshold->idle, exit->threshold->idle);
+  auto *mode = determine_ranging_mode(entry->threshold->idle, exit->threshold->idle);
   if (mode != initial) {
     distanceSensor->set_ranging_mode(mode);
   }
