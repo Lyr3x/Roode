@@ -1,55 +1,71 @@
+from typing import Dict
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import binary_sensor
-import esphome.final_validate as fv
+from esphome.components.binary_sensor import (
+    BINARY_SENSOR_SCHEMA,
+    device_class,
+    new_binary_sensor,
+)
 from esphome.const import (
     CONF_ID,
     CONF_DEVICE_CLASS,
     DEVICE_CLASS_OCCUPANCY,
 )
-from . import Roode, CONF_ROODE_ID
+from . import (
+    Roode,
+    CONF_ROODE_ID,
+    CONF_ZONES,
+    CONF_ENTRY_ZONE,
+    CONF_EXIT_ZONE,
+    NullableSchema,
+)
 
 DEPENDENCIES = ["roode"]
 
-CONF_PRESENCE = "presence_sensor"
-TYPES = [CONF_PRESENCE]
+CONF_OCCUPANCY = "presence"
+
+OCCUPANCY_SCHEMA = BINARY_SENSOR_SCHEMA.extend(
+    {
+        cv.Optional(CONF_DEVICE_CLASS, default=DEVICE_CLASS_OCCUPANCY): device_class,
+    }
+)
+
+ZONE_SCHEMA = NullableSchema(
+    {
+        cv.Optional(CONF_OCCUPANCY): OCCUPANCY_SCHEMA,
+    }
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
-        cv.Optional(CONF_PRESENCE): binary_sensor.BINARY_SENSOR_SCHEMA.extend(
+        cv.Optional(CONF_OCCUPANCY): OCCUPANCY_SCHEMA,
+        cv.Optional(CONF_ZONES, default={}): NullableSchema(
             {
-                cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),
+                cv.Optional(CONF_ENTRY_ZONE, default={}): ZONE_SCHEMA,
+                cv.Optional(CONF_EXIT_ZONE, default={}): ZONE_SCHEMA,
             }
         ),
     }
 )
 
 
-# def validate_can_use_presence(value):
-#     main = fv.full_config.get()["roode"][0]
-#     presence_sensor = main.get(CONF_USE_PRESENCE)
-#     print(presence_sensor)
-#     if presence_sensor == False:
-#         raise cv.Invalid("Presence sensor is not enabled")
-#     else:
-#         return presence_sensor
+async def to_code(config: Dict):
+    roode = await cg.get_variable(config[CONF_ROODE_ID])
+    if CONF_OCCUPANCY in config:
+        cg.add(
+            roode.set_occupancy_sensor(await new_binary_sensor(config[CONF_OCCUPANCY]))
+        )
+    await to_code_zone(CONF_ENTRY_ZONE, config, roode)
+    await to_code_zone(CONF_EXIT_ZONE, config, roode)
 
 
-# FINAL_VALIDATE_SCHEMA = cv.Schema(
-#     {cv.Optional(CONF_PRESENCE): validate_can_use_presence}, extra=cv.ALLOW_EXTRA
-# )
-
-
-async def setup_conf(config, key, hub):
-    if key in config:
-        conf = config[key]
-        sens = cg.new_Pvariable(conf[CONF_ID])
-        await binary_sensor.register_binary_sensor(sens, conf)
-        cg.add(getattr(hub, f"set_{key}_binary_sensor")(sens))
-
-
-async def to_code(config):
-    hub = await cg.get_variable(config[CONF_ROODE_ID])
-    for key in TYPES:
-        await setup_conf(config, key, hub)
+async def to_code_zone(name: str, config: Dict, roode: cg.Pvariable):
+    zone_config = config[CONF_ZONES][name]
+    zone_var = cg.MockObj(f"{roode}->{name}", "->")
+    if CONF_OCCUPANCY in zone_config:
+        cg.add(
+            zone_var.set_occupancy_sensor(
+                await new_binary_sensor(zone_config[CONF_OCCUPANCY])
+            )
+        )

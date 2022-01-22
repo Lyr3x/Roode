@@ -100,7 +100,7 @@ binary_sensor:
   - platform: status
     name: $friendly_name API Status
   - platform: roode
-    presence_sensor:
+    presence:
       name: $friendly_name presence
 
 sensor:

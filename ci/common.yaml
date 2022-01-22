@@ -26,8 +26,15 @@ number:
 
 binary_sensor:
   - platform: roode
-    presence_sensor:
-      name: $friendly_name presence
+    presence:
+      name: $friendly_name Presence
+    zones:
+      entry:
+        presence:
+          name: $friendly_name Entry Presence
+      exit:
+        presence:
+          name: $friendly_name Exit Presence
 
 sensor:
   - platform: roode

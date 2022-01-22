@@ -23,6 +23,12 @@ void Roode::setup() {
     return;
   }
 
+  auto on_zone_occupancy_change = [this](bool state) {
+    occupancy->publish_state(entry->is_occupied() || exit->is_occupied());
+  };
+  entry->occupancy->add_on_state_callback(on_zone_occupancy_change);
+  exit->occupancy->add_on_state_callback(on_zone_occupancy_change);
+
   calibrate_zones();
 }
 
@@ -71,21 +77,13 @@ bool Roode::handle_sensor_status() {
 void Roode::path_tracking(const Zone *const zone) {
   static int path_track[] = {0, 0, 0, 0};
   static int path_track_filling_size = 1;  // init this to 1 as we start from state
-                                        // where nobody is any of the zones
+                                           // where nobody is any of the zones
   static bool left_previously_occupied = false;
   static bool right_previously_occupied = false;
-  bool current_zone_occupied = false;
+
+  bool current_zone_occupied = zone->is_occupied();
   int all_zones_current_status = 0;
   bool an_event_has_occurred = false;
-
-  // path_track algorithm
-  if (zone->is_occupied()) {
-    // Someone is in the sensing area
-    current_zone_occupied = true;
-    if (presence_sensor != nullptr) {
-      presence_sensor->publish_state(true);
-    }
-  }
 
   // left zone
   if (zone == (this->invert_direction_ ? this->exit : this->entry)) {
@@ -170,12 +168,6 @@ void Roode::path_tracking(const Zone *const zone) {
       path_track[path_track_filling_size - 1] = all_zones_current_status;
     }
   }
-  if (presence_sensor != nullptr) {
-    if (!current_zone_occupied && !left_previously_occupied && !right_previously_occupied) {
-      // nobody is in the sensing area
-      presence_sensor->publish_state(false);
-    }
-  }
 }
 void Roode::updateCounter(int delta) {
   if (this->people_counter == nullptr) {
@@ -188,7 +180,7 @@ void Roode::updateCounter(int delta) {
 void Roode::recalibration() { calibrate_zones(); }
 
 const RangingMode *Roode::determine_ranging_mode(uint16_t average_entry_zone_distance,
-                                                uint16_t average_exit_zone_distance) const {
+                                                 uint16_t average_exit_zone_distance) const {
   uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
                                                                           : average_exit_zone_distance;
   uint16_t max = average_entry_zone_distance > average_exit_zone_distance ? average_entry_zone_distance

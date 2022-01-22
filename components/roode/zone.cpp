@@ -26,6 +26,8 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   };
   min_distance = *std::min_element(samples.begin(), samples.end());
 
+  occupancy->publish_state(min_distance < threshold->max && min_distance > threshold->min);
+
   return sensor_status;
 }
 
@@ -125,8 +127,6 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   ESP_LOGD(CALIBRATION, "Zone SD: %d", sd);
   return avg - sd;
 }
-
-bool Zone::is_occupied() const { return min_distance < threshold->max && min_distance > threshold->min; }
 
 uint16_t Zone::getDistance() const { return this->last_distance; }
 }  // namespace roode
