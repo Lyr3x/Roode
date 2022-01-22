@@ -9,6 +9,7 @@ void Zone::dump_config() {
   ESP_LOGCONFIG(TAG, "  Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
                 threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
                 threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle), threshold->idle);
+  LOG_UPDATE_INTERVAL(this);
 }
 
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {

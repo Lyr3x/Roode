@@ -5,7 +5,6 @@ namespace roode {
 void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "Roode:");
   ESP_LOGCONFIG(TAG, "  Sample size: %d", samples);
-  LOG_UPDATE_INTERVAL(this);
 }
 
 void Roode::setup() {
@@ -32,15 +31,6 @@ void Roode::setup() {
   current_zone = entry;
 
   calibrate_zones();
-}
-
-void Roode::update() {
-  if (distance_entry != nullptr) {
-    distance_entry->publish_state(entry->getDistance());
-  }
-  if (distance_exit != nullptr) {
-    distance_exit->publish_state(exit->getDistance());
-  }
 }
 
 void Roode::loop() {

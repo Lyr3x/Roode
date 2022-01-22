@@ -17,8 +17,8 @@ MULTI_CONF = True
 CONF_ROODE_ID = "roode_id"
 
 roode_ns = cg.esphome_ns.namespace("roode")
-Roode = roode_ns.class_("Roode", cg.PollingComponent)
-Zone = roode_ns.class_("Zone", cg.Component)
+Roode = roode_ns.class_("Roode", cg.Component)
+Zone = roode_ns.class_("Zone", cg.PollingComponent)
 
 CONF_AUTO = "auto"
 CONF_ORIENTATION = "orientation"
@@ -62,7 +62,7 @@ THRESHOLDS_SCHEMA = NullableSchema(
 
 ZONE_SCHEMA = cv.All(
     none_to_empty(),
-    cv.COMPONENT_SCHEMA.extend(
+    cv.polling_component_schema("100ms").extend(
         {
             cv.GenerateID(): cv.declare_id(Zone),
             cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,

@@ -50,10 +50,9 @@ static int time_budget_in_ms_medium_long = 50;
 static int time_budget_in_ms_long = 100;
 static int time_budget_in_ms_max = 200;  // max range: 4m
 
-class Roode : public PollingComponent {
+class Roode : public Component {
  public:
   void setup() override;
-  void update() override;
   void loop() override;
   void dump_config() override;
   /** Roode uses data from sensors */
@@ -68,8 +67,6 @@ class Roode : public PollingComponent {
     entry->set_max_samples(size);
     exit->set_max_samples(size);
   }
-  void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
-  void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
   void set_people_counter(number::Number *counter) { this->people_counter = counter; }
   void set_max_threshold_entry_sensor(sensor::Sensor *max_threshold_entry_sensor_) {
     max_threshold_entry_sensor = max_threshold_entry_sensor_;
@@ -100,8 +97,6 @@ class Roode : public PollingComponent {
  protected:
   TofSensor *distanceSensor;
   Zone *current_zone = entry;
-  sensor::Sensor *distance_entry;
-  sensor::Sensor *distance_exit;
   number::Number *people_counter;
   sensor::Sensor *max_threshold_entry_sensor;
   sensor::Sensor *max_threshold_exit_sensor;
