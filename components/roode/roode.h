@@ -16,8 +16,6 @@ using TofSensor = esphome::vl53l1x::VL53L1X;
 
 namespace esphome {
 namespace roode {
-#define NOBODY 0
-#define SOMEONE 1
 #define VERSION "1.5.1"
 static const char *const TAG = "Roode";
 static const char *const SETUP = "Setup";
@@ -122,7 +120,7 @@ class Roode : public PollingComponent {
 
   VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
   VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
-  void path_tracking(Zone *zone);
+  void path_tracking(const Zone *zone);
   bool handle_sensor_status();
   void calibrateDistance();
   void calibrate_zones();
