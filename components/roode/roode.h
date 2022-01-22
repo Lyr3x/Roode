@@ -94,8 +94,8 @@ class Roode : public PollingComponent {
     entry_exit_event_sensor = entry_exit_event_sensor_;
   }
   void recalibration();
-  Zone *entry = new Zone(0);
-  Zone *exit = new Zone(1);
+  Zone *entry;
+  Zone *exit;
 
  protected:
   TofSensor *distanceSensor;

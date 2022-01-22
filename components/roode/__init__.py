@@ -8,7 +8,7 @@ from esphome.const import (
     CONF_SENSOR,
     CONF_WIDTH,
 )
-from ..vl53l1x import distance_as_mm, NullableSchema, VL53L1X
+from ..vl53l1x import distance_as_mm, NullableSchema, VL53L1X, none_to_empty
 
 DEPENDENCIES = ["vl53l1x"]
 AUTO_LOAD = ["vl53l1x", "sensor", "binary_sensor", "text_sensor", "number"]
@@ -18,6 +18,7 @@ CONF_ROODE_ID = "roode_id"
 
 roode_ns = cg.esphome_ns.namespace("roode")
 Roode = roode_ns.class_("Roode", cg.PollingComponent)
+Zone = roode_ns.class_("Zone", cg.Component)
 
 CONF_AUTO = "auto"
 CONF_ORIENTATION = "orientation"
@@ -59,14 +60,18 @@ THRESHOLDS_SCHEMA = NullableSchema(
     }
 )
 
-ZONE_SCHEMA = NullableSchema(
-    {
-        cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
-        cv.Optional(CONF_DETECTION_THRESHOLDS, default={}): THRESHOLDS_SCHEMA,
-    }
+ZONE_SCHEMA = cv.All(
+    none_to_empty(),
+    cv.COMPONENT_SCHEMA.extend(
+        {
+            cv.GenerateID(): cv.declare_id(Zone),
+            cv.Optional(CONF_ROI, default={}): ROI_SCHEMA,
+            cv.Optional(CONF_DETECTION_THRESHOLDS, default={}): THRESHOLDS_SCHEMA,
+        }
+    ),
 )
 
-CONFIG_SCHEMA = cv.Schema(
+CONFIG_SCHEMA = cv.COMPONENT_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(Roode),
         cv.GenerateID(CONF_SENSOR): cv.use_id(VL53L1X),
@@ -82,26 +87,35 @@ CONFIG_SCHEMA = cv.Schema(
             }
         ),
     }
-).extend(cv.COMPONENT_SCHEMA)
+)
 
 
 async def to_code(config: Dict):
     roode = cg.new_Pvariable(config[CONF_ID])
-    await cg.register_component(roode, config)
 
-    sens = await cg.get_variable(config[CONF_SENSOR])
-    cg.add(roode.set_tof_sensor(sens))
+    # Order matters: zones must be initialized and set on Roode here first.
+    # Otherwise, other Roode setters or sensors will try to make calls on nullptr.
+    entry = setup_zone(CONF_ENTRY_ZONE, config, roode)
+    exit = setup_zone(CONF_EXIT_ZONE, config, roode)
 
     cg.add(roode.set_orientation(config[CONF_ORIENTATION]))
     cg.add(roode.set_sampling_size(config[CONF_SAMPLING]))
     cg.add(roode.set_invert_direction(config[CONF_ZONES][CONF_INVERT]))
-    setup_zone(CONF_ENTRY_ZONE, config, roode)
-    setup_zone(CONF_EXIT_ZONE, config, roode)
+
+    await cg.register_component(roode, config)
+    await cg.register_component(*entry)
+    await cg.register_component(*exit)
+
+    sens = await cg.get_variable(config[CONF_SENSOR])
+    cg.add(roode.set_tof_sensor(sens))
 
 
 def setup_zone(name: str, config: Dict, roode: cg.Pvariable):
     zone_config = config[CONF_ZONES][name]
-    zone_var = cg.MockObj(f"{roode}->{name}", "->")
+    zone_var = cg.new_Pvariable(
+        zone_config[CONF_ID], 0 if name == CONF_ENTRY_ZONE else 1
+    )
+    cg.add(cg.RawExpression(f"{roode}->{name} = {zone_var}"))
 
     roi_var = cg.MockObj(f"{zone_var}->roi_override", "->")
     setup_roi(roi_var, zone_config.get(CONF_ROI, {}), config.get(CONF_ROI, {}))
@@ -112,6 +126,7 @@ def setup_zone(name: str, config: Dict, roode: cg.Pvariable):
         zone_config.get(CONF_DETECTION_THRESHOLDS, {}),
         config.get(CONF_DETECTION_THRESHOLDS, {}),
     )
+    return zone_var, zone_config
 
 
 def setup_roi(var: cg.MockObj, config: Union[Dict, str], fallback: Union[Dict, str]):

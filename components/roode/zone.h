@@ -27,10 +27,10 @@ struct Threshold {
   void set_max_percentage(uint8_t max) { this->max_percentage = max; }
 };
 
-class Zone {
+class Zone : public Component {
  public:
   explicit Zone(uint8_t id) : id{id} {};
-  void dump_config() const;
+  void dump_config() override;
   VL53L1_Error readDistance(TofSensor *distanceSensor);
   void reset_roi(uint8_t default_center);
   void calibrateThreshold(TofSensor *distanceSensor, int number_attempts);

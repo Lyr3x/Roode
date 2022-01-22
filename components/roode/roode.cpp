@@ -6,8 +6,6 @@ void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "Roode:");
   ESP_LOGCONFIG(TAG, "  Sample size: %d", samples);
   LOG_UPDATE_INTERVAL(this);
-  entry->dump_config();
-  exit->dump_config();
 }
 
 void Roode::setup() {
@@ -30,6 +28,8 @@ void Roode::setup() {
     entry->occupancy->add_on_state_callback(on_zone_occupancy_change);
     exit->occupancy->add_on_state_callback(on_zone_occupancy_change);
   }
+
+  current_zone = entry;
 
   calibrate_zones();
 }
