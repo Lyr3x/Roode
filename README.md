@@ -208,11 +208,17 @@ binary_sensor:
 
 sensor:
   - platform: roode
-    id: hallway
-    distance_sensor:
-      name: $friendly_name distance
-      filters:
-        - delta: 100.0
+    zones:
+      entry:
+        distance:
+          name: $friendly_name Entry Distance
+          filters:
+            - delta: 100
+      exit:
+        distance:
+          name: $friendly_name Exit Distance
+          filters:
+            - delta: 100
     threshold_entry:
       name: $friendly_name Zone 0
     threshold_exit:
