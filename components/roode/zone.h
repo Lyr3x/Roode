@@ -37,11 +37,13 @@ class Zone {
   void roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation);
   const uint8_t id;
   uint16_t getDistance() const;
-  bool is_occupied() const;
+  bool is_occupied() const { return occupancy->state; };
   ROI *roi = new ROI();
   ROI *roi_override = new ROI();
   Threshold *threshold = new Threshold();
   void set_max_samples(uint8_t max) { max_samples = max; };
+  binary_sensor::BinarySensor *occupancy{};
+  void set_occupancy_sensor(binary_sensor::BinarySensor *sensor) { occupancy = sensor; }
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);

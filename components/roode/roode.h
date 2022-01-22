@@ -88,9 +88,7 @@ class Roode : public PollingComponent {
   void set_exit_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { exit_roi_height_sensor = roi_height_sensor_; }
   void set_exit_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { exit_roi_width_sensor = roi_width_sensor_; }
   void set_sensor_status_sensor(sensor::Sensor *status_sensor_) { status_sensor = status_sensor_; }
-  void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) {
-    presence_sensor = presence_sensor_;
-  }
+  void set_occupancy_sensor(binary_sensor::BinarySensor *sensor) { occupancy = sensor; }
   void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
   void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) {
     entry_exit_event_sensor = entry_exit_event_sensor_;
@@ -114,7 +112,7 @@ class Roode : public PollingComponent {
   sensor::Sensor *entry_roi_height_sensor;
   sensor::Sensor *entry_roi_width_sensor;
   sensor::Sensor *status_sensor;
-  binary_sensor::BinarySensor *presence_sensor;
+  binary_sensor::BinarySensor *occupancy{};
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
