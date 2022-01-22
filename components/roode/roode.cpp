@@ -23,11 +23,13 @@ void Roode::setup() {
     return;
   }
 
-  auto on_zone_occupancy_change = [this](bool state) {
-    occupancy->publish_state(entry->is_occupied() || exit->is_occupied());
-  };
-  entry->occupancy->add_on_state_callback(on_zone_occupancy_change);
-  exit->occupancy->add_on_state_callback(on_zone_occupancy_change);
+  if (occupancy != nullptr) {
+    auto on_zone_occupancy_change = [this](bool state) {
+      occupancy->publish_state(entry->is_occupied() || exit->is_occupied());
+    };
+    entry->occupancy->add_on_state_callback(on_zone_occupancy_change);
+    exit->occupancy->add_on_state_callback(on_zone_occupancy_change);
+  }
 
   calibrate_zones();
 }

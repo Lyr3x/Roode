@@ -42,7 +42,7 @@ class Zone {
   ROI *roi_override = new ROI();
   Threshold *threshold = new Threshold();
   void set_max_samples(uint8_t max) { max_samples = max; };
-  binary_sensor::BinarySensor *occupancy{};
+  binary_sensor::BinarySensor *occupancy = new binary_sensor::BinarySensor();
   void set_occupancy_sensor(binary_sensor::BinarySensor *sensor) { occupancy = sensor; }
 
  protected:
