@@ -187,8 +187,8 @@ void Roode::updateCounter(int delta) {
 }
 void Roode::recalibration() { calibrate_zones(); }
 
-const RangingMode *Roode::determine_raning_mode(uint16_t average_entry_zone_distance,
-                                                uint16_t average_exit_zone_distance) {
+const RangingMode *Roode::determine_ranging_mode(uint16_t average_entry_zone_distance,
+                                                uint16_t average_exit_zone_distance) const {
   uint16_t min = average_entry_zone_distance < average_exit_zone_distance ? average_entry_zone_distance
                                                                           : average_exit_zone_distance;
   uint16_t max = average_entry_zone_distance > average_exit_zone_distance ? average_entry_zone_distance
@@ -237,7 +237,7 @@ void Roode::calibrateDistance() {
   if (distanceSensor->get_ranging_mode_override().has_value()) {
     return;
   }
-  auto *mode = determine_raning_mode(entry->threshold->idle, exit->threshold->idle);
+  auto *mode = determine_ranging_mode(entry->threshold->idle, exit->threshold->idle);
   if (mode != initial) {
     distanceSensor->set_ranging_mode(mode);
   }
