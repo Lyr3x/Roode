@@ -25,6 +25,8 @@ MULTI_CONF = False  # TODO enable when we support multiple addresses
 vl53l1x_ns = cg.esphome_ns.namespace("vl53l1x")
 VL53L1X = vl53l1x_ns.class_("VL53L1X", cg.Component)
 
+CONF_VL53L1X_ID = "vl53l1x_id"
+
 CONF_AUTO = "auto"
 CONF_CALIBRATION = "calibration"
 CONF_RANGING_MODE = "ranging"

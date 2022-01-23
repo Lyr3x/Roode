@@ -48,8 +48,6 @@ class Zone : public PollingComponent {
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);
-  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
-  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
   uint16_t last_distance;
   uint16_t min_distance;
   std::vector<uint16_t> samples;

@@ -13,11 +13,10 @@ void Zone::dump_config() {
 }
 
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
-  last_sensor_status = sensor_status;
-
-  auto result = distanceSensor->read_distance(roi, sensor_status);
+  VL53L1_Error status;
+  auto result = distanceSensor->read_distance(roi, status);
   if (!result.has_value()) {
-    return sensor_status;
+    return status;
   }
 
   last_distance = result.value();
@@ -29,7 +28,7 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
 
   occupancy->publish_state(min_distance < threshold->max && min_distance > threshold->min);
 
-  return sensor_status;
+  return status;
 }
 
 /**

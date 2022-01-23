@@ -140,8 +140,9 @@ sensor:
       name: $friendly_name ROI height zone 1
     roi_width_exit:
       name: $friendly_name ROI width zone 1
-    sensor_status:
-      name: Sensor Status
+  - platform: vl53l1x
+    error:
+      name: Sensor Error
   - platform: wifi_signal
     name: $friendly_name RSSI
     update_interval: 60s

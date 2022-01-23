@@ -111,10 +111,7 @@ class Roode : public Component {
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
-  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
-  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
   void path_tracking(const Zone *zone);
-  bool handle_sensor_status();
   void calibrateDistance();
   void calibrate_zones();
   const RangingMode *determine_ranging_mode(uint16_t average_entry_zone_distance,

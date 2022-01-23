@@ -3,6 +3,10 @@
 namespace esphome {
 namespace vl53l1x {
 
+#define ERROR(message, ...) \
+  ESP_LOGE(TAG, message ". Error code: %d", ##__VA_ARGS__, status); \
+  this->publish_error(status)
+
 void VL53L1X::dump_config() {
   ESP_LOGCONFIG(TAG, "VL53L1X:");
   LOG_I2C_DEVICE(this);
@@ -34,7 +38,7 @@ void VL53L1X::setup() {
     ESP_LOGI(TAG, "Setting offset calibration to %d", this->offset.value());
     status = this->sensor.SetOffsetInMm(this->offset.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set offset calibration, error code: %d", status);
+      ERROR("Could not set offset calibration");
       this->mark_failed();
       return;
     }
@@ -44,7 +48,7 @@ void VL53L1X::setup() {
     ESP_LOGI(TAG, "Setting crosstalk calibration to %d", this->xtalk.value());
     status = this->sensor.SetXTalk(this->xtalk.value());
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set crosstalk calibration, error code: %d", status);
+      ERROR("Could not set crosstalk calibration");
       this->mark_failed();
       return;
     }
@@ -63,7 +67,7 @@ VL53L1_Error VL53L1X::init() {
     ESP_LOGD(TAG, "Setting different address");
     status = sensor.SetI2CAddress(address_ << 1);
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Failed to change address. Error: %d", status);
+      ERROR("Failed to change address");
       return status;
     }
   }
@@ -76,7 +80,7 @@ VL53L1_Error VL53L1X::init() {
   ESP_LOGD(TAG, "Found device, initializing...");
   status = sensor.Init();
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not initialize device, error code: %d", status);
+    ERROR("Could not initialize device");
     return status;
   }
 
@@ -109,7 +113,7 @@ VL53L1_Error VL53L1X::wait_for_boot() {
 VL53L1_Error VL53L1X::get_device_state(uint8_t *device_state) {
   VL53L1_Error status = sensor.GetBootState(device_state);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Failed to read device state. error: %d", status);
+    ERROR("Failed to read device state");
     return status;
   }
 
@@ -133,17 +137,17 @@ void VL53L1X::set_ranging_mode(const RangingMode *mode) {
 
   auto status = this->sensor.SetDistanceMode(mode->mode);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set distance mode: %d, error code: %d", mode->mode, status);
+    ERROR("Could not set distance mode: %d", mode->mode);
   }
 
   status = this->sensor.SetTimingBudgetInMs(mode->timing_budget);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set timing budget: %d ms, error code: %d", mode->timing_budget, status);
+    ERROR("Could not set timing budget: %d ms", mode->timing_budget);
   }
 
   status = this->sensor.SetInterMeasurementInMs(mode->delay_between_measurements);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not set measurement delay: %d ms, error code: %d", mode->delay_between_measurements, status);
+    ERROR("Could not set measurement delay: %d ms", mode->delay_between_measurements);
   }
 
   this->ranging_mode = mode;
@@ -163,12 +167,12 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
 
     status = this->sensor.SetROI(roi->width, roi->height);
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set ROI width/height, error code: %d", status);
+      ERROR("Could not set ROI width/height");
       return {};
     }
     status = this->sensor.SetROICenter(roi->center);
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Could not set ROI center, error code: %d", status);
+      ERROR("Could not set ROI center");
       return {};
     }
     last_roi = roi;
@@ -182,7 +186,7 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
   while (!dataReady) {
     status = this->sensor.CheckForDataReady(&dataReady);
     if (status != VL53L1_ERROR_NONE) {
-      ESP_LOGE(TAG, "Failed to check if data is ready, error code: %d", status);
+      ERROR("Failed to check if data is ready");
       return {};
     }
     delay(1);
@@ -193,24 +197,30 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
   uint16_t distance;
   status = this->sensor.GetDistanceInMm(&distance);
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not get distance, error code: %d", status);
+    ERROR("Could not get distance");
     return {};
   }
 
   // After reading the results reset the interrupt to be able to take another measurement
   status = this->sensor.ClearInterrupt();
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not clear interrupt, error code: %d", status);
+    ERROR("Could not clear interrupt");
     return {};
   }
   status = this->sensor.StopRanging();
   if (status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Could not stop ranging, error code: %d", status);
+    ERROR("Could not stop ranging");
     return {};
   }
 
   ESP_LOGV(TAG, "Finished distance read: %d", distance);
   return {distance};
+}
+
+void VL53L1X::publish_error(VL53L1_Error error) {
+  if (error_sensor != nullptr) {
+    error_sensor->publish_state(error);
+  }
 }
 
 }  // namespace vl53l1x
