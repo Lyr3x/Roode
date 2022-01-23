@@ -101,15 +101,17 @@ binary_sensor:
 
 sensor:
   - platform: roode
-    id: roode_sensors
-    distance_entry:
-      name: $friendly_name distance zone 0
-      filters:
-        - delta: 100
-    distance_exit:
-      name: $friendly_name distance zone 1
-      filters:
-        - delta: 100
+    zones:
+      entry:
+        distance:
+          name: $friendly_name Entry Distance
+          filters:
+            - delta: 100
+      exit:
+        distance:
+          name: $friendly_name Exit Distance
+          filters:
+            - delta: 100
     max_threshold_entry:
       name: $friendly_name max zone 0
     max_threshold_exit:

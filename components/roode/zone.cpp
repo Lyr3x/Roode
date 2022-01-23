@@ -3,12 +3,13 @@
 namespace esphome {
 namespace roode {
 
-void Zone::dump_config() const {
-  ESP_LOGCONFIG(TAG, "   %s", id == 0U ? "Entry" : "Exit");
-  ESP_LOGCONFIG(TAG, "     ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
-  ESP_LOGCONFIG(TAG, "     Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
+void Zone::dump_config() {
+  ESP_LOGCONFIG(TAG, "%s Zone:", id == 0U ? "Entry" : "Exit");
+  ESP_LOGCONFIG(TAG, "  ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
+  ESP_LOGCONFIG(TAG, "  Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
                 threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
                 threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle), threshold->idle);
+  LOG_UPDATE_INTERVAL(this);
 }
 
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
@@ -49,7 +50,7 @@ void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {
     this->readDistance(distanceSensor);
-    zone_distances[i] = this->getDistance();
+    zone_distances[i] = last_distance;
     sum += zone_distances[i];
   };
   threshold->idle = this->getOptimizedValues(zone_distances, sum, number_attempts);
@@ -128,6 +129,10 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   return avg - sd;
 }
 
-uint16_t Zone::getDistance() const { return this->last_distance; }
+void Zone::update() {
+  if (distance_sensor != nullptr) {
+    distance_sensor->publish_state(min_distance);
+  }
+}
 }  // namespace roode
 }  // namespace esphome

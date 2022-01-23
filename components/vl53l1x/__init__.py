@@ -59,18 +59,21 @@ def int_with_unit(*args, **kwargs):
     return int_validator
 
 
+def none_to_empty(default: Any = None):
+    def validator(value):
+        if value is None:
+            return {} if default is None else default
+        return value
+
+    return validator
+
+
 def NullableSchema(*args, default: Any = None, **kwargs):
     """
     Same as Schema but will convert nulls to empty objects. Useful when all the schema keys are optional.
     Allows YAML lines to be commented out leaving an "empty dict" which is mistakenly parsed as None.
     """
-
-    def none_to_empty(value):
-        if value is None:
-            return {} if default is None else default
-        raise cv.Invalid("Expected none")
-
-    return cv.Any(cv.Schema(*args, **kwargs), none_to_empty)
+    return cv.All(none_to_empty(default), cv.Schema(*args, **kwargs))
 
 
 CONFIG_SCHEMA = (
