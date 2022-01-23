@@ -36,34 +36,13 @@ void Roode::setup() {
 void Roode::loop() {
   // unsigned long start = micros();
   this->current_zone->readDistance(distanceSensor);
-  // uint16_t samplingDistance = sampling(this->current_zone);
   path_tracking(this->current_zone);
-  handle_sensor_status();
   this->current_zone = this->current_zone == this->entry ? this->exit : this->entry;
   // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d",
   // entry->getDistance(Roode::distanceSensor, Roode::sensor_status),
   // exit->getDistance(Roode::distanceSensor, Roode::sensor_status)); unsigned
   // long end = micros(); unsigned long delta = end - start; ESP_LOGI("Roode
   // loop", "loop took %lu microseconds", delta);
-}
-
-bool Roode::handle_sensor_status() {
-  bool check_status = false;
-  if (last_sensor_status != sensor_status && sensor_status == VL53L1_ERROR_NONE) {
-    if (status_sensor != nullptr) {
-      status_sensor->publish_state(sensor_status);
-    }
-    check_status = true;
-  }
-  if (sensor_status < 28 && sensor_status != VL53L1_ERROR_NONE) {
-    ESP_LOGE(TAG, "Ranging failed with an error. status: %d", sensor_status);
-    status_sensor->publish_state(sensor_status);
-    check_status = false;
-  }
-
-  last_sensor_status = sensor_status;
-  sensor_status = VL53L1_ERROR_NONE;
-  return check_status;
 }
 
 void Roode::path_tracking(const Zone *const zone) {

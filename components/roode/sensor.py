@@ -5,11 +5,8 @@ import esphome.config_validation as cv
 from esphome.components.sensor import new_sensor, sensor_schema
 from esphome.components import sensor
 from esphome.const import (
-    ICON_ARROW_EXPAND_VERTICAL,
-    ICON_NEW_BOX,
     ICON_RULER,
     STATE_CLASS_MEASUREMENT,
-    UNIT_EMPTY,
     ENTITY_CATEGORY_DIAGNOSTIC,
 )
 from . import (
@@ -32,7 +29,6 @@ CONF_ROI_HEIGHT_entry = "roi_height_entry"
 CONF_ROI_WIDTH_entry = "roi_width_entry"
 CONF_ROI_HEIGHT_exit = "roi_height_exit"
 CONF_ROI_WIDTH_exit = "roi_width_exit"
-SENSOR_STATUS = "sensor_status"
 
 ZONE_SCHEMA = NullableSchema(
     {
@@ -111,11 +107,6 @@ CONFIG_SCHEMA = cv.Schema(
             state_class=STATE_CLASS_MEASUREMENT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
-        cv.Optional(SENSOR_STATUS): sensor.sensor_schema(
-            icon="mdi:check-circle",
-            accuracy_decimals=0,
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-        ),
     }
 )
 
@@ -149,9 +140,6 @@ async def to_code(config: Dict):
     if CONF_ROI_WIDTH_exit in config:
         count = await sensor.new_sensor(config[CONF_ROI_WIDTH_exit])
         cg.add(var.set_exit_roi_width_sensor(count))
-    if SENSOR_STATUS in config:
-        count = await sensor.new_sensor(config[SENSOR_STATUS])
-        cg.add(var.set_sensor_status_sensor(count))
 
 
 async def to_code_zone(name: str, config: Dict, roode: cg.Pvariable):
