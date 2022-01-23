@@ -4,7 +4,8 @@ namespace esphome {
 namespace vl53l1x {
 
 #define ERROR(message, ...) \
-  ESP_LOGE(TAG, message ". Error code: %d", ##__VA_ARGS__, status)
+  ESP_LOGE(TAG, message ". Error code: %d", ##__VA_ARGS__, status); \
+  this->publish_error(status)
 
 void VL53L1X::dump_config() {
   ESP_LOGCONFIG(TAG, "VL53L1X:");
@@ -214,6 +215,12 @@ optional<uint16_t> VL53L1X::read_distance(ROI *roi, VL53L1_Error &status) {
 
   ESP_LOGV(TAG, "Finished distance read: %d", distance);
   return {distance};
+}
+
+void VL53L1X::publish_error(VL53L1_Error error) {
+  if (error_sensor != nullptr) {
+    error_sensor->publish_state(error);
+  }
 }
 
 }  // namespace vl53l1x

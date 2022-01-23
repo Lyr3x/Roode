@@ -35,12 +35,13 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   void set_offset(int16_t val) { this->offset = val; }
   void set_xtalk(uint16_t val) { this->xtalk = val; }
   void set_timeout(uint16_t val) { this->timeout = val; }
+   void set_error_sensor(sensor::Sensor *error_sensor_) { this->error_sensor = error_sensor_; }
 
  protected:
   VL53L1X_ULD sensor;
   optional<GPIOPin *> xshut_pin{};
   optional<InternalGPIOPin *> interrupt_pin{};
-  const RangingMode * ranging_mode{};
+  const RangingMode *ranging_mode{};
   /** Mode from user config, which can be get/set independently of current mode */
   optional<const RangingMode *> ranging_mode_override{};
   optional<int16_t> offset{};
@@ -51,6 +52,8 @@ class VL53L1X : public i2c::I2CDevice, public Component {
   VL53L1_Error init();
   VL53L1_Error wait_for_boot();
   VL53L1_Error get_device_state(uint8_t *device_state);
+  void publish_error(VL53L1_Error error);
+  sensor::Sensor *error_sensor{nullptr};
 };
 
 }  // namespace vl53l1x
