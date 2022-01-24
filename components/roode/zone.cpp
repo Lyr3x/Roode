@@ -25,8 +25,24 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
     samples.pop_back();
   };
   min_distance = *std::min_element(samples.begin(), samples.end());
-
+  this->update_threshold(min_distance);
   return sensor_status;
+}
+
+void Zone::update_threshold(uint16_t distance) {
+  if (distance > threshold->max) {
+    idle_distances.insert(idle_distances.begin(), distance);
+  }
+  if (idle_distances.size() == 100) {
+    this->threshold->idle = this->get_avg(idle_distances);
+    if (this->threshold->max_percentage.has_value()) {
+      this->threshold->max = (this->threshold->idle * this->threshold->max_percentage.value()) / 100;
+    }
+    if (this->threshold->min_percentage.has_value()) {
+      this->threshold->min = (this->threshold->idle * this->threshold->min_percentage.value()) / 100;
+    }
+    idle_distances.clear();
+  }
 }
 
 /**
@@ -124,6 +140,12 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   ESP_LOGD(CALIBRATION, "Zone AVG: %d", avg);
   ESP_LOGD(CALIBRATION, "Zone SD: %d", sd);
   return avg - sd;
+}
+
+int Zone::get_avg(std::vector<uint16_t> values) {
+  auto sum = std::accumulate(values.begin(), values.end(), 0);
+  int avg = sum / values.size();
+  return avg;
 }
 
 uint16_t Zone::getDistance() const { return this->last_distance; }

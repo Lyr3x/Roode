@@ -45,12 +45,15 @@ class Zone {
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);
+  int get_avg(std::vector<uint16_t> values);
+  void update_threshold(uint16_t distance);
   VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
   VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
   uint16_t last_distance;
   uint16_t min_distance;
   std::vector<uint16_t> samples;
   uint8_t max_samples;
+  std::vector<uint16_t> idle_distances;
 };
 }  // namespace roode
 }  // namespace esphome
