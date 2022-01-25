@@ -61,7 +61,7 @@ void Zone::reset_roi(uint8_t default_center) {
            roi->height, roi->center);
 }
 
-void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
+void Zone::calibrate_threshold(TofSensor *distanceSensor, int number_attempts) {
   ESP_LOGD(CALIBRATION, "Beginning. zoneId: %d", id);
   int *zone_distances = new int[number_attempts];
   int sum = 0;
@@ -70,7 +70,7 @@ void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
     zone_distances[i] = last_distance;
     sum += zone_distances[i];
   };
-  threshold->idle = this->getOptimizedValues(zone_distances, sum, number_attempts);
+  threshold->idle = this->get_optimized_values(zone_distances, sum, number_attempts);
 
   if (threshold->max_percentage.has_value()) {
     threshold->max = (threshold->idle * threshold->max_percentage.value()) / 100;
@@ -129,7 +129,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
            roi->height, roi->center);
 }
 
-int Zone::getOptimizedValues(int *values, int sum, int size) {
+int Zone::get_optimized_values(int *values, int sum, int size) {
   int sum_squared = 0;
   int variance = 0;
   int sd = 0;

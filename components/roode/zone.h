@@ -34,7 +34,7 @@ class Zone : public PollingComponent {
   void update() override;
   VL53L1_Error readDistance(TofSensor *distanceSensor);
   void reset_roi(uint8_t default_center);
-  void calibrateThreshold(TofSensor *distanceSensor, int number_attempts);
+  void calibrate_threshold(TofSensor *distanceSensor, int number_attempts);
   void roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation);
   const uint8_t id;
   bool is_occupied() const { return occupancy->state; };
@@ -47,7 +47,7 @@ class Zone : public PollingComponent {
   void set_distance_sensor(sensor::Sensor *sensor) { distance_sensor = sensor; }
 
  protected:
-  int getOptimizedValues(int *values, int sum, int size);
+  int get_optimized_values(int *values, int sum, int size);
   int get_avg(std::vector<uint16_t> values);
   void update_threshold(uint16_t distance);
   VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
