@@ -104,22 +104,22 @@ binary_sensor:
   - platform: status
     name: $friendly_name API Status
   - platform: roode
-    presence_sensor:
+    presence:
       name: $friendly_name presence
 
 sensor:
   - platform: roode
-    id: roode_sensors
-    distance_entry:
-      name: $friendly_name distance zone 0
-      id: entryDist
-      filters:
-        - delta: 100
-    distance_exit:
-      name: $friendly_name distance zone 1
-      id: exitDist
-      filters:
-        - delta: 100
+    zones:
+      entry:
+        distance:
+          name: $friendly_name Entry Distance
+          filters:
+            - delta: 100
+      exit:
+        distance:
+          name: $friendly_name Exit Distance
+          filters:
+            - delta: 100
     max_threshold_entry:
       name: $friendly_name max zone 0
     max_threshold_exit:
@@ -136,8 +136,9 @@ sensor:
       name: $friendly_name ROI height zone 1
     roi_width_exit:
       name: $friendly_name ROI width zone 1
-    sensor_status:
-      name: Sensor Status
+  - platform: vl53l1x
+    error:
+      name: Sensor Error
 
   - platform: wifi_signal
     name: $friendly_name RSSI

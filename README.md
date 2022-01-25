@@ -196,16 +196,29 @@ This allows the current people count to be adjusted easily via Home Assistant.
 ```yaml
 binary_sensor:
   - platform: roode
-    presence_sensor:
-      name: $friendly_name presence
+    presence:
+      name: $friendly_name Presence
+    zones:
+      entry:
+        presence:
+          name: $friendly_name Entry Presence
+      exit:
+        presence:
+          name: $friendly_name Exit Presence
 
 sensor:
   - platform: roode
-    id: hallway
-    distance_sensor:
-      name: $friendly_name distance
-      filters:
-        - delta: 100.0
+    zones:
+      entry:
+        distance:
+          name: $friendly_name Entry Distance
+          filters:
+            - delta: 100
+      exit:
+        distance:
+          name: $friendly_name Exit Distance
+          filters:
+            - delta: 100
     threshold_entry:
       name: $friendly_name Zone 0
     threshold_exit:

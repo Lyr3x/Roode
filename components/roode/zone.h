@@ -27,21 +27,24 @@ struct Threshold {
   void set_max_percentage(uint8_t max) { this->max_percentage = max; }
 };
 
-class Zone {
+class Zone : public PollingComponent {
  public:
-  explicit Zone(uint8_t id) : id{id} {};
-  void dump_config() const;
+  explicit Zone(uint8_t id) : PollingComponent(), id{id} {};
+  void dump_config() override;
+  void update() override;
   VL53L1_Error readDistance(TofSensor *distanceSensor);
   void reset_roi(uint8_t default_center);
   void calibrateThreshold(TofSensor *distanceSensor, int number_attempts);
   void roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Orientation orientation);
   const uint8_t id;
-  uint16_t getDistance() const;
-  uint16_t getMinDistance() const;
+  bool is_occupied() const { return occupancy->state; };
   ROI *roi = new ROI();
   ROI *roi_override = new ROI();
   Threshold *threshold = new Threshold();
   void set_max_samples(uint8_t max) { max_samples = max; };
+  binary_sensor::BinarySensor *occupancy = new binary_sensor::BinarySensor();
+  void set_occupancy_sensor(binary_sensor::BinarySensor *sensor) { occupancy = sensor; }
+  void set_distance_sensor(sensor::Sensor *sensor) { distance_sensor = sensor; }
 
  protected:
   int getOptimizedValues(int *values, int sum, int size);
@@ -53,6 +56,7 @@ class Zone {
   uint16_t min_distance;
   std::vector<uint16_t> samples;
   uint8_t max_samples;
+  sensor::Sensor *distance_sensor{nullptr};
   std::vector<uint16_t> idle_distances;
 };
 }  // namespace roode

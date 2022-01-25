@@ -3,20 +3,20 @@
 namespace esphome {
 namespace roode {
 
-void Zone::dump_config() const {
-  ESP_LOGCONFIG(TAG, "   %s", id == 0U ? "Entry" : "Exit");
-  ESP_LOGCONFIG(TAG, "     ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
-  ESP_LOGCONFIG(TAG, "     Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
+void Zone::dump_config() {
+  ESP_LOGCONFIG(TAG, "%s Zone:", id == 0U ? "Entry" : "Exit");
+  ESP_LOGCONFIG(TAG, "  ROI: { width: %d, height: %d, center: %d }", roi->width, roi->height, roi->center);
+  ESP_LOGCONFIG(TAG, "  Threshold: { min: %dmm (%d%%), max: %dmm (%d%%), idle: %dmm }", threshold->min,
                 threshold->min_percentage.value_or((threshold->min * 100) / threshold->idle), threshold->max,
                 threshold->max_percentage.value_or((threshold->max * 100) / threshold->idle), threshold->idle);
+  LOG_UPDATE_INTERVAL(this);
 }
 
 VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
-  last_sensor_status = sensor_status;
-
-  auto result = distanceSensor->read_distance(roi, sensor_status);
+  VL53L1_Error status;
+  auto result = distanceSensor->read_distance(roi, status);
   if (!result.has_value()) {
-    return sensor_status;
+    return status;
   }
 
   last_distance = result.value();
@@ -25,6 +25,10 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
     samples.pop_back();
   };
   min_distance = *std::min_element(samples.begin(), samples.end());
+
+  occupancy->publish_state(min_distance < threshold->max && min_distance > threshold->min);
+
+  return status;
   this->update_threshold(min_distance);
   return sensor_status;
 }
@@ -63,7 +67,7 @@ void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
   int sum = 0;
   for (int i = 0; i < number_attempts; i++) {
     this->readDistance(distanceSensor);
-    zone_distances[i] = this->getDistance();
+    zone_distances[i] = last_distance;
     sum += zone_distances[i];
   };
   threshold->idle = this->getOptimizedValues(zone_distances, sum, number_attempts);
@@ -142,13 +146,15 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
   return avg - sd;
 }
 
+void Zone::update() {
+  if (distance_sensor != nullptr) {
+    distance_sensor->publish_state(min_distance);
+  }
+}
 int Zone::get_avg(std::vector<uint16_t> values) {
   auto sum = std::accumulate(values.begin(), values.end(), 0);
   int avg = sum / values.size();
   return avg;
 }
-
-uint16_t Zone::getDistance() const { return this->last_distance; }
-uint16_t Zone::getMinDistance() const { return this->min_distance; }
 }  // namespace roode
 }  // namespace esphome

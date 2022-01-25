@@ -16,8 +16,6 @@ using TofSensor = esphome::vl53l1x::VL53L1X;
 
 namespace esphome {
 namespace roode {
-#define NOBODY 0
-#define SOMEONE 1
 #define VERSION "1.5.1"
 static const char *const TAG = "Roode";
 static const char *const SETUP = "Setup";
@@ -52,10 +50,9 @@ static int time_budget_in_ms_medium_long = 50;
 static int time_budget_in_ms_long = 100;
 static int time_budget_in_ms_max = 200;  // max range: 4m
 
-class Roode : public PollingComponent {
+class Roode : public Component {
  public:
   void setup() override;
-  void update() override;
   void loop() override;
   void dump_config() override;
   /** Roode uses data from sensors */
@@ -70,8 +67,6 @@ class Roode : public PollingComponent {
     entry->set_max_samples(size);
     exit->set_max_samples(size);
   }
-  void set_distance_entry(sensor::Sensor *distance_entry_) { distance_entry = distance_entry_; }
-  void set_distance_exit(sensor::Sensor *distance_exit_) { distance_exit = distance_exit_; }
   void set_people_counter(number::Number *counter) { this->people_counter = counter; }
   void set_max_threshold_entry_sensor(sensor::Sensor *max_threshold_entry_sensor_) {
     max_threshold_entry_sensor = max_threshold_entry_sensor_;
@@ -90,22 +85,18 @@ class Roode : public PollingComponent {
   void set_exit_roi_height_sensor(sensor::Sensor *roi_height_sensor_) { exit_roi_height_sensor = roi_height_sensor_; }
   void set_exit_roi_width_sensor(sensor::Sensor *roi_width_sensor_) { exit_roi_width_sensor = roi_width_sensor_; }
   void set_sensor_status_sensor(sensor::Sensor *status_sensor_) { status_sensor = status_sensor_; }
-  void set_presence_sensor_binary_sensor(binary_sensor::BinarySensor *presence_sensor_) {
-    presence_sensor = presence_sensor_;
-  }
+  void set_occupancy_sensor(binary_sensor::BinarySensor *sensor) { occupancy = sensor; }
   void set_version_text_sensor(text_sensor::TextSensor *version_sensor_) { version_sensor = version_sensor_; }
   void set_entry_exit_event_text_sensor(text_sensor::TextSensor *entry_exit_event_sensor_) {
     entry_exit_event_sensor = entry_exit_event_sensor_;
   }
   void recalibration();
-  Zone *entry = new Zone(0);
-  Zone *exit = new Zone(1);
+  Zone *entry;
+  Zone *exit;
 
  protected:
   TofSensor *distanceSensor;
   Zone *current_zone = entry;
-  sensor::Sensor *distance_entry;
-  sensor::Sensor *distance_exit;
   number::Number *people_counter;
   sensor::Sensor *max_threshold_entry_sensor;
   sensor::Sensor *max_threshold_exit_sensor;
@@ -116,17 +107,15 @@ class Roode : public PollingComponent {
   sensor::Sensor *entry_roi_height_sensor;
   sensor::Sensor *entry_roi_width_sensor;
   sensor::Sensor *status_sensor;
-  binary_sensor::BinarySensor *presence_sensor;
+  binary_sensor::BinarySensor *occupancy{};
   text_sensor::TextSensor *version_sensor;
   text_sensor::TextSensor *entry_exit_event_sensor;
 
-  VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;
-  VL53L1_Error sensor_status = VL53L1_ERROR_NONE;
-  void path_tracking(Zone *zone);
-  bool handle_sensor_status();
+  void path_tracking(const Zone *zone);
   void calibrateDistance();
   void calibrate_zones();
-  const RangingMode *determine_raning_mode(uint16_t average_entry_zone_distance, uint16_t average_exit_zone_distance);
+  const RangingMode *determine_ranging_mode(uint16_t average_entry_zone_distance,
+                                            uint16_t average_exit_zone_distance) const;
   void publish_sensor_configuration(Zone *entry, Zone *exit, bool isMax);
   void updateCounter(int delta);
   Orientation orientation_{Parallel};
