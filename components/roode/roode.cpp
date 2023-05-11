@@ -146,7 +146,9 @@ void Roode::updateCounter(int delta) {
   }
   auto next = this->people_counter->state + (float) delta;
   ESP_LOGI(TAG, "Updating people count: %d", (int) next);
-  this->people_counter->set(next);
+  auto call = this->people_counter->make_call();
+  call.set_value(next);
+  call.perform();
 }
 void Roode::recalibration() { calibrate_zones(); }
 
