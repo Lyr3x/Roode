@@ -3,7 +3,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components.binary_sensor import (
     BINARY_SENSOR_SCHEMA,
-    device_class,
+    validate_device_class,
     new_binary_sensor,
 )
 from esphome.const import (
@@ -26,7 +26,7 @@ CONF_OCCUPANCY = "presence"
 
 OCCUPANCY_SCHEMA = BINARY_SENSOR_SCHEMA.extend(
     {
-        cv.Optional(CONF_DEVICE_CLASS, default=DEVICE_CLASS_OCCUPANCY): device_class,
+        cv.Optional(CONF_DEVICE_CLASS, default=DEVICE_CLASS_OCCUPANCY): validate_device_class,
     }
 )
 
@@ -60,7 +60,7 @@ async def to_code(config: Dict):
     await to_code_zone(CONF_EXIT_ZONE, config, roode)
 
 
-async def to_code_zone(name: str, config: Dict, roode: cg.Pvariable):
+async def to_code_zone(name: str, config: Dict, roode: cg.MockObj):
     zone_config = config[CONF_ZONES][name]
     zone_var = cg.MockObj(f"{roode}->{name}", "->")
     if CONF_OCCUPANCY in zone_config:
