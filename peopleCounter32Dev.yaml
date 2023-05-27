@@ -75,7 +75,7 @@ roode:
   zones:
     invert: true
     entry:
-      roi: auto 
+      roi: auto
     exit:
       # roi:
       #   height: 4
@@ -112,11 +112,13 @@ sensor:
     zones:
       entry:
         distance:
+          id: entryDist
           name: $friendly_name Entry Distance
           filters:
             - delta: 100
       exit:
         distance:
+          id: exitDist
           name: $friendly_name Exit Distance
           filters:
             - delta: 100

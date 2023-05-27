@@ -182,9 +182,9 @@ void Roode::calibrate_zones() {
   calibrateDistance();
 
   entry->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);
-  entry->calibrateThreshold(distanceSensor, number_attempts);
+  entry->calibrate_threshold(distanceSensor, number_attempts);
   exit->roi_calibration(entry->threshold->idle, exit->threshold->idle, orientation_);
-  exit->calibrateThreshold(distanceSensor, number_attempts);
+  exit->calibrate_threshold(distanceSensor, number_attempts);
 
   publish_sensor_configuration(entry, exit, true);
   App.feed_wdt();
@@ -196,8 +196,8 @@ void Roode::calibrateDistance() {
   auto *const initial = distanceSensor->get_ranging_mode_override().value_or(Ranging::Longest);
   distanceSensor->set_ranging_mode(initial);
 
-  entry->calibrateThreshold(distanceSensor, number_attempts);
-  exit->calibrateThreshold(distanceSensor, number_attempts);
+  entry->calibrate_threshold(distanceSensor, number_attempts);
+  exit->calibrate_threshold(distanceSensor, number_attempts);
 
   if (distanceSensor->get_ranging_mode_override().has_value()) {
     return;

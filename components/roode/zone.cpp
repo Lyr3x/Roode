@@ -29,6 +29,24 @@ VL53L1_Error Zone::readDistance(TofSensor *distanceSensor) {
   occupancy->publish_state(min_distance < threshold->max && min_distance > threshold->min);
 
   return status;
+  this->update_threshold(min_distance);
+  return sensor_status;
+}
+
+void Zone::update_threshold(uint16_t distance) {
+  if (distance > threshold->max) {
+    idle_distances.insert(idle_distances.begin(), distance);
+  }
+  if (idle_distances.size() == 100) {
+    this->threshold->idle = this->get_avg(idle_distances);
+    if (this->threshold->max_percentage.has_value()) {
+      this->threshold->max = (this->threshold->idle * this->threshold->max_percentage.value()) / 100;
+    }
+    if (this->threshold->min_percentage.has_value()) {
+      this->threshold->min = (this->threshold->idle * this->threshold->min_percentage.value()) / 100;
+    }
+    idle_distances.clear();
+  }
 }
 
 /**
@@ -43,7 +61,7 @@ void Zone::reset_roi(uint8_t default_center) {
            roi->height, roi->center);
 }
 
-void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
+void Zone::calibrate_threshold(TofSensor *distanceSensor, int number_attempts) {
   ESP_LOGD(CALIBRATION, "Beginning. zoneId: %d", id);
   int *zone_distances = new int[number_attempts];
   int sum = 0;
@@ -52,7 +70,7 @@ void Zone::calibrateThreshold(TofSensor *distanceSensor, int number_attempts) {
     zone_distances[i] = last_distance;
     sum += zone_distances[i];
   };
-  threshold->idle = this->getOptimizedValues(zone_distances, sum, number_attempts);
+  threshold->idle = this->get_optimized_values(zone_distances, sum, number_attempts);
 
   if (threshold->max_percentage.has_value()) {
     threshold->max = (threshold->idle * threshold->max_percentage.value()) / 100;
@@ -111,7 +129,7 @@ void Zone::roi_calibration(uint16_t entry_threshold, uint16_t exit_threshold, Or
            roi->height, roi->center);
 }
 
-int Zone::getOptimizedValues(int *values, int sum, int size) {
+int Zone::get_optimized_values(int *values, int sum, int size) {
   int sum_squared = 0;
   int variance = 0;
   int sd = 0;
@@ -132,6 +150,11 @@ void Zone::update() {
   if (distance_sensor != nullptr) {
     distance_sensor->publish_state(min_distance);
   }
+}
+int Zone::get_avg(std::vector<uint16_t> values) {
+  auto sum = std::accumulate(values.begin(), values.end(), 0);
+  int avg = sum / values.size();
+  return avg;
 }
 }  // namespace roode
 }  // namespace esphome
