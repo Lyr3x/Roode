@@ -14,17 +14,23 @@ DEPENDENCIES = ["roode"]
 CONF_PRESENCE = "presence_sensor"
 TYPES = [CONF_PRESENCE]
 
+# ESPHome: BINARY_SENSOR_SCHEMA removed -> use binary_sensor.binary_sensor_schema(...)
+BASE_SCHEMA = (
+    binary_sensor.binary_sensor_schema(binary_sensor.BinarySensor)
+    if hasattr(binary_sensor, "binary_sensor_schema")
+    else binary_sensor._BINARY_SENSOR_SCHEMA
+)
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ROODE_ID): cv.use_id(Roode),
-        cv.Optional(CONF_PRESENCE): binary_sensor.BINARY_SENSOR_SCHEMA.extend(
+        cv.Optional(CONF_PRESENCE): BASE_SCHEMA.extend(
             {
                 cv.GenerateID(): cv.declare_id(binary_sensor.BinarySensor),
             }
         ),
     }
 )
-
 
 # def validate_can_use_presence(value):
 #     main = fv.full_config.get()["roode"][0]
@@ -40,14 +46,12 @@ CONFIG_SCHEMA = cv.Schema(
 #     {cv.Optional(CONF_PRESENCE): validate_can_use_presence}, extra=cv.ALLOW_EXTRA
 # )
 
-
 async def setup_conf(config, key, hub):
     if key in config:
         conf = config[key]
         sens = cg.new_Pvariable(conf[CONF_ID])
         await binary_sensor.register_binary_sensor(sens, conf)
         cg.add(getattr(hub, f"set_{key}_binary_sensor")(sens))
-
 
 async def to_code(config):
     hub = await cg.get_variable(config[CONF_ROODE_ID])

@@ -12,7 +12,13 @@ PersistedNumber = number.number_ns.class_(
     "PersistedNumber", number.Number, cg.Component
 )
 
-PERSISTED_NUMBER_SCHEMA = number.NUMBER_SCHEMA.extend(
+BASE_SCHEMA = (
+    number.number_schema(PersistedNumber)
+    if hasattr(number, "number_schema")
+    else number._NUMBER_SCHEMA
+)
+
+PERSISTED_NUMBER_SCHEMA = BASE_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(PersistedNumber),
         cv.Optional(CONF_RESTORE_VALUE, default=True): cv.boolean,
