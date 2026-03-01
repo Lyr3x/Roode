@@ -8,10 +8,3 @@ esp32:
 i2c:
   sda: 21
   scl: 22
-
-# VL53L1X sensor configuration is separate from Roode people counting algorithm
-vl53l1x:
-  calibration:
-
-roode:
-  id: roode_platform

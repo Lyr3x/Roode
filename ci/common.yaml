@@ -9,6 +9,25 @@ external_components:
 esphome:
   name: $devicename
 
+vl53l1x:
+  calibration:
+    ranging: auto
+
+roode:
+  id: roode_platform
+  sampling: 2
+  roi: { height: 16, width: 6 }
+  detection_thresholds:
+    max: 85%
+  # Test new v1.6.0 features
+  path_tracking_timeout: 3s
+  adaptive_threshold:
+    enabled: true
+    update_interval: 60s
+    alpha: 0.05
+  zones:
+    invert: false
+
 button:
   - platform: restart
     name: $friendly_name Restart
