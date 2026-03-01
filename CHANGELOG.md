@@ -4,6 +4,7 @@
 
 - Fix ESPHome 2026.2+ compatibility by migrating ESP8266 configurations to new platform format
 - Update CI configurations and example files to use separate `esp8266:` block instead of deprecated `platform:` key
+- Fix Wire library dependency for VL53L1X_ULD to resolve build errors on ESP32
 - Fix release workflow to skip creating releases that already exist
 
 ## 1.5.0
