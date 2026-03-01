@@ -37,6 +37,7 @@ jobs:
           draft: false
           prerelease: false
           generateReleaseNotes: true
+          skipIfReleaseExists: true
 
       - name: Discord notification
         uses: Ilshidur/action-discord@master

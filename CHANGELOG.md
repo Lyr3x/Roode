@@ -1,8 +1,10 @@
 # Changelog
 
-## 1.5.1
+## 1.5.4
 
-
+- Fix ESPHome 2026.2+ compatibility by migrating ESP8266 configurations to new platform format
+- Update CI configurations and example files to use separate `esp8266:` block instead of deprecated `platform:` key
+- Fix release workflow to skip creating releases that already exist
 
 ## 1.5.0
 
