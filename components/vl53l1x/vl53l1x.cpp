@@ -15,8 +15,12 @@ void VL53L1X::dump_config() {
   if (xtalk.has_value()) {
     ESP_LOGCONFIG(TAG, "  XTalk: %dcps", this->xtalk.value());
   }
-  LOG_PIN("  Interrupt Pin: ", this->interrupt_pin.value());
-  LOG_PIN("  XShut Pin: ", this->xshut_pin.value());
+  if (this->interrupt_pin.has_value()) {
+    LOG_PIN("  Interrupt Pin: ", this->interrupt_pin.value());
+  }
+  if (this->xshut_pin.has_value()) {
+    LOG_PIN("  XShut Pin: ", this->xshut_pin.value());
+  }
 }
 
 void VL53L1X::setup() {
