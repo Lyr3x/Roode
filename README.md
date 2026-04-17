@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/v/tag/Lyr3x/Roode?style=flat-square)](https://GitHub.com/Lyr3x/Roode/releases/)
 [![Build](https://img.shields.io/github/workflow/status/Lyr3x/Roode/CI?style=flat-square)](https://github.com/Lyr3x/Roode/blob/master/.github/workflows/ci.yml)
-[![Maintenance](https://img.shields.io/maintenance/yes/2023?style=flat-square)](https://GitHub.com/Lyr3x/Roode/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/maintenance/yes/2026?style=flat-square)](https://GitHub.com/Lyr3x/Roode/graphs/commit-activity)
 
 [![Roode community](https://img.shields.io/discord/879407995837087804.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/hU9SvSXMHs)
 
@@ -16,6 +16,7 @@ People counter working with any smart home system which supports ESPHome/MQTT li
   - [Platform Setup](#platform-setup)
   - [Sensors](#sensors)
   - [Threshold distance](#threshold-distance)
+  - [Robustness Features](#robustness-features)
 - [Algorithm](#algorithm)
 - [FAQ/Troubleshoot](#faqtroubleshoot)
 
@@ -145,6 +146,18 @@ roode:
     # min: 50mm
     # max: 234cm
 
+  # Path tracking timeout: resets state machine if someone enters halfway and turns back.
+  # This prevents the algorithm from getting stuck waiting for a crossing to complete.
+  # Set to 0s to disable timeout (not recommended).
+  path_tracking_timeout: 3s
+
+  # Adaptive threshold: continuously adjusts idle baseline to handle environmental drift
+  # (temperature changes, lighting variations, etc.). Uses Exponential Moving Average.
+  adaptive_threshold:
+    enabled: true           # Enable/disable adaptive updates
+    update_interval: 60s    # How long zones must be empty before updating
+    alpha: 0.05             # EMA smoothing factor (0.01-0.5, lower = slower adaptation)
+
   # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
   # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
   zones:
@@ -244,6 +257,50 @@ min_threshold_percentage: 10% = 200
 All distances smaller then 200mm and greater then 1760mm will be ignored.
 ```
 
+### Robustness Features
+
+Roode v1.6.0 introduces two features to improve counting reliability:
+
+#### Path Tracking Timeout
+
+**Problem:** If someone enters the detection area but turns back without completing a crossing, the state machine could get stuck waiting for the crossing to complete.
+
+**Solution:** The `path_tracking_timeout` option (default: 3 seconds) automatically resets the state machine if no state change occurs within the timeout period.
+
+```yaml
+roode:
+  path_tracking_timeout: 3s  # Reset if no activity for 3 seconds
+```
+
+When a timeout occurs:
+- The state machine is reset to idle
+- A "Timeout" event is published to the `entry_exit_event` sensor
+- No count change occurs (the incomplete crossing is ignored)
+
+You can monitor these events in Home Assistant to detect frequent turn-backs.
+
+#### Adaptive Thresholds
+
+**Problem:** Environmental changes (temperature drift, lighting variations) can cause the idle distance to shift over time, degrading detection accuracy.
+
+**Solution:** The `adaptive_threshold` feature continuously updates the idle baseline using an Exponential Moving Average (EMA) when both zones are empty.
+
+```yaml
+roode:
+  adaptive_threshold:
+    enabled: true        # Default: enabled
+    update_interval: 60s # Update after zones empty for 60s
+    alpha: 0.05          # Smoothing factor (lower = slower adaptation)
+```
+
+How it works:
+1. When both zones are empty for the configured interval, the current distance is sampled
+2. The idle baseline is updated: `new_idle = (1 - alpha) × old_idle + alpha × reading`
+3. Min/max thresholds are recalculated based on the new idle value
+4. A sanity check rejects readings that differ more than 20% from current idle
+
+The threshold sensors will reflect the updated values in Home Assistant.
+
 ## Algorithm
 
 The implemented Algorithm is an improved version of my own implementation which checks the direction of a movement through two defined zones. ST implemented a nice and efficient way to track the path from one to the other direction. I migrated the algorigthm with some changes into the Roode project.
@@ -255,6 +312,8 @@ The concept of path tracking is the detecion of a human:
 - In no zone
 
 That way we can ensure the direction of movement.
+
+The algorithm includes timeout handling: if the sequence doesn't complete within the configured timeout (default 3s), the state machine resets. This handles cases where someone enters the detection area but turns back without completing a crossing.
 
 The sensor creates a 16x16 grid and the final distance is computed by taking the average of the distance of the values of the grid.
 We are defining two different Region of Interest (ROI) inside this grid. Then the sensor will measure the two distances in the two zones and will detect any presence and tracks the path to receive the direction.
@@ -329,6 +388,42 @@ lower right.
 2. You did not connect the Sensor properly
 3. Light interference (You will see a lot of noise)
 4. Bad connections
+
+---
+
+**Question:** The counter seems to get stuck or miss counts after some time?
+
+**Answer:** This could be environmental drift affecting the thresholds. Check if:
+
+1. **Adaptive thresholds are enabled** (default). If disabled, enable them:
+   ```yaml
+   roode:
+     adaptive_threshold:
+       enabled: true
+   ```
+2. **Check the threshold sensors** in Home Assistant - if they're drifting significantly from initial calibration, adaptive thresholds should help.
+3. **Recalibrate manually** if the environment has changed dramatically (e.g., new flooring, moved sensor).
+
+---
+
+**Question:** I see many "Timeout" events in the entry_exit_event sensor?
+
+**Answer:** Timeout events occur when someone enters the detection area but doesn't complete a crossing. This is normal behavior. However, frequent timeouts might indicate:
+
+1. **Timeout too short**: Increase `path_tracking_timeout` if people walk slowly through the doorway
+2. **Threshold issues**: The detection thresholds might be triggering on objects that aren't people (pets, swinging doors)
+3. **Sensor placement**: The sensor might be detecting movement outside the intended area
+
+---
+
+**Question:** The count seems to drift over long periods?
+
+**Answer:** People counting will never be 100% accurate. To minimize drift:
+
+1. Ensure adaptive thresholds are enabled
+2. Adjust the detection thresholds based on your mounting height
+3. Use the people_counter number entity to manually correct the count when needed
+4. Consider automations that reset the count when the room is known to be empty (e.g., at night)
 
 ## Sponsors
 

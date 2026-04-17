@@ -35,16 +35,6 @@ api:
     - service: recalibrate
       then:
         - lambda: "id(roode_platform)->recalibration();"
-    - service: set_max_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_max_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
-    - service: set_min_threshold
-      variables:
-        newThreshold: int
-      then:
-        - lambda: "id(roode_platform)->set_min_threshold_percentage(newThreshold);id(roode_platform)->recalibration();"
 
 ota:
   password: !secret ota_password
@@ -84,6 +74,16 @@ roode:
   detection_thresholds: # defaults for both zones. These also default to 0% & 85% as previously done.
     # min: 234mm # absolute distance
     max: 85% # percent based on idle distance
+
+  # Robustness features (v1.6.0+)
+  # Reset state machine if someone enters but turns back without completing crossing
+  path_tracking_timeout: 3s
+  # Continuously adjust thresholds for environmental drift (temperature, lighting)
+  adaptive_threshold:
+    enabled: true
+    update_interval: 60s
+    alpha: 0.05
+
   # The people counting algorithm works by splitting the sensor's capability reading area into two zones.
   # This allows for detecting whether a crossing is an entry or exit based on which zones was crossed first.
   zones:

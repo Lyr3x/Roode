@@ -43,6 +43,10 @@ class Zone {
   Threshold *threshold = new Threshold();
   void set_max_samples(uint8_t max) { max_samples = max; };
 
+  // Adaptive threshold methods
+  void updateAdaptiveThreshold(float alpha);
+  bool isOccupied() const;
+
  protected:
   int getOptimizedValues(int *values, int sum, int size);
   VL53L1_Error last_sensor_status = VL53L1_ERROR_NONE;

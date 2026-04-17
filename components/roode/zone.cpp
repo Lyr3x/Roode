@@ -128,5 +128,43 @@ int Zone::getOptimizedValues(int *values, int sum, int size) {
 
 uint16_t Zone::getDistance() const { return this->last_distance; }
 uint16_t Zone::getMinDistance() const { return this->min_distance; }
+
+bool Zone::isOccupied() const {
+  return min_distance < threshold->max && min_distance > threshold->min;
+}
+
+void Zone::updateAdaptiveThreshold(float alpha) {
+  // Only update if we have a valid distance reading above our max threshold
+  // (meaning the zone is definitely empty - reading is near idle distance)
+  if (last_distance <= threshold->max || last_distance == 0) {
+    return;
+  }
+
+  // Sanity check: don't update if the reading is unreasonably different
+  // from current idle (more than 20% change would be suspicious)
+  uint16_t max_reasonable_change = threshold->idle / 5;  // 20%
+  if (abs((int)last_distance - (int)threshold->idle) > max_reasonable_change) {
+    ESP_LOGD(CALIBRATION, "Skipping adaptive update: reading %d too far from idle %d",
+             last_distance, threshold->idle);
+    return;
+  }
+
+  // Exponential Moving Average update
+  uint16_t old_idle = threshold->idle;
+  threshold->idle = (uint16_t)((1.0f - alpha) * threshold->idle + alpha * last_distance);
+
+  // Recalculate dependent thresholds
+  if (threshold->max_percentage.has_value()) {
+    threshold->max = (threshold->idle * threshold->max_percentage.value()) / 100;
+  }
+  if (threshold->min_percentage.has_value()) {
+    threshold->min = (threshold->idle * threshold->min_percentage.value()) / 100;
+  }
+
+  if (old_idle != threshold->idle) {
+    ESP_LOGD(CALIBRATION, "Adaptive threshold update zone %d: idle %d -> %d, max: %d, min: %d",
+             id, old_idle, threshold->idle, threshold->max, threshold->min);
+  }
+}
 }  // namespace roode
 }  // namespace esphome

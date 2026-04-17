@@ -5,6 +5,12 @@ namespace roode {
 void Roode::dump_config() {
   ESP_LOGCONFIG(TAG, "Roode:");
   ESP_LOGCONFIG(TAG, "  Sample size: %d", samples);
+  ESP_LOGCONFIG(TAG, "  Path tracking timeout: %lu ms", path_tracking_timeout_ms_);
+  ESP_LOGCONFIG(TAG, "  Adaptive thresholds: %s", adaptive_threshold_enabled_ ? "enabled" : "disabled");
+  if (adaptive_threshold_enabled_) {
+    ESP_LOGCONFIG(TAG, "    Update interval: %lu ms", adaptive_threshold_interval_ms_);
+    ESP_LOGCONFIG(TAG, "    Smoothing alpha: %.2f", adaptive_threshold_alpha_);
+  }
   LOG_UPDATE_INTERVAL(this);
   entry->dump_config();
   exit->dump_config();
@@ -23,7 +29,19 @@ void Roode::setup() {
     return;
   }
 
+  // Initialize timestamps for new features
+  uint32_t now = millis();
+  last_state_change_time_ = now;
+  last_adaptive_update_time_ = now;
+  zones_empty_since_ = now;
+
   calibrate_zones();
+
+  if (adaptive_threshold_enabled_) {
+    ESP_LOGI(SETUP, "Adaptive thresholds enabled (interval: %lu ms, alpha: %.2f)",
+             adaptive_threshold_interval_ms_, adaptive_threshold_alpha_);
+  }
+  ESP_LOGI(SETUP, "Path tracking timeout: %lu ms", path_tracking_timeout_ms_);
 }
 
 void Roode::update() {
@@ -36,17 +54,16 @@ void Roode::update() {
 }
 
 void Roode::loop() {
-  // unsigned long start = micros();
   this->current_zone->readDistance(distanceSensor);
-  // uint16_t samplingDistance = sampling(this->current_zone);
   path_tracking(this->current_zone);
   handle_sensor_status();
+
+  // Adaptive threshold update when both zones are empty
+  if (adaptive_threshold_enabled_) {
+    updateAdaptiveThresholds();
+  }
+
   this->current_zone = this->current_zone == this->entry ? this->exit : this->entry;
-  // ESP_LOGI("Experimental", "Entry zone: %d, exit zone: %d",
-  // entry->getDistance(Roode::distanceSensor, Roode::sensor_status),
-  // exit->getDistance(Roode::distanceSensor, Roode::sensor_status)); unsigned
-  // long end = micros(); unsigned long delta = end - start; ESP_LOGI("Roode
-  // loop", "loop took %lu microseconds", delta);
 }
 
 bool Roode::handle_sensor_status() {
@@ -68,15 +85,37 @@ bool Roode::handle_sensor_status() {
   return check_status;
 }
 
+void Roode::resetPathTracking() {
+  path_track_[0] = 0;
+  path_track_[1] = 0;
+  path_track_[2] = 0;
+  path_track_[3] = 0;
+  path_track_filling_size_ = 1;
+  left_previous_status_ = NOBODY;
+  right_previous_status_ = NOBODY;
+  last_state_change_time_ = millis();
+  ESP_LOGD(TAG, "Path tracking state reset (timeout or completion)");
+}
+
 void Roode::path_tracking(Zone *zone) {
-  static int PathTrack[] = {0, 0, 0, 0};
-  static int PathTrackFillingSize = 1;  // init this to 1 as we start from state
-                                        // where nobody is any of the zones
-  static int LeftPreviousStatus = NOBODY;
-  static int RightPreviousStatus = NOBODY;
   int CurrentZoneStatus = NOBODY;
   int AllZonesCurrentStatus = 0;
   int AnEventHasOccured = 0;
+  uint32_t now = millis();
+
+  // Timeout check: reset state if no activity for too long
+  // This prevents stuck states when someone enters halfway and turns back
+  if (path_track_filling_size_ > 1 && path_tracking_timeout_ms_ > 0) {
+    if ((now - last_state_change_time_) > path_tracking_timeout_ms_) {
+      ESP_LOGW(TAG, "Path tracking timeout after %lu ms - resetting state (incomplete crossing)",
+               now - last_state_change_time_);
+      if (entry_exit_event_sensor != nullptr) {
+        entry_exit_event_sensor->publish_state("Timeout");
+      }
+      resetPathTracking();
+      return;
+    }
+  }
 
   // PathTrack algorithm
   if (zone->getMinDistance() < zone->threshold->max && zone->getMinDistance() > zone->threshold->min) {
@@ -89,7 +128,7 @@ void Roode::path_tracking(Zone *zone) {
 
   // left zone
   if (zone == (this->invert_direction_ ? this->exit : this->entry)) {
-    if (CurrentZoneStatus != LeftPreviousStatus) {
+    if (CurrentZoneStatus != left_previous_status_) {
       // event in left zone has occured
       AnEventHasOccured = 1;
 
@@ -97,49 +136,50 @@ void Roode::path_tracking(Zone *zone) {
         AllZonesCurrentStatus += 1;
       }
       // need to check right zone as well ...
-      if (RightPreviousStatus == SOMEONE) {
+      if (right_previous_status_ == SOMEONE) {
         // event in right zone has occured
         AllZonesCurrentStatus += 2;
       }
       // remember for next time
-      LeftPreviousStatus = CurrentZoneStatus;
+      left_previous_status_ = CurrentZoneStatus;
     }
   }
   // right zone
   else {
-    if (CurrentZoneStatus != RightPreviousStatus) {
+    if (CurrentZoneStatus != right_previous_status_) {
       // event in right zone has occured
       AnEventHasOccured = 1;
       if (CurrentZoneStatus == SOMEONE) {
         AllZonesCurrentStatus += 2;
       }
       // need to check left zone as well ...
-      if (LeftPreviousStatus == SOMEONE) {
+      if (left_previous_status_ == SOMEONE) {
         // event in left zone has occured
         AllZonesCurrentStatus += 1;
       }
       // remember for next time
-      RightPreviousStatus = CurrentZoneStatus;
+      right_previous_status_ = CurrentZoneStatus;
     }
   }
 
   // if an event has occured
   if (AnEventHasOccured) {
+    last_state_change_time_ = now;  // Update timestamp on state change
     ESP_LOGD(TAG, "Event has occured, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
-    if (PathTrackFillingSize < 4) {
-      PathTrackFillingSize++;
+    if (path_track_filling_size_ < 4) {
+      path_track_filling_size_++;
     }
 
     // if nobody anywhere lets check if an exit or entry has happened
-    if ((LeftPreviousStatus == NOBODY) && (RightPreviousStatus == NOBODY)) {
+    if ((left_previous_status_ == NOBODY) && (right_previous_status_ == NOBODY)) {
       ESP_LOGD(TAG, "Nobody anywhere, AllZonesCurrentStatus: %d", AllZonesCurrentStatus);
-      // check exit or entry only if PathTrackFillingSize is 4 (for example 0 1
+      // check exit or entry only if path_track_filling_size_ is 4 (for example 0 1
       // 3 2) and last event is 0 (nobobdy anywhere)
-      if (PathTrackFillingSize == 4) {
-        // check exit or entry. no need to check PathTrack[0] == 0 , it is
+      if (path_track_filling_size_ == 4) {
+        // check exit or entry. no need to check path_track_[0] == 0 , it is
         // always the case
 
-        if ((PathTrack[1] == 1) && (PathTrack[2] == 3) && (PathTrack[3] == 2)) {
+        if ((path_track_[1] == 1) && (path_track_[2] == 3) && (path_track_[3] == 2)) {
           // This an exit
           ESP_LOGI("Roode pathTracking", "Exit detected.");
 
@@ -147,31 +187,35 @@ void Roode::path_tracking(Zone *zone) {
           if (entry_exit_event_sensor != nullptr) {
             entry_exit_event_sensor->publish_state("Exit");
           }
-        } else if ((PathTrack[1] == 2) && (PathTrack[2] == 3) && (PathTrack[3] == 1)) {
+        } else if ((path_track_[1] == 2) && (path_track_[2] == 3) && (path_track_[3] == 1)) {
           // This an entry
           ESP_LOGI("Roode pathTracking", "Entry detected.");
           this->updateCounter(1);
           if (entry_exit_event_sensor != nullptr) {
             entry_exit_event_sensor->publish_state("Entry");
           }
+        } else {
+          // Incomplete or invalid sequence - log for debugging
+          ESP_LOGD(TAG, "Invalid path sequence: [%d, %d, %d, %d]",
+                   path_track_[0], path_track_[1], path_track_[2], path_track_[3]);
         }
       }
 
-      PathTrackFillingSize = 1;
+      resetPathTracking();
     } else {
-      // update PathTrack
-      // example of PathTrack update
+      // update path_track_
+      // example of path_track_ update
       // 0
       // 0 1
       // 0 1 3
       // 0 1 3 1
       // 0 1 3 3
       // 0 1 3 2 ==> if next is 0 : check if exit
-      PathTrack[PathTrackFillingSize - 1] = AllZonesCurrentStatus;
+      path_track_[path_track_filling_size_ - 1] = AllZonesCurrentStatus;
     }
   }
   if (presence_sensor != nullptr) {
-    if (CurrentZoneStatus == NOBODY && LeftPreviousStatus == NOBODY && RightPreviousStatus == NOBODY) {
+    if (CurrentZoneStatus == NOBODY && left_previous_status_ == NOBODY && right_previous_status_ == NOBODY) {
       // nobody is in the sensing area
       presence_sensor->publish_state(false);
     }
@@ -188,6 +232,50 @@ void Roode::updateCounter(int delta) {
   call.perform();
 }
 void Roode::recalibration() { calibrate_zones(); }
+
+void Roode::updateAdaptiveThresholds() {
+  uint32_t now = millis();
+  bool both_zones_empty = !entry->isOccupied() && !exit->isOccupied();
+
+  if (both_zones_empty) {
+    // Track when zones became empty
+    if (zones_were_occupied_) {
+      zones_empty_since_ = now;
+      zones_were_occupied_ = false;
+    }
+
+    // Only update if zones have been empty for at least the update interval
+    // This ensures we're capturing true idle readings, not brief gaps during crossings
+    uint32_t empty_duration = now - zones_empty_since_;
+    if (empty_duration >= adaptive_threshold_interval_ms_) {
+      // Check if enough time has passed since last update
+      if ((now - last_adaptive_update_time_) >= adaptive_threshold_interval_ms_) {
+        ESP_LOGD(TAG, "Updating adaptive thresholds (zones empty for %lu ms)", empty_duration);
+
+        entry->updateAdaptiveThreshold(adaptive_threshold_alpha_);
+        exit->updateAdaptiveThreshold(adaptive_threshold_alpha_);
+
+        last_adaptive_update_time_ = now;
+
+        // Publish updated threshold values if sensors are configured
+        if (max_threshold_entry_sensor != nullptr) {
+          max_threshold_entry_sensor->publish_state(entry->threshold->max);
+        }
+        if (max_threshold_exit_sensor != nullptr) {
+          max_threshold_exit_sensor->publish_state(exit->threshold->max);
+        }
+        if (min_threshold_entry_sensor != nullptr) {
+          min_threshold_entry_sensor->publish_state(entry->threshold->min);
+        }
+        if (min_threshold_exit_sensor != nullptr) {
+          min_threshold_exit_sensor->publish_state(exit->threshold->min);
+        }
+      }
+    }
+  } else {
+    zones_were_occupied_ = true;
+  }
+}
 
 const RangingMode *Roode::determine_raning_mode(uint16_t average_entry_zone_distance,
                                                 uint16_t average_exit_zone_distance) {

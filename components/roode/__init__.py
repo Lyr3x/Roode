@@ -31,6 +31,13 @@ CONF_ROI = "roi"
 CONF_SAMPLING = "sampling"
 CONF_ZONES = "zones"
 
+# New configuration options for high-priority features
+CONF_PATH_TRACKING_TIMEOUT = "path_tracking_timeout"
+CONF_ADAPTIVE_THRESHOLD = "adaptive_threshold"
+CONF_ENABLED = "enabled"
+CONF_UPDATE_INTERVAL = "update_interval"
+CONF_ALPHA = "alpha"
+
 Orientation = roode_ns.enum("Orientation")
 ORIENTATION_VALUES = {
     "parallel": Orientation.Parallel,
@@ -66,6 +73,15 @@ ZONE_SCHEMA = NullableSchema(
     }
 )
 
+# Adaptive threshold configuration schema
+ADAPTIVE_THRESHOLD_SCHEMA = NullableSchema(
+    {
+        cv.Optional(CONF_ENABLED, default=True): cv.boolean,
+        cv.Optional(CONF_UPDATE_INTERVAL, default="60s"): cv.positive_time_period_milliseconds,
+        cv.Optional(CONF_ALPHA, default=0.05): cv.float_range(min=0.01, max=0.5),
+    }
+)
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(Roode),
@@ -81,6 +97,11 @@ CONFIG_SCHEMA = cv.Schema(
                 cv.Optional(CONF_EXIT_ZONE, default={}): ZONE_SCHEMA,
             }
         ),
+        # Path tracking timeout: resets state machine if no activity within this period
+        # Prevents stuck states when someone enters halfway and turns back
+        cv.Optional(CONF_PATH_TRACKING_TIMEOUT, default="3s"): cv.positive_time_period_milliseconds,
+        # Adaptive threshold: continuously adjusts idle baseline to handle environmental drift
+        cv.Optional(CONF_ADAPTIVE_THRESHOLD, default={}): ADAPTIVE_THRESHOLD_SCHEMA,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -97,6 +118,15 @@ async def to_code(config: Dict):
     cg.add(roode.set_invert_direction(config[CONF_ZONES][CONF_INVERT]))
     setup_zone(CONF_ENTRY_ZONE, config, roode)
     setup_zone(CONF_EXIT_ZONE, config, roode)
+
+    # Path tracking timeout configuration
+    cg.add(roode.set_path_tracking_timeout(config[CONF_PATH_TRACKING_TIMEOUT]))
+
+    # Adaptive threshold configuration
+    adaptive_config = config[CONF_ADAPTIVE_THRESHOLD]
+    cg.add(roode.set_adaptive_threshold_enabled(adaptive_config[CONF_ENABLED]))
+    cg.add(roode.set_adaptive_threshold_update_interval(adaptive_config[CONF_UPDATE_INTERVAL]))
+    cg.add(roode.set_adaptive_threshold_alpha(adaptive_config[CONF_ALPHA]))
 
 
 def setup_zone(name: str, config: Dict, roode: cg.Pvariable):

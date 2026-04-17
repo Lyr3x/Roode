@@ -18,7 +18,7 @@ namespace esphome {
 namespace roode {
 #define NOBODY 0
 #define SOMEONE 1
-#define VERSION "1.5.1"
+#define VERSION "1.6.0"
 static const char *const TAG = "Roode";
 static const char *const SETUP = "Setup";
 static const char *const CALIBRATION = "Sensor Calibration";
@@ -101,6 +101,12 @@ class Roode : public PollingComponent {
   Zone *entry = new Zone(0);
   Zone *exit = new Zone(1);
 
+  // Configuration setters for new features
+  void set_path_tracking_timeout(uint32_t timeout_ms) { path_tracking_timeout_ms_ = timeout_ms; }
+  void set_adaptive_threshold_enabled(bool enabled) { adaptive_threshold_enabled_ = enabled; }
+  void set_adaptive_threshold_update_interval(uint32_t interval_ms) { adaptive_threshold_interval_ms_ = interval_ms; }
+  void set_adaptive_threshold_alpha(float alpha) { adaptive_threshold_alpha_ = alpha; }
+
  protected:
   TofSensor *distanceSensor;
   Zone *current_zone = entry;
@@ -137,6 +143,29 @@ class Roode : public PollingComponent {
   int medium_distance_threshold = 2000;
   int medium_long_distance_threshold = 2700;
   int long_distance_threshold = 3400;
+
+  // Path tracking state (moved from static variables for better encapsulation)
+  int path_track_[4] = {0, 0, 0, 0};
+  int path_track_filling_size_ = 1;
+  int left_previous_status_ = NOBODY;
+  int right_previous_status_ = NOBODY;
+  uint32_t last_state_change_time_ = 0;
+
+  // Timeout configuration: resets path tracking if no state change within timeout
+  // Prevents stuck states when someone enters halfway and turns back
+  uint32_t path_tracking_timeout_ms_ = 3000;  // Default 3 seconds
+
+  // Adaptive threshold configuration: continuously adjusts idle baseline
+  // to handle environmental drift (temperature, lighting changes)
+  bool adaptive_threshold_enabled_ = true;
+  uint32_t adaptive_threshold_interval_ms_ = 60000;  // Update every 60 seconds
+  float adaptive_threshold_alpha_ = 0.05f;  // EMA smoothing factor (0.0-1.0)
+  uint32_t last_adaptive_update_time_ = 0;
+  uint32_t zones_empty_since_ = 0;
+  bool zones_were_occupied_ = false;
+
+  void resetPathTracking();
+  void updateAdaptiveThresholds();
 };
 
 }  // namespace roode
